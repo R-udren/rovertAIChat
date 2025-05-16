@@ -1,7 +1,8 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-</script>
+<script setup></script>
 
 <template>
-  <RouterView />
+  <div class="bg-zinc-900 min-h-screen">
+    <AppHeader />
+    <RouterView />
+  </div>
 </template>
