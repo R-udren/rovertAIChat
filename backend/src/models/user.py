@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, String
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import relationship
 
 from src.database import Base
 
@@ -19,6 +20,14 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
 
+    # Relationship with UserSettings
+    settings = relationship(
+        "UserSettings",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email}, role={self.role}, created_at={self.created_at}, last_login={self.last_login}, is_active={self.is_active})>"
 
@@ -27,5 +36,4 @@ class User(Base):
 
     def get_role(self) -> str:
         role = self.role
-        print(f"Role: {role}, Type: {type(role)}")
-        return role.__str__()
+        return str(role)

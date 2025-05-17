@@ -3,10 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from src.core.logger import app_logger
 from src.database import Base, engine, get_db
-from src.routers import auth, user
+from src.routers import auth, user, user_settings
 
 # Create database tables
+app_logger.info("Creating database tables")
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -25,8 +27,10 @@ app.add_middleware(
 )
 
 # Include routers
+app_logger.info("Registering API routers")
 app.include_router(auth.router)
 app.include_router(user.router)
+app.include_router(user_settings.router)
 
 
 @app.get("/health")
@@ -46,7 +50,9 @@ async def db_health_check(db: Session = Depends(get_db)):
         # Execute a simple query
         db.execute(text("SELECT 1"))
         db_status = "reachable"
+        app_logger.debug("Database is reachable")
     except Exception as e:
         db_status = f"unreachable: {str(e)}"
+        app_logger.error(f"Database connection error: {str(e)}")
 
     return {"db_status": db_status}

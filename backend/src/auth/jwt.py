@@ -6,6 +6,8 @@ import bcrypt
 from dotenv import load_dotenv
 from jose import jwt
 
+from src.core.logger import app_logger
+
 load_dotenv()
 
 # Configuration
@@ -14,6 +16,11 @@ REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY", "myrefreshsecretkey")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+
+
+app_logger.debug(f"JWT algorithm: {ALGORITHM}")
+app_logger.debug(f"Access token expiry: {ACCESS_TOKEN_EXPIRE_MINUTES} minutes")
+app_logger.debug(f"Refresh token expiry: {REFRESH_TOKEN_EXPIRE_DAYS} days")
 
 
 def verify_password(plain_password, hashed_password):
@@ -27,7 +34,7 @@ def verify_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password, hashed_password)
 
 
-def get_password_hash(password):
+def get_password_hash(password) -> str:
     """Generate a password hash with salt."""
     # Convert string to bytes if needed
     if isinstance(password, str):

@@ -4,7 +4,8 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 from src.auth.jwt import create_access_token, create_refresh_token, decode_token
-from src.auth.service import authenticate_user, update_last_login
+from src.auth.service import authenticate_user, get_user_by_id, update_last_login
+from src.core.logger import app_logger
 from src.database import get_db
 from src.schemas.user import RefreshToken, Token, UserCreate, UserResponse
 from src.services.user import create_user
@@ -17,7 +18,9 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 )
 async def register(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
+    app_logger.info(f"Registering new user with username: {user.username}")
     db_user = create_user(db, user)
+    app_logger.info(f"User registered successfully: {user.username}")
     return db_user
 
 
@@ -38,8 +41,10 @@ async def login(
     Raises:
         HTTPException: If authentication fails
     """
+    app_logger.info(f"Login attempt for user: {form_data.username}")
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
+        app_logger.warning(f"Login failed for user: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -47,18 +52,19 @@ async def login(
         )
 
     if user.is_active is False:
+        app_logger.warning(f"Login attempt for inactive user: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
-        )
-
-    # Update last login time
+        )  # Update last login time
     update_last_login(db, user)
 
     # Create tokens
+    app_logger.debug(f"Creating JWT tokens for user: {user.username}")
     access_token = create_access_token(
         data={"sub": str(user.id), "username": user.username, "role": user.role}
     )
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    app_logger.info(f"User {user.username} logged in successfully")
 
     return {
         "access_token": access_token,
@@ -84,6 +90,7 @@ async def refresh_token(
     Raises:
         HTTPException: If refresh token is invalid
     """
+    app_logger.debug("Token refresh requested")
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -96,21 +103,28 @@ async def refresh_token(
         token_type = payload.get("type")
 
         if user_id is None or token_type != "refresh":
+            app_logger.warning(
+                "Invalid refresh token: missing sub claim or incorrect type"
+            )
             raise credentials_exception
 
-        # Get user from database (you could add more validation here)
-        from src.auth.service import get_user_by_id
+        # Get user from database (you could add more validation here)        from src.auth.service import get_user_by_id
 
         user = get_user_by_id(db, user_id)
 
         if user is None or not user.get_active():
+            app_logger.warning(
+                f"Invalid refresh token: user not found or inactive - {user_id}"
+            )
             raise credentials_exception
 
         # Create new tokens
+        app_logger.debug(f"Creating new tokens for user: {user.username}")
         access_token = create_access_token(
             data={"sub": str(user.id), "username": user.username, "role": user.role}
         )
         refresh_token = create_refresh_token(data={"sub": str(user.id)})
+        app_logger.info(f"Tokens refreshed successfully for user: {user.username}")
 
         return {
             "access_token": access_token,
@@ -118,5 +132,6 @@ async def refresh_token(
             "token_type": "bearer",
         }
 
-    except JWTError:
+    except JWTError as e:
+        app_logger.error(f"JWT error during token refresh: {str(e)}")
         raise credentials_exception
