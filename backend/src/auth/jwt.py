@@ -1,26 +1,16 @@
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 import bcrypt
-from dotenv import load_dotenv
 from jose import jwt
 
-from src.core.logger import app_logger
-
-load_dotenv()
-
-# Configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "mysupersecretkey")
-REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY", "myrefreshsecretkey")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
-
-
-app_logger.debug(f"JWT algorithm: {ALGORITHM}")
-app_logger.debug(f"Access token expiry: {ACCESS_TOKEN_EXPIRE_MINUTES} minutes")
-app_logger.debug(f"Refresh token expiry: {REFRESH_TOKEN_EXPIRE_DAYS} days")
+from src.auth.config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    ALGORITHM,
+    REFRESH_SECRET_KEY,
+    REFRESH_TOKEN_EXPIRE_DAYS,
+    SECRET_KEY,
+)
 
 
 def verify_password(plain_password, hashed_password):
