@@ -1,10 +1,11 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from src.auth.service import get_current_active_user
 from src.core.logger import app_logger
+from src.core.rate_limiter import limiter
 from src.database import get_db
 from src.models.user import User
 from src.schemas.user_settings import (
@@ -23,7 +24,9 @@ router = APIRouter(prefix="/api/user-settings", tags=["user-settings"])
 
 
 @router.get("/me", response_model=UserSettingsResponse)
+@limiter.limit("30/minute")
 async def get_my_settings(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
@@ -45,7 +48,9 @@ async def get_my_settings(
 
 
 @router.put("/me", response_model=UserSettingsResponse)
+@limiter.limit("15/minute")
 async def update_my_settings(
+    request: Request,
     settings_update: UserSettingsUpdate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),

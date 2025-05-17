@@ -1,10 +1,11 @@
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from src.auth.service import get_current_active_user
+from src.core.rate_limiter import limiter
 from src.database import get_db
 from src.models.user import User
 from src.schemas.user import UserResponse, UserUpdate
@@ -20,13 +21,18 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 
 
 @router.get("/me", response_model=UserResponse)
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
+@limiter.limit("30/minute")
+async def read_users_me(
+    request: Request, current_user: User = Depends(get_current_active_user)
+):
     """Get the currently authenticated user."""
     return current_user
 
 
 @router.put("/me", response_model=UserResponse)
+@limiter.limit("15/minute")
 async def update_user_me(
+    request: Request,
     user_update: UserUpdate,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db),

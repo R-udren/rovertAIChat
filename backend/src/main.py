@@ -6,6 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from src.core.logger import app_logger
+from src.core.rate_limiter import setup_limiter
 from src.database import Base, engine, get_db
 from src.routers import auth, user, user_settings
 
@@ -14,10 +15,13 @@ app_logger.info("Creating database tables")
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="rovertChat API",
-    description="Backend API for RovertChat application",
+    title="rovertAIChat API",
+    description="Backend API for rovertAIChat application",
     version="0.1.0",
 )
+
+# Setup rate limiter
+setup_limiter(app)
 
 # CORS middleware
 app.add_middleware(

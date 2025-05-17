@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ from src.auth.service import (
     update_last_login,
 )
 from src.core.logger import app_logger
+from src.core.rate_limiter import limiter
 from src.database import get_db
 from src.models.user import User
 from src.schemas.user import RefreshToken, Token, UserCreate, UserResponse
@@ -23,7 +24,8 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
-async def register(user: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+async def register(request: Request, user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user.
 
     Returns:
@@ -36,8 +38,11 @@ async def register(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit("10/minute")
 async def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
 ):
     """
     Authenticate and login a user.
@@ -82,8 +87,9 @@ async def login(
 
 
 @router.post("/refresh", response_model=Token)
+@limiter.limit("10/minute")
 async def refresh_token(
-    refresh_token_data: RefreshToken, db: Session = Depends(get_db)
+    request: Request, refresh_token_data: RefreshToken, db: Session = Depends(get_db)
 ):
     """
     Refresh an access token using a refresh token.
@@ -147,8 +153,11 @@ async def refresh_token(
 
 
 @router.delete("/logout")
+@limiter.limit("10/minute")
 async def logout(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
     Logout a user by invalidating their tokens.
