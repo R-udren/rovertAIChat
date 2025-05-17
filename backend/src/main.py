@@ -1,6 +1,32 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
-app = FastAPI()
+from src.database import Base, engine, get_db
+from src.routers import auth, user
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="rovertChat API",
+    description="Backend API for RovertChat application",
+    version="0.1.0",
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(user.router)
 
 
 @app.get("/health")
@@ -12,9 +38,15 @@ async def health_check():
 
 
 @app.get("/health/db")
-async def db_health_check():
+async def db_health_check(db: Session = Depends(get_db)):
     """
     Health check endpoint to verify if the database is reachable.
     """
-    db_status = "reachable"  # TODO: Implement actual database connection check
+    try:
+        # Execute a simple query
+        db.execute(text("SELECT 1"))
+        db_status = "reachable"
+    except Exception as e:
+        db_status = f"unreachable: {str(e)}"
+
     return {"db_status": db_status}

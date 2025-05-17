@@ -5,6 +5,10 @@ description = "FastAPI backend for the AI Chat project"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+    "bcrypt>=4.3.0",
     "fastapi[standard]>=0.115.12",
+    "psycopg2-binary>=2.9.10",
     "pydantic>=2.11.4",
+    "python-jose>=3.4.0",
+    "sqlalchemy>=2.0.41",
 ]
