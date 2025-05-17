@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 from typing import Optional
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
-
 from src.auth.jwt import decode_token, verify_password
 from src.core.logger import app_logger
 from src.database import get_db
@@ -51,7 +51,9 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
 
     try:
         app_logger.debug(f"Looking up user by ID: {user_id}")
-        return db.query(User).filter(User.id == user_id).first()
+        # Convert string to UUID
+        uuid_id = UUID(user_id)
+        return db.query(User).filter(User.id == uuid_id).first()
     except Exception as e:
         app_logger.error(f"Error getting user by ID: {str(e)}")
         return None

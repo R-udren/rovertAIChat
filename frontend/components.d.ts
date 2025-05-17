@@ -9,7 +9,11 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppHeader: typeof import('./src/components/AppHeader.vue')['default']
+    ChatMessage: typeof import('./src/components/ChatMessage.vue')['default']
+    LoadingSpinner: typeof import('./src/components/LoadingSpinner.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ToastContainer: typeof import('./src/components/ToastContainer.vue')['default']
+    ToastNotification: typeof import('./src/components/ToastNotification.vue')['default']
   }
 }
