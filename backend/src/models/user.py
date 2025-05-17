@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, String
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -19,6 +19,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.now)
     last_login = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
+    token_version = Column(Integer, default=1, nullable=False)
 
     # Relationship with UserSettings
     settings = relationship(

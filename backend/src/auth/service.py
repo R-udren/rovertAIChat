@@ -57,11 +57,20 @@ def update_last_login(db: Session, user: User) -> None:
     app_logger.debug(f"Last login updated for user: {user.username}")
 
 
+def increment_token_version(db: Session, user: User) -> None:
+    """Increment the user's token version to invalidate existing tokens."""
+    app_logger.debug(f"Incrementing token version for user: {user.username}")
+    setattr(user, "token_version", user.token_version + 1)
+    db.commit()
+    app_logger.debug(f"Token version incremented for user: {user.username}")
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ) -> User:
     """Get the current authenticated user."""
     app_logger.debug("Authenticating request with JWT token")
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -71,6 +80,7 @@ def get_current_user(
     try:
         payload = decode_token(token)
         user_id = payload.get("sub")
+        token_version = payload.get("token_version")
         if user_id is None:
             app_logger.warning("Token missing 'sub' claim")
             raise credentials_exception
@@ -87,6 +97,10 @@ def get_current_user(
     if user.is_active is False:
         app_logger.warning(f"Attempt to authenticate with inactive user: {user.id}")
         raise HTTPException(status_code=400, detail="Inactive user")
+        # Validate token version - using string comparison to avoid type issues
+    if token_version is None or str(token_version) != str(user.token_version):
+        app_logger.warning(f"Token version mismatch for user: {user.id}")
+        raise credentials_exception
 
     app_logger.debug(f"User authenticated via token: {user.username}")
     return user

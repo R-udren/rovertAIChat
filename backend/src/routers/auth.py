@@ -4,9 +4,16 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 from src.auth.jwt import create_access_token, create_refresh_token, decode_token
-from src.auth.service import authenticate_user, get_user_by_id, update_last_login
+from src.auth.service import (
+    authenticate_user,
+    get_current_user,
+    get_user_by_id,
+    increment_token_version,
+    update_last_login,
+)
 from src.core.logger import app_logger
 from src.database import get_db
+from src.models.user import User
 from src.schemas.user import RefreshToken, Token, UserCreate, UserResponse
 from src.services.user import create_user
 
@@ -17,7 +24,11 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
 async def register(user: UserCreate, db: Session = Depends(get_db)):
-    """Register a new user."""
+    """Register a new user.
+
+    Returns:
+        User object with the created user details
+    """
     app_logger.info(f"Registering new user with username: {user.username}")
     db_user = create_user(db, user)
     app_logger.info(f"User registered successfully: {user.username}")
@@ -30,10 +41,6 @@ async def login(
 ):
     """
     Authenticate and login a user.
-
-    Args:
-        form_data: OAuth2 password request form
-        db: Database session
 
     Returns:
         JWT access and refresh tokens
@@ -56,14 +63,15 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )  # Update last login time
-    update_last_login(db, user)
-
-    # Create tokens
+    update_last_login(db, user)  # Create tokens
     app_logger.debug(f"Creating JWT tokens for user: {user.username}")
     access_token = create_access_token(
-        data={"sub": str(user.id), "username": user.username, "role": user.role}
+        data={"sub": str(user.id), "username": user.username, "role": user.role},
+        token_version=user.token_version,
     )
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    refresh_token = create_refresh_token(
+        data={"sub": str(user.id)}, token_version=user.token_version
+    )
     app_logger.info(f"User {user.username} logged in successfully")
 
     return {
@@ -80,10 +88,6 @@ async def refresh_token(
     """
     Refresh an access token using a refresh token.
 
-    Args:
-        refresh_token_data: The refresh token
-        db: Database session
-
     Returns:
         New JWT access and refresh tokens
 
@@ -96,11 +100,11 @@ async def refresh_token(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-
     try:
         payload = decode_token(refresh_token_data.refresh_token, is_refresh=True)
         user_id = payload.get("sub")
         token_type = payload.get("type")
+        token_version = payload.get("token_version")
 
         if user_id is None or token_type != "refresh":
             app_logger.warning(
@@ -108,8 +112,7 @@ async def refresh_token(
             )
             raise credentials_exception
 
-        # Get user from database (you could add more validation here)        from src.auth.service import get_user_by_id
-
+        # Get user from database
         user = get_user_by_id(db, user_id)
 
         if user is None or not user.get_active():
@@ -118,12 +121,18 @@ async def refresh_token(
             )
             raise credentials_exception
 
-        # Create new tokens
+        # Validate token version
+        if token_version is None or str(token_version) != str(user.token_version):
+            app_logger.warning(f"Token version mismatch on refresh for user: {user.id}")
+            raise credentials_exception  # Create new tokens
         app_logger.debug(f"Creating new tokens for user: {user.username}")
         access_token = create_access_token(
-            data={"sub": str(user.id), "username": user.username, "role": user.role}
+            data={"sub": str(user.id), "username": user.username, "role": user.role},
+            token_version=user.token_version,
         )
-        refresh_token = create_refresh_token(data={"sub": str(user.id)})
+        refresh_token = create_refresh_token(
+            data={"sub": str(user.id)}, token_version=user.token_version
+        )
         app_logger.info(f"Tokens refreshed successfully for user: {user.username}")
 
         return {
@@ -135,3 +144,25 @@ async def refresh_token(
     except JWTError as e:
         app_logger.error(f"JWT error during token refresh: {str(e)}")
         raise credentials_exception
+
+
+@router.delete("/logout")
+async def logout(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    """
+    Logout a user by invalidating their tokens.
+
+    This endpoint increments the user's token version, which invalidates
+    all previously issued tokens for this user.
+
+    Returns:
+        Confirmation message
+    """
+    app_logger.info(f"Logout request for user: {current_user.username}")
+
+    # Increment the token version to invalidate all existing tokens
+    increment_token_version(db, current_user)
+
+    app_logger.info(f"User logged out successfully: {current_user.username}")
+    return {"detail": "Successfully logged out"}

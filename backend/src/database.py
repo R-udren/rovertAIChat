@@ -22,5 +22,4 @@ def get_db():
     try:
         yield db
     finally:
-        app_logger.debug("Closing database connection")
         db.close()

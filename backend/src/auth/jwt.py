@@ -38,7 +38,9 @@ def get_password_hash(password) -> str:
 
 
 def create_access_token(
-    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+    data: Dict[str, Any],
+    expires_delta: Optional[timedelta] = None,
+    token_version: Any = 1,
 ) -> str:
     """
     Create a new JWT access token.
@@ -46,6 +48,7 @@ def create_access_token(
     Args:
         data: The data to encode in the token.
         expires_delta: Optional expiration time.
+        token_version: The user's current token version.
 
     Returns:
         Encoded JWT token as a string.
@@ -54,13 +57,18 @@ def create_access_token(
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    to_encode.update({"exp": expire, "type": "access"})
+    # Ensure token version is an integer
+    if hasattr(token_version, "__int__"):
+        token_version = int(token_version)
+    to_encode.update({"exp": expire, "type": "access", "token_version": token_version})
 
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def create_refresh_token(
-    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+    data: Dict[str, Any],
+    expires_delta: Optional[timedelta] = None,
+    token_version: Any = 1,
 ) -> str:
     """
     Create a new JWT refresh token.
@@ -68,6 +76,7 @@ def create_refresh_token(
     Args:
         data: The data to encode in the token.
         expires_delta: Optional expiration time.
+        token_version: The user's current token version.
 
     Returns:
         Encoded JWT refresh token as a string.
@@ -76,7 +85,10 @@ def create_refresh_token(
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     )
-    to_encode.update({"exp": expire, "type": "refresh"})
+    # Ensure token version is an integer
+    if hasattr(token_version, "__int__"):
+        token_version = int(token_version)
+    to_encode.update({"exp": expire, "type": "refresh", "token_version": token_version})
 
     return jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
 
