@@ -17,20 +17,44 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 def get_user_by_username(db: Session, username: str) -> Optional[User]:
     """Get a user by username."""
-    app_logger.debug(f"Looking up user by username: {username}")
-    return db.query(User).filter(User.username == username).first()
+    if not username:
+        app_logger.error("Empty username provided")
+        return None
+
+    try:
+        app_logger.debug(f"Looking up user by username: {username}")
+        return db.query(User).filter(User.username == username).first()
+    except Exception as e:
+        app_logger.error(f"Error getting user by username: {str(e)}")
+        return None
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
     """Get a user by email."""
-    app_logger.debug(f"Looking up user by email: {email}")
-    return db.query(User).filter(User.email == email).first()
+    if not email:
+        app_logger.error("Empty email provided")
+        return None
+
+    try:
+        app_logger.debug(f"Looking up user by email: {email}")
+        return db.query(User).filter(User.email == email).first()
+    except Exception as e:
+        app_logger.error(f"Error getting user by email: {str(e)}")
+        return None
 
 
 def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
     """Get a user by ID."""
-    app_logger.debug(f"Looking up user by ID: {user_id}")
-    return db.query(User).filter(User.id == user_id).first()
+    if not user_id:
+        app_logger.error("Empty user_id provided")
+        return None
+
+    try:
+        app_logger.debug(f"Looking up user by ID: {user_id}")
+        return db.query(User).filter(User.id == user_id).first()
+    except Exception as e:
+        app_logger.error(f"Error getting user by ID: {str(e)}")
+        return None
 
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:

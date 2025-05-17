@@ -12,7 +12,7 @@ class UserRole(str, Enum):
 
 
 class UserBase(BaseModel):
-    username: str = Field(..., min_length=3, max_length=100)
+    username: str = Field(..., min_length=4, max_length=64)
     email: EmailStr
 
 
@@ -21,7 +21,7 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=100)
+    username: Optional[str] = Field(None, min_length=4, max_length=64)
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = None
 

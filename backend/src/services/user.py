@@ -45,7 +45,9 @@ def create_user(db: Session, user: UserCreate) -> User:
         app_logger.warning(f"User creation failed: Email already exists - {user.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
-        )  # Create user
+        )
+
+    # Create user
     hashed_password = get_password_hash(user.password)
     db_user = User(
         id=uuid.uuid4(),
@@ -54,6 +56,7 @@ def create_user(db: Session, user: UserCreate) -> User:
         password_hash=hashed_password,
     )
     app_logger.debug(f"Adding user to database: {user.username}")
+
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
