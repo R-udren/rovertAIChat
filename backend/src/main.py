@@ -1,15 +1,20 @@
-from typing import Union
-
 from fastapi import FastAPI
 
 app = FastAPI()
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint to verify if the service is running.
+    """
+    return {"status": "healthy"}
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/health/db")
+async def db_health_check():
+    """
+    Health check endpoint to verify if the database is reachable.
+    """
+    db_status = "reachable"  # TODO: Implement actual database connection check
+    return {"db_status": db_status}

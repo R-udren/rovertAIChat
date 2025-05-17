@@ -17,6 +17,26 @@ This document outlines the database schema for the rovertChat application, inclu
 | last_login    | TIMESTAMP    | Last login time             |
 | is_active     | BOOLEAN      | Account status              |
 
+### Roles
+
+| Column      | Type         | Description              |
+| ----------- | ------------ | ------------------------ |
+| id          | UUID         | Primary key              |
+| name        | VARCHAR(50)  | Unique role name         |
+| description | VARCHAR(255) | Role description         |
+| is_active   | BOOLEAN      | Role availability status |
+
+### UserRoles
+
+| Column     | Type      | Description            |
+| ---------- | --------- | ---------------------- |
+| id         | UUID      | Primary key            |
+| user_id    | UUID      | Foreign key to Users   |
+| role_id    | UUID      | Foreign key to Roles   |
+| granted_by | UUID      | Admin who granted role |
+| granted_at | TIMESTAMP | When role was granted  |
+| is_active  | BOOLEAN   | Role assignment status |
+
 ### ModelProviders
 
 | Column     | Type         | Description                              |
@@ -96,6 +116,8 @@ erDiagram
     Users ||--|| UserSettings : "has"
     Users ||--o{ UserModelAccess : "has access to"
     Users ||--o{ ModelProviders : "creates"
+    Users ||--o{ UserRoles : "has"
+    Roles ||--o{ UserRoles : "assigned to"
 
     ModelProviders ||--o{ Models : "provides"
 
@@ -112,6 +134,22 @@ erDiagram
         enum role
         timestamp created_at
         timestamp last_login
+        boolean is_active
+    }
+
+    Roles {
+        UUID id PK
+        string name
+        string description
+        boolean is_active
+    }
+
+    UserRoles {
+        UUID id PK
+        UUID user_id FK
+        UUID role_id FK
+        UUID granted_by FK
+        timestamp granted_at
         boolean is_active
     }
 
