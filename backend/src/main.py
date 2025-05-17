@@ -1,6 +1,6 @@
 import time
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -37,6 +37,16 @@ app_logger.info("Registering API routers")
 app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(user_settings.router)
+
+
+@app.get("/")
+async def root(request: Request):
+    """
+    Root endpoint to verify if the service is running.
+    """
+    return {
+        "headers": dict(request.headers),
+    }
 
 
 @app.get("/health")

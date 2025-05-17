@@ -9,9 +9,19 @@ def get_remote_address(request: Request) -> str:
     """Get the remote address of the request"""
     # Use the X-Forwarded-For header if available, otherwise use the client IP
     app_logger.debug(f"Request headers: {request.headers}, client: {request.client}")
+
+    # Check for X-Real-IP first (set by nginx)
+    x_real_ip = request.headers.get("X-Real-IP")
+    if x_real_ip:
+        return x_real_ip.strip()
+
+    # Then check X-Forwarded-For
     x_forwarded_for = request.headers.get("X-Forwarded-For")
     if x_forwarded_for:
+        # Get the leftmost IP (original client)
         return x_forwarded_for.split(",")[0].strip()
+
+    # Fallback to socket IP
     return request.client.host if request.client else "127.0.0.1"
 
 
