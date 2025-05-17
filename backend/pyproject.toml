@@ -1,0 +1,9 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI backend for the AI Chat project"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+]
