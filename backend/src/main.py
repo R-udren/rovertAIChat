@@ -1,3 +1,5 @@
+import time
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -48,9 +50,12 @@ async def db_health_check(db: Session = Depends(get_db)):
     """
     try:
         # Execute a simple query
+        start_time = time.time()
         db.execute(text("SELECT 1"))
+        end_time = time.time()
+        latency_ms = (end_time - start_time) * 1000
         db_status = "reachable"
-        app_logger.debug("Database is reachable")
+        app_logger.debug(f"Database is reachable - latency: {latency_ms:.2f}ms")
     except Exception as e:
         db_status = f"unreachable: {str(e)}"
         app_logger.error(f"Database connection error: {str(e)}")
