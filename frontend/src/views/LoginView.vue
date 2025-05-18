@@ -1,7 +1,8 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
-import { onMounted, ref } from 'vue'
+import { loginSchema, validateField, validateForm } from '@/utils/validation'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
@@ -14,8 +15,39 @@ const form = ref({
   password: '',
 })
 
-const formError = ref('')
+const formErrors = ref({
+  username: '',
+  password: '',
+})
+
+const formValid = ref(false)
 const isSubmitting = ref(false)
+
+// Add watchers for real-time validation
+watch(
+  () => form.value.username,
+  (newValue) => {
+    const result = validateField(loginSchema, 'username', newValue)
+    formErrors.value.username = result.valid ? '' : result.message
+    validateFormData()
+  },
+)
+
+watch(
+  () => form.value.password,
+  (newValue) => {
+    const result = validateField(loginSchema, 'password', newValue)
+    formErrors.value.password = result.valid ? '' : result.message
+    validateFormData()
+  },
+)
+
+// Validate the entire form
+const validateFormData = () => {
+  const result = validateForm(loginSchema, form.value)
+  formValid.value = result.valid
+  return result
+}
 
 onMounted(() => {
   // Check if user was redirected after registration
@@ -24,9 +56,16 @@ onMounted(() => {
   }
 })
 
+const formError = ref('')
+
 const handleLogin = async () => {
-  if (!form.value.username || !form.value.password) {
-    formError.value = 'Please enter both username and password'
+  // Validate the form using Zod
+  const validation = validateFormData()
+
+  if (!validation.valid) {
+    // Show the first error message
+    const firstErrorField = Object.keys(validation.errors)[0]
+    formError.value = validation.errors[firstErrorField]
     return
   }
 
@@ -70,10 +109,20 @@ const handleLogin = async () => {
             id="username"
             v-model="form.username"
             type="text"
-            class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            :class="[
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
+              formErrors.username
+                ? 'border-red-500 bg-red-500/10'
+                : form.username
+                  ? 'border-green-500 bg-green-500/10'
+                  : 'border-zinc-700 bg-zinc-900',
+            ]"
             autocomplete="username"
             required
           />
+          <p v-if="formErrors.username" class="mt-1 text-xs text-red-400">
+            {{ formErrors.username }}
+          </p>
         </div>
 
         <div>
@@ -84,16 +133,26 @@ const handleLogin = async () => {
             id="password"
             v-model="form.password"
             type="password"
-            class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            :class="[
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
+              formErrors.password
+                ? 'border-red-500 bg-red-500/10'
+                : form.password
+                  ? 'border-green-500 bg-green-500/10'
+                  : 'border-zinc-700 bg-zinc-900',
+            ]"
             autocomplete="current-password"
             required
           />
+          <p v-if="formErrors.password" class="mt-1 text-xs text-red-400">
+            {{ formErrors.password }}
+          </p>
         </div>
         <div>
           <button
             type="submit"
-            class="w-full px-4 py-2 font-medium text-white transition-colors duration-200 rounded-md bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-zinc-800"
-            :disabled="isSubmitting"
+            class="w-full px-4 py-2 font-medium text-white transition-colors duration-200 rounded-md bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="isSubmitting || !formValid"
           >
             <span v-if="!isSubmitting">Login</span>
             <div v-else class="flex items-center justify-center">

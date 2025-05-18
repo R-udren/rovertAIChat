@@ -1,6 +1,9 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
+import { registerSchema, validateField, validateForm } from '@/utils/validation'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const toastStore = useToastStore()
@@ -14,28 +17,97 @@ const form = ref({
   confirmPassword: '',
 })
 
+const formErrors = ref({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+})
+
+const formValid = ref(false)
 const formError = ref('')
 const isSubmitting = ref(false)
 
+// Add watchers for real-time validation
+watch(
+  () => form.value.username,
+  (newValue) => {
+    const result = validateField(registerSchema, 'username', newValue, form.value)
+    formErrors.value.username = result.valid ? '' : result.message
+    validateFormData()
+  },
+)
+
+watch(
+  () => form.value.email,
+  (newValue) => {
+    const result = validateField(registerSchema, 'email', newValue, form.value)
+    formErrors.value.email = result.valid ? '' : result.message
+    validateFormData()
+  },
+)
+
+watch(
+  () => form.value.password,
+  (newValue) => {
+    const result = validateField(registerSchema, 'password', newValue, form.value)
+    formErrors.value.password = result.valid ? '' : result.message
+
+    // Also validate confirmPassword when password changes
+    if (form.value.confirmPassword) {
+      const confirmResult = validateField(
+        registerSchema,
+        'confirmPassword',
+        form.value.confirmPassword,
+        form.value,
+      )
+      formErrors.value.confirmPassword = confirmResult.valid ? '' : confirmResult.message
+    }
+
+    validateFormData()
+  },
+)
+
+watch(
+  () => form.value.confirmPassword,
+  (newValue) => {
+    // For confirmPassword, we need to validate against the password
+    if (!form.value.password) {
+      formErrors.value.confirmPassword = 'Please enter a password first'
+      return
+    }
+
+    if (newValue !== form.value.password) {
+      formErrors.value.confirmPassword = "Passwords don't match"
+    } else {
+      formErrors.value.confirmPassword = ''
+    }
+
+    validateFormData()
+  },
+)
+
+// Validate the entire form
+const validateFormData = () => {
+  const result = validateForm(registerSchema, form.value)
+  formValid.value = result.valid
+  return result
+}
+
 const handleRegister = async () => {
-  // Basic form validation
-  if (!form.value.username || !form.value.email || !form.value.password) {
-    formError.value = 'Please fill in all required fields'
-    return
-  }
+  // Validate the form using Zod
+  const validation = validateFormData()
 
-  if (form.value.password !== form.value.confirmPassword) {
-    formError.value = 'Passwords do not match'
-    return
-  }
-
-  if (form.value.password.length < 8) {
-    formError.value = 'Password must be at least 8 characters long'
+  if (!validation.valid) {
+    // Show the first error message
+    const firstErrorField = Object.keys(validation.errors)[0]
+    formError.value = validation.errors[firstErrorField]
     return
   }
 
   formError.value = ''
   isSubmitting.value = true
+
   try {
     // Submit registration data
     await authStore.register({
@@ -79,13 +151,21 @@ const handleRegister = async () => {
             id="username"
             v-model="form.username"
             type="text"
-            class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            :class="[
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2',
+              formErrors.username
+                ? 'border-red-500 bg-red-500/10'
+                : form.username
+                  ? 'border-green-500 bg-green-500/10 focus:ring-green-500'
+                  : 'border-zinc-700 bg-zinc-900',
+            ]"
             autocomplete="username"
             required
-            minlength="4"
-            maxlength="64"
           />
-          <p class="mt-1 text-xs text-gray-500">4-64 characters long</p>
+          <p v-if="formErrors.username" class="mt-1 text-xs text-red-400 transition-opacity">
+            {{ formErrors.username }}
+          </p>
+          <p v-else class="mt-1 text-xs text-gray-500">4-64 characters long</p>
         </div>
 
         <div>
@@ -94,10 +174,20 @@ const handleRegister = async () => {
             id="email"
             v-model="form.email"
             type="email"
-            class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            :class="[
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 ',
+              formErrors.email
+                ? 'border-red-500 bg-red-500/10'
+                : form.email
+                  ? 'border-green-500 bg-green-500/10 focus:ring-green-500'
+                  : 'border-zinc-700 bg-zinc-900',
+            ]"
             autocomplete="email"
             required
           />
+          <p v-if="formErrors.email" class="mt-1 text-xs text-red-400 transition-opacity">
+            {{ formErrors.email }}
+          </p>
         </div>
 
         <div>
@@ -108,12 +198,21 @@ const handleRegister = async () => {
             id="password"
             v-model="form.password"
             type="password"
-            class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            :class="[
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 ',
+              formErrors.password
+                ? 'border-red-500 bg-red-500/10'
+                : form.password
+                  ? 'border-green-500 bg-green-500/10 focus:ring-green-500'
+                  : 'border-zinc-700 bg-zinc-900',
+            ]"
             autocomplete="new-password"
             required
-            minlength="8"
           />
-          <p class="mt-1 text-xs text-gray-500">At least 8 characters long</p>
+          <p v-if="formErrors.password" class="mt-1 text-xs text-red-400 transition-opacity">
+            {{ formErrors.password }}
+          </p>
+          <p v-else class="mt-1 text-xs text-gray-500">At least 8 characters long</p>
         </div>
 
         <div>
@@ -124,16 +223,26 @@ const handleRegister = async () => {
             id="confirmPassword"
             v-model="form.confirmPassword"
             type="password"
-            class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            :class="[
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2',
+              formErrors.confirmPassword
+                ? 'border-red-500 bg-red-500/10'
+                : form.confirmPassword
+                  ? 'border-green-500 bg-green-500/10 focus:ring-green-500'
+                  : 'border-zinc-700 bg-zinc-900',
+            ]"
             autocomplete="new-password"
             required
           />
+          <p v-if="formErrors.confirmPassword" class="mt-1 text-xs text-red-400 transition-opacity">
+            {{ formErrors.confirmPassword }}
+          </p>
         </div>
         <div>
           <button
             type="submit"
-            class="w-full px-4 py-2 font-medium text-white transition-colors duration-200 rounded-md bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-zinc-800"
-            :disabled="isSubmitting"
+            class="w-full px-4 py-2 font-medium text-white transition-colors duration-200 rounded-md bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="isSubmitting || !formValid"
           >
             <span v-if="!isSubmitting">Register</span>
             <div v-else class="flex items-center justify-center">

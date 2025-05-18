@@ -35,7 +35,9 @@ const goToChat = () => {
         </div>
 
         <div class="grid grid-cols-1 gap-8 mt-16 md:grid-cols-3">
-          <div class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:scale-105">
+          <div
+            class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:-translate-y-1.5"
+          >
             <div
               class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-3"
             >
@@ -60,7 +62,9 @@ const goToChat = () => {
             </p>
           </div>
 
-          <div class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:scale-105">
+          <div
+            class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:-translate-y-1.5"
+          >
             <div
               class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gradient"
             >
@@ -85,7 +89,9 @@ const goToChat = () => {
             </p>
           </div>
 
-          <div class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:scale-105">
+          <div
+            class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:-translate-y-1.5"
+          >
             <div
               class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-2"
             >
