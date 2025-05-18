@@ -17,7 +17,13 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      const data = await api.post('auth/register', credentials)
+      const reg_data = await api.post('auth/register', credentials)
+
+      const data = await api.postForm('auth/login', {
+        username: credentials.username,
+        password: credentials.password,
+      })
+
       return data
     } catch (err) {
       error.value = err.message
@@ -97,6 +103,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (err.message === 'Authentication failed') {
         logout()
       }
+
       return null
     } finally {
       loading.value = false

@@ -7,16 +7,21 @@ const toastStore = useToastStore()
 const router = useRouter()
 
 const handleLogout = async () => {
-  toastStore.info('Logging out...')
-  // await authStore.logout()
+  await authStore.logout()
   router.push('/login')
+  toastStore.info('Logged out successfully')
 }
 </script>
 
 <template>
   <header class="shadow-md bg-zinc-900">
     <div class="container flex items-center justify-between px-4 py-3 mx-auto">
-      <h1 class="text-xl font-medium text-white">rovertAIChat</h1>
+      <router-link
+        to="/"
+        class="text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600"
+        >rovertAIChat</router-link
+      >
+
       <nav class="flex space-x-6">
         <router-link
           to="/"

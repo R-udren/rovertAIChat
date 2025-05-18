@@ -39,7 +39,6 @@ export const apiRequest = async (url, options = {}, refreshOnAuthError = true) =
       ...options,
       headers,
     })
-
     // Handle 401 Unauthorized - attempt to refresh token
     if (response.status === 401 && refreshOnAuthError) {
       // Try to refresh the token
@@ -50,7 +49,9 @@ export const apiRequest = async (url, options = {}, refreshOnAuthError = true) =
       } else {
         // Token refresh failed, force logout
         authStore.logout()
-        throw new Error('Authentication failed')
+        // Parse response to get error details if available
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(`Authentication failed: ${errorData.detail || 'Token refresh failed'}`)
       }
     }
 
@@ -92,7 +93,7 @@ export const apiRequest = async (url, options = {}, refreshOnAuthError = true) =
 
     return data
   } catch (error) {
-    console.error('API request error:', error)
+    console.error(`API request to ${url} returned ${error.status}:`, error)
     throw error
   }
 }
