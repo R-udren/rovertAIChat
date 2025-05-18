@@ -252,6 +252,22 @@ const saveProfile = async () => {
             </div>
 
             <div>
+              <h3 class="mb-2 text-sm font-medium text-gray-500 uppercase">Account Status</h3>
+              <p class="text-white">
+                <span
+                  class="inline-block px-2 py-1 text-sm border-2 border-green-500 rounded-xl"
+                  :class="
+                    authStore.user.is_active
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'bg-red-500/20 text-red-400'
+                  "
+                >
+                  {{ authStore.user.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </p>
+            </div>
+
+            <div>
               <h3 class="mb-2 text-sm font-medium text-gray-500 uppercase">Registered On</h3>
               <p class="text-white">
                 {{ new Date(authStore.user.created_at).toLocaleDateString() }}
@@ -266,22 +282,6 @@ const saveProfile = async () => {
                     ? new Date(authStore.user.last_login).toLocaleString()
                     : 'N/A'
                 }}
-              </p>
-            </div>
-
-            <div>
-              <h3 class="mb-2 text-sm font-medium text-gray-500 uppercase">Account Status</h3>
-              <p class="text-white">
-                <span
-                  class="inline-block px-2 py-1 text-sm border-2 border-green-500 rounded-xl"
-                  :class="
-                    authStore.user.is_active
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-red-500/20 text-red-400'
-                  "
-                >
-                  {{ authStore.user.is_active ? 'Active' : 'Inactive' }}
-                </span>
               </p>
             </div>
           </div>
