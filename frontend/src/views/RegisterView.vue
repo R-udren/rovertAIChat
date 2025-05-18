@@ -71,18 +71,9 @@ watch(
 watch(
   () => form.value.confirmPassword,
   (newValue) => {
-    // For confirmPassword, we need to validate against the password
-    if (!form.value.password) {
-      formErrors.value.confirmPassword = 'Please enter a password first'
-      return
-    }
-
-    if (newValue !== form.value.password) {
-      formErrors.value.confirmPassword = "Passwords don't match"
-    } else {
-      formErrors.value.confirmPassword = ''
-    }
-
+    // For confirmPassword, validate with the full form data
+    const result = validateField(registerSchema, 'confirmPassword', newValue, form.value)
+    formErrors.value.confirmPassword = result.valid ? '' : result.message
     validateFormData()
   },
 )

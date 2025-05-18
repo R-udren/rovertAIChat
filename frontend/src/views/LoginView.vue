@@ -27,7 +27,7 @@ const isSubmitting = ref(false)
 watch(
   () => form.value.username,
   (newValue) => {
-    const result = validateField(loginSchema, 'username', newValue)
+    const result = validateField(loginSchema, 'username', newValue, form.value)
     formErrors.value.username = result.valid ? '' : result.message
     validateFormData()
   },
@@ -36,7 +36,7 @@ watch(
 watch(
   () => form.value.password,
   (newValue) => {
-    const result = validateField(loginSchema, 'password', newValue)
+    const result = validateField(loginSchema, 'password', newValue, form.value)
     formErrors.value.password = result.valid ? '' : result.message
     validateFormData()
   },

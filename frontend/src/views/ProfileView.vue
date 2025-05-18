@@ -34,7 +34,7 @@ const imageLoadStatus = ref({
 watch(
   () => formData.value.username,
   (newValue) => {
-    const result = validateField(profileSchema, 'username', newValue)
+    const result = validateField(profileSchema, 'username', newValue, formData.value)
     formErrors.value.username = result.valid ? '' : result.message
   },
 )
@@ -42,7 +42,7 @@ watch(
 watch(
   () => formData.value.email,
   (newValue) => {
-    const result = validateField(profileSchema, 'email', newValue)
+    const result = validateField(profileSchema, 'email', newValue, formData.value)
     formErrors.value.email = result.valid ? '' : result.message
   },
 )
@@ -55,7 +55,7 @@ watch(
       imageLoadStatus.value = { loaded: false, error: false }
 
       // Only validate if not empty
-      const result = validateField(profileSchema, 'avatar_url', newValue)
+      const result = validateField(profileSchema, 'avatar_url', newValue, formData.value)
       formErrors.value.avatar_url = result.valid ? '' : result.message
     } else {
       formErrors.value.avatar_url = ''
@@ -213,7 +213,7 @@ const saveProfile = async () => {
               {{ authStore.user.username.charAt(0).toUpperCase() }}
             </div>
             <div>
-              <h2 class="text-3xl font-semibold text-white">
+              <h2 class="max-w-md overflow-hidden text-3xl font-semibold text-white">
                 {{ userSettingsStore.settings?.display_name || authStore.user.username }}
               </h2>
               <p class="text-gray-400">@{{ authStore.user.username }}</p>

@@ -39,7 +39,7 @@ const imageLoadStatus = ref({
 watch(
   () => formData.value.display_name,
   (newValue) => {
-    const result = validateField(userSettingsSchema, 'display_name', newValue)
+    const result = validateField(userSettingsSchema, 'display_name', newValue, formData.value)
     formErrors.value.display_name = result.valid ? '' : result.message
     validateFormData()
   },
@@ -48,7 +48,7 @@ watch(
 watch(
   () => formData.value.avatar_url,
   (newValue) => {
-    const result = validateField(userSettingsSchema, 'avatar_url', newValue)
+    const result = validateField(userSettingsSchema, 'avatar_url', newValue, formData.value)
     formErrors.value.avatar_url = result.valid ? '' : result.message
 
     if (newValue) {
