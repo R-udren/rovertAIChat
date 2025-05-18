@@ -1,7 +1,7 @@
 <script setup>
 import { useUserSettingsStore } from '@/stores/userSettings'
-import { userSettingsSchema, validateField, validateForm } from '@/utils/validation'
-import { onMounted, ref, watch } from 'vue'
+import { userSettingsSchema, validateForm } from '@/utils/validation'
+import { onMounted, ref } from 'vue'
 
 const userSettingsStore = useUserSettingsStore()
 
@@ -10,8 +10,6 @@ const isSubmitting = ref(false)
 const formValid = ref(false)
 
 const formData = ref({
-  display_name: '',
-  avatar_url: '',
   default_model_id: '',
   preferences: {
     theme: 'dark',
@@ -22,48 +20,7 @@ const formData = ref({
   },
 })
 
-const formErrors = ref({
-  display_name: '',
-  avatar_url: '',
-  default_model_id: '',
-})
-
-// Image preview state
-const imageLoadStatus = ref({
-  loaded: false,
-  error: false,
-  loading: false,
-})
-
 // Add watchers for real-time validation
-watch(
-  () => formData.value.display_name,
-  (newValue) => {
-    const result = validateField(userSettingsSchema, 'display_name', newValue, formData.value)
-    formErrors.value.display_name = result.valid ? '' : result.message
-    validateFormData()
-  },
-)
-
-watch(
-  () => formData.value.avatar_url,
-  (newValue) => {
-    const result = validateField(userSettingsSchema, 'avatar_url', newValue, formData.value)
-    formErrors.value.avatar_url = result.valid ? '' : result.message
-
-    if (newValue) {
-      imageLoadStatus.value.loading = true
-      imageLoadStatus.value.loaded = false
-      imageLoadStatus.value.error = false
-    } else {
-      imageLoadStatus.value.loading = false
-      imageLoadStatus.value.loaded = false
-      imageLoadStatus.value.error = false
-    }
-
-    validateFormData()
-  },
-)
 
 onMounted(async () => {
   // Get user settings
@@ -71,8 +28,6 @@ onMounted(async () => {
 
   // Initialize form with current values
   if (userSettingsStore.settings) {
-    formData.value.display_name = userSettingsStore.settings.display_name || ''
-    formData.value.avatar_url = userSettingsStore.settings.avatar_url || ''
     formData.value.default_model_id = userSettingsStore.settings.default_model_id || ''
     formData.value.preferences = userSettingsStore.settings.preferences || {
       theme: 'dark',
@@ -110,8 +65,6 @@ const saveSettings = async () => {
 
   try {
     await userSettingsStore.updateSettings({
-      display_name: formData.value.display_name || null,
-      avatar_url: formData.value.avatar_url || null,
       default_model_id: formData.value.default_model_id || null,
       preferences: formData.value.preferences || null,
     })
@@ -152,110 +105,6 @@ const saveSettings = async () => {
 
       <form v-else @submit.prevent="saveSettings" class="space-y-6">
         <div>
-          <h2 class="mb-4 text-xl font-medium text-white">Profile Settings</h2>
-
-          <div class="space-y-4">
-            <div>
-              <label for="display_name" class="block mb-1 text-sm font-medium text-gray-300">
-                Display Name
-              </label>
-              <input
-                id="display_name"
-                v-model="formData.display_name"
-                type="text"
-                :class="[
-                  'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
-                  formErrors.display_name
-                    ? 'border-red-500 bg-red-500/10'
-                    : formData.display_name
-                      ? 'border-green-500 bg-green-500/10'
-                      : 'border-zinc-700 bg-zinc-900',
-                ]"
-                maxlength="100"
-              />
-              <p
-                v-if="formErrors.display_name"
-                class="mt-1 text-xs text-red-400 transition-opacity"
-              >
-                {{ formErrors.display_name }}
-              </p>
-              <p v-else class="mt-1 text-xs text-gray-500">
-                This is how your name will appear in chats (optional)
-              </p>
-            </div>
-
-            <div>
-              <label for="avatar_url" class="block mb-1 text-sm font-medium text-gray-300">
-                Avatar URL
-              </label>
-              <div class="flex space-x-4">
-                <div class="flex-1">
-                  <input
-                    id="avatar_url"
-                    v-model="formData.avatar_url"
-                    type="text"
-                    :class="[
-                      'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
-                      formErrors.avatar_url
-                        ? 'border-red-500 bg-red-500/10'
-                        : formData.avatar_url && imageLoadStatus.loaded
-                          ? 'border-green-500 bg-green-500/10'
-                          : 'border-zinc-700 bg-zinc-900',
-                    ]"
-                    maxlength="255"
-                  />
-                </div>
-
-                <!-- Avatar preview -->
-                <div
-                  v-if="formData.avatar_url"
-                  class="relative w-12 h-12 overflow-hidden rounded-full"
-                >
-                  <div
-                    v-if="
-                      imageLoadStatus.loading && !imageLoadStatus.loaded && !imageLoadStatus.error
-                    "
-                    class="absolute inset-0 flex items-center justify-center bg-zinc-800"
-                  >
-                    <div
-                      class="w-6 h-6 border-t-2 border-solid rounded-full border-primary-500 animate-spin"
-                    ></div>
-                  </div>
-                  <div
-                    v-if="imageLoadStatus.error"
-                    class="absolute inset-0 flex items-center justify-center text-red-500 bg-red-500/10"
-                  >
-                    <span class="text-lg">❌</span>
-                  </div>
-                  <img
-                    v-show="!imageLoadStatus.error"
-                    :src="formData.avatar_url"
-                    @load="imageLoadStatus = { loaded: true, error: false, loading: false }"
-                    @error="imageLoadStatus = { loaded: false, error: true, loading: false }"
-                    class="object-cover w-full h-full"
-                  />
-                </div>
-                <div
-                  v-else
-                  class="flex items-center justify-center w-12 h-12 rounded-full bg-primary-600"
-                >
-                  <span class="text-xl font-medium text-white">
-                    {{ formData.display_name ? formData.display_name[0].toUpperCase() : 'U' }}
-                  </span>
-                </div>
-              </div>
-              <p v-if="formErrors.avatar_url" class="mt-1 text-xs text-red-400 transition-opacity">
-                {{ formErrors.avatar_url }}
-              </p>
-              <p v-else-if="imageLoadStatus.error" class="mt-1 text-xs text-red-400">
-                Unable to load image from URL
-              </p>
-              <p v-else class="mt-1 text-xs text-gray-500">URL to your profile image (optional)</p>
-            </div>
-          </div>
-        </div>
-
-        <div>
           <h2 class="mb-4 text-xl font-medium text-white">AI Model Settings</h2>
 
           <div>
@@ -268,7 +117,7 @@ const saveSettings = async () => {
               class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">Select a default model</option>
-              <option value="MMMe6f1ae10-9b0e-4639-b4d9-daa82d125d4e">GPT-3.5</option>
+              <option value="e6f1ae10-9b0e-4639-b4d9-daa82d125d4e">GPT-3.5</option>
               <option value="5429a4ed-8112-4abb-bbed-777fb83a2476">GPT-4</option>
               <option value="94b4848b-6176-41c6-8314-83a5297da424">Claude</option>
             </select>

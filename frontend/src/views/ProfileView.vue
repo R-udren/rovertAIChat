@@ -15,12 +15,14 @@ const isSubmitting = ref(false)
 const formData = ref({
   username: '',
   email: '',
+  display_name: '',
   avatar_url: '',
 })
 
 const formErrors = ref({
   username: '',
   email: '',
+  display_name: '',
   avatar_url: '',
 })
 
@@ -44,6 +46,14 @@ watch(
   (newValue) => {
     const result = validateField(profileSchema, 'email', newValue, formData.value)
     formErrors.value.email = result.valid ? '' : result.message
+  },
+)
+
+watch(
+  () => formData.value.display_name,
+  (newValue) => {
+    const result = validateField(profileSchema, 'display_name', newValue, formData.value)
+    formErrors.value.display_name = result.valid ? '' : result.message
   },
 )
 
@@ -84,6 +94,7 @@ onMounted(async () => {
   if (authStore.user) {
     formData.value.username = authStore.user.username
     formData.value.email = authStore.user.email
+    formData.value.display_name = userSettingsStore.settings?.display_name || ''
     formData.value.avatar_url = userSettingsStore.settings?.avatar_url || ''
   }
 })
@@ -92,6 +103,7 @@ const startEditing = () => {
   isEditing.value = true
   formData.value.username = authStore.user?.username || ''
   formData.value.email = authStore.user?.email || ''
+  formData.value.display_name = userSettingsStore.settings?.display_name || ''
   formData.value.avatar_url = userSettingsStore.settings?.avatar_url || ''
   updateStatus.value = ''
 
@@ -133,11 +145,14 @@ const saveProfile = async () => {
     localStorage.setItem('user', JSON.stringify(updatedUser))
 
     // Update user settings with the avatar URL
-    if (formData.value.avatar_url !== userSettingsStore.settings?.avatar_url) {
+    if (
+      formData.value.avatar_url !== userSettingsStore.settings?.avatar_url ||
+      formData.value.display_name !== userSettingsStore.settings?.display_name
+    ) {
       const settingsData = {
         avatar_url: formData.value.avatar_url,
+        display_name: formData.value.display_name,
         // Preserve existing settings
-        display_name: userSettingsStore.settings?.display_name,
         default_model_id: userSettingsStore.settings?.default_model_id,
         preferences: userSettingsStore.settings?.preferences,
       }
@@ -336,6 +351,39 @@ const saveProfile = async () => {
                 <span class="mr-1">&#9888;</span> {{ formErrors.email }}
               </p>
             </transition>
+          </div>
+
+          <div>
+            <label for="display_name" class="block mb-1 text-sm font-medium text-gray-300">
+              Display Name <span class="text-gray-500">(optional)</span>
+            </label>
+            <input
+              id="display_name"
+              v-model="formData.display_name"
+              type="text"
+              class="w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2"
+              :class="[
+                formErrors.display_name
+                  ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
+                  : formData.display_name
+                    ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500'
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+              ]"
+              maxlength="100"
+            />
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="-translate-y-1 opacity-0"
+              enter-to-class="translate-y-0 opacity-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="translate-y-0 opacity-100"
+              leave-to-class="-translate-y-1 opacity-0"
+            >
+              <p v-if="formErrors.display_name" class="flex items-center mt-1 text-sm text-red-400">
+                <span class="mr-1">&#9888;</span> {{ formErrors.display_name }}
+              </p>
+            </transition>
+            <p class="mt-1 text-xs text-gray-500">This is how your name will appear in chats</p>
           </div>
 
           <div>

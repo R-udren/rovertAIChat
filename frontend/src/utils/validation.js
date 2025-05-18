@@ -10,6 +10,11 @@ export const profileSchema = z.object({
   email: z
     .string({ required_error: 'Email is required' })
     .email({ message: 'Please enter a valid email address' }),
+  display_name: z
+    .string()
+    .max(100, { message: 'Display name cannot exceed 100 characters' })
+    .optional()
+    .or(z.literal('')),
   avatar_url: z
     .string()
     .url({ message: 'Please enter a valid URL' })
@@ -50,17 +55,6 @@ export const registerSchema = z
 
 // User settings schema
 export const userSettingsSchema = z.object({
-  display_name: z
-    .string()
-    .max(100, { message: 'Display name cannot exceed 100 characters' })
-    .optional()
-    .or(z.literal('')),
-  avatar_url: z
-    .string()
-    .url({ message: 'Please enter a valid URL' })
-    .max(255, { message: 'URL cannot exceed 255 characters' })
-    .optional()
-    .or(z.literal('')),
   default_model_id: z.string().optional().or(z.literal('')),
   preferences: z
     .object({

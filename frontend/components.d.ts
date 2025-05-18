@@ -14,7 +14,6 @@ declare module 'vue' {
     LoadingSpinner: typeof import('./src/components/LoadingSpinner.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SettingsModal: typeof import('./src/components/SettingsModal.vue')['default']
     ToastContainer: typeof import('./src/components/ToastContainer.vue')['default']
     ToastNotification: typeof import('./src/components/ToastNotification.vue')['default']
   }
