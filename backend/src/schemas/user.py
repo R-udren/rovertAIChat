@@ -12,16 +12,16 @@ class UserRole(str, Enum):
 
 
 class UserBase(BaseModel):
-    username: str = Field(..., min_length=4, max_length=64)
+    username: str = Field(..., min_length=4, max_length=100)
     email: EmailStr
 
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=8, max_length=100)
 
 
 class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=4, max_length=64)
+    username: Optional[str] = Field(None, min_length=4, max_length=100)
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = None
 

@@ -1,7 +1,6 @@
 from typing import Any, Dict, Optional
 
 from pydantic import UUID4, BaseModel, Field
-
 from src.schemas.user import UserResponse
 
 

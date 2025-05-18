@@ -2,7 +2,6 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
-
 from src.auth.service import get_current_active_user
 from src.core.logger import app_logger
 from src.core.rate_limiter import limiter

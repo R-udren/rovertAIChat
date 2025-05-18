@@ -1,4 +1,5 @@
 // User settings store
+import { api } from '@/services/api'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
@@ -18,26 +19,7 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8000/api/user-settings/me', {
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-        },
-      })
-
-      if (response.status === 401) {
-        const refreshed = await authStore.refreshAccessToken()
-        if (!refreshed) {
-          throw new Error('Authentication failed')
-        }
-        return await fetchSettings()
-      }
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to fetch user settings')
-      }
-
+      const data = await api.get('user-settings/me')
       settings.value = data
       return data
     } catch (err) {
@@ -60,34 +42,11 @@ export const useUserSettingsStore = defineStore('userSettings', () => {
     error.value = null
 
     try {
-      const response = await fetch('http://localhost:8000/api/user-settings/me', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedSettings),
-      })
-
-      if (response.status === 401) {
-        const refreshed = await authStore.refreshAccessToken()
-        if (!refreshed) {
-          throw new Error('Authentication failed')
-        }
-        return await updateSettings(updatedSettings)
-      }
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to update user settings')
-      }
-
+      const data = await api.put('user-settings/me', updatedSettings)
       settings.value = data
       return data
     } catch (err) {
       error.value = err.message
-      console.error('Settings update error:', err)
       if (err.message === 'Authentication failed') {
         authStore.logout()
       }

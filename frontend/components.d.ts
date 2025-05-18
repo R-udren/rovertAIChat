@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppHeader: typeof import('./src/components/AppHeader.vue')['default']
     ChatMessage: typeof import('./src/components/ChatMessage.vue')['default']
+    ErrorMessage: typeof import('./src/components/ErrorMessage.vue')['default']
     LoadingSpinner: typeof import('./src/components/LoadingSpinner.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

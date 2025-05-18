@@ -1,23 +1,27 @@
 <script setup>
+import { useToastStore } from '@/stores/toast'
 import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
+const toastStore = useToastStore()
+const router = useRouter()
 
 const handleLogout = async () => {
-  await authStore.logout()
+  toastStore.info('Logging out...')
+  // await authStore.logout()
   router.push('/login')
 }
 </script>
 
 <template>
-  <header class="bg-zinc-900 shadow-md">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+  <header class="shadow-md bg-zinc-900">
+    <div class="container flex items-center justify-between px-4 py-3 mx-auto">
       <h1 class="text-xl font-medium text-white">rovertAIChat</h1>
       <nav class="flex space-x-6">
         <router-link
           to="/"
-          class="text text-gray-300 hover:text-white transition-colors duration-200"
-          active-class="text-white border-b border-primary-500 pb-1"
+          class="text-gray-300 transition-colors duration-200 text hover:text-white"
+          active-class="pb-1 text-white border-b border-primary-500"
         >
           Home
         </router-link>
@@ -25,28 +29,28 @@ const handleLogout = async () => {
         <template v-if="authStore.isAuthenticated">
           <router-link
             to="/chat"
-            class="text text-gray-300 hover:text-white transition-colors duration-200"
-            active-class="text-white border-b border-primary-500 pb-1"
+            class="text-gray-300 transition-colors duration-200 text hover:text-white"
+            active-class="pb-1 text-white border-b border-primary-500"
           >
             Chat
           </router-link>
           <router-link
             to="/profile"
-            class="text text-gray-300 hover:text-white transition-colors duration-200"
-            active-class="text-white border-b border-primary-500 pb-1"
+            class="text-gray-300 transition-colors duration-200 text hover:text-white"
+            active-class="pb-1 text-white border-b border-primary-500"
           >
             Profile
           </router-link>
           <router-link
             to="/settings"
-            class="text text-gray-300 hover:text-white transition-colors duration-200"
-            active-class="text-white border-b border-primary-500 pb-1"
+            class="text-gray-300 transition-colors duration-200 text hover:text-white"
+            active-class="pb-1 text-white border-b border-primary-500"
           >
             Settings
           </router-link>
           <button
             @click="handleLogout"
-            class="text text-gray-300 hover:text-white transition-colors duration-200"
+            class="pb-1 text-gray-300 transition-colors duration-200 hover:text-white"
           >
             Logout
           </button>
@@ -55,15 +59,15 @@ const handleLogout = async () => {
         <template v-else>
           <router-link
             to="/login"
-            class="text text-gray-300 hover:text-white transition-colors duration-200"
-            active-class="text-white border-b border-primary-500 pb-1"
+            class="text-gray-300 transition-colors duration-200 text hover:text-white"
+            active-class="pb-1 text-white border-b border-primary-500"
           >
             Login
           </router-link>
           <router-link
             to="/register"
-            class="text text-gray-300 hover:text-white transition-colors duration-200"
-            active-class="text-white border-b border-primary-500 pb-1"
+            class="text-gray-300 transition-colors duration-200 text hover:text-white"
+            active-class="pb-1 text-white border-b border-primary-500"
           >
             Register
           </router-link>

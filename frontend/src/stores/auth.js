@@ -1,4 +1,5 @@
 // Auth store to handle user authentication
+import { api } from '@/services/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -16,19 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await fetch('http://localhost:8000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Registration failed')
-      }
-
+      const data = await api.post('auth/register', credentials)
       return data
     } catch (err) {
       error.value = err.message
@@ -37,28 +26,12 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = false
     }
   }
-
   // Login user
   async function login(credentials) {
     loading.value = true
     error.value = null
     try {
-      const formData = new URLSearchParams()
-      formData.append('username', credentials.username)
-      formData.append('password', credentials.password)
-
-      const response = await fetch('http://localhost:8000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData,
-      })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Login failed')
-      }
+      const data = await api.postForm('auth/login', credentials)
 
       token.value = data.access_token
       refreshToken.value = data.refresh_token
@@ -75,17 +48,11 @@ export const useAuthStore = defineStore('auth', () => {
       loading.value = false
     }
   }
-
   // Logout user
   async function logout() {
     try {
       if (token.value) {
-        await fetch('http://localhost:8000/api/auth/logout', {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token.value}`,
-          },
-        })
+        await api.delete('auth/logout')
       }
     } catch (err) {
       console.error('Logout error:', err)
@@ -97,25 +64,12 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('refresh_token')
     }
   }
-
   // Refresh token
   async function refreshAccessToken() {
     if (!refreshToken.value) return false
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/refresh', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh_token: refreshToken.value }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error('Token refresh failed')
-      }
+      const data = await api.post('auth/refresh', { refresh_token: refreshToken.value })
 
       token.value = data.access_token
       refreshToken.value = data.refresh_token
@@ -129,33 +83,13 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     }
   }
-
   // Fetch user profile
   async function fetchUserProfile() {
     if (!token.value) return null
 
     loading.value = true
     try {
-      const response = await fetch('http://localhost:8000/api/users/me', {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
-      })
-
-      if (response.status === 401) {
-        const refreshed = await refreshAccessToken()
-        if (!refreshed) {
-          throw new Error('Authentication failed')
-        }
-        return await fetchUserProfile()
-      }
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Failed to fetch user profile')
-      }
-
+      const data = await api.get('users/me')
       user.value = data
       return data
     } catch (err) {

@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
 import ToastContainer from './components/ToastContainer.vue'
+import { useAuthStore } from './stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -13,7 +13,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-zinc-900 min-h-screen">
+  <div class="min-h-screen bg-zinc-900">
     <AppHeader />
     <RouterView />
     <ToastContainer />

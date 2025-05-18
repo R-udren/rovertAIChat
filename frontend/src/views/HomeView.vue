@@ -16,32 +16,32 @@ const goToChat = () => {
 
 <template>
   <div class="min-h-[calc(100vh-64px)] bg-zinc-900">
-    <div class="container mx-auto px-4 py-16">
-      <div class="text-center max-w-3xl mx-auto">
-        <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">
+    <div class="container px-4 py-16 mx-auto">
+      <div class="max-w-3xl mx-auto text-center">
+        <h1 class="mb-6 text-4xl font-bold text-white md:text-5xl">
           Welcome to <span class="text-primary-500">rovertAIChat</span>
         </h1>
-        <p class="text-xl text-gray-300 mb-8">
+        <p class="mb-8 text-xl text-gray-300">
           Your intelligent AI assistant for conversations and answers.
         </p>
 
         <div class="mb-12">
           <button
             @click="goToChat"
-            class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-3 px-8 rounded-md transition-colors duration-200 shadow-lg"
+            class="px-8 py-3 font-medium text-white transition-colors duration-200 rounded-md shadow-lg bg-primary-600 hover:bg-primary-700"
           >
             {{ authStore.isAuthenticated ? 'Go to Chat' : 'Get Started' }}
           </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-          <div class="bg-zinc-800 p-6 rounded-lg shadow-md">
+        <div class="grid grid-cols-1 gap-8 mt-16 md:grid-cols-3">
+          <div class="p-6 rounded-lg shadow-md bg-zinc-800">
             <div
-              class="w-12 h-12 mx-auto mb-4 bg-primary-600 rounded-full flex items-center justify-center"
+              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary-600"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 text-white"
+                class="w-6 h-6 text-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -54,19 +54,19 @@ const goToChat = () => {
                 />
               </svg>
             </div>
-            <h3 class="text-xl font-medium text-white mb-2">Smart Conversations</h3>
+            <h3 class="mb-2 text-xl font-medium text-white">Smart Conversations</h3>
             <p class="text-gray-400">
               Have natural, flowing conversations with our advanced AI assistant.
             </p>
           </div>
 
-          <div class="bg-zinc-800 p-6 rounded-lg shadow-md">
+          <div class="p-6 rounded-lg shadow-md bg-zinc-800">
             <div
-              class="w-12 h-12 mx-auto mb-4 bg-primary-600 rounded-full flex items-center justify-center"
+              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary-600"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 text-white"
+                class="w-6 h-6 text-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -79,19 +79,19 @@ const goToChat = () => {
                 />
               </svg>
             </div>
-            <h3 class="text-xl font-medium text-white mb-2">Get Answers Fast</h3>
+            <h3 class="mb-2 text-xl font-medium text-white">Get Answers Fast</h3>
             <p class="text-gray-400">
               Receive accurate, helpful responses to your questions instantly.
             </p>
           </div>
 
-          <div class="bg-zinc-800 p-6 rounded-lg shadow-md">
+          <div class="p-6 rounded-lg shadow-md bg-zinc-800">
             <div
-              class="w-12 h-12 mx-auto mb-4 bg-primary-600 rounded-full flex items-center justify-center"
+              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary-600"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-6 w-6 text-white"
+                class="w-6 h-6 text-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -110,7 +110,7 @@ const goToChat = () => {
                 />
               </svg>
             </div>
-            <h3 class="text-xl font-medium text-white mb-2">Personalized Settings</h3>
+            <h3 class="mb-2 text-xl font-medium text-white">Personalized Settings</h3>
             <p class="text-gray-400">Customize your chat experience to match your preferences.</p>
           </div>
         </div>

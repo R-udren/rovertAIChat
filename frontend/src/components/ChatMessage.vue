@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue'
 import { useUserSettingsStore } from '@/stores/userSettings'
+import { computed } from 'vue'
 
 const props = defineProps({
   message: {
@@ -51,7 +51,7 @@ const isUserMessage = computed(() => props.message.role === 'user')
       ]"
     >
       <div class="whitespace-pre-wrap">{{ message.content }}</div>
-      <div class="text-xs opacity-70 text-right mt-1">{{ formatDate(message.timestamp) }}</div>
+      <div class="mt-1 text-xs text-right opacity-70">{{ formatDate(message.timestamp) }}</div>
     </div>
   </div>
 </template>
