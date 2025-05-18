@@ -16,9 +16,6 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-# Token blacklist for logout functionality
-# This is a simple in-memory blacklist - for production, use Redis or a database
-TOKEN_BLACKLIST = set()
 
 # Convert durations to timedelta objects for easier use
 ACCESS_TOKEN_EXPIRE_DELTA = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -52,7 +49,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
         secure=COOKIE_SECURE,
         samesite="lax",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/api/auth/refresh",  # Restrict path for security
+        path="/",  # `/api/auth/refresh` Restrict path for security
         domain=COOKIE_DOMAIN,
     )
 

@@ -2,8 +2,6 @@
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 import { loginSchema, validateField, validateForm } from '@/utils/validation'
-import { onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const toastStore = useToastStore()
@@ -110,11 +108,11 @@ const handleLogin = async () => {
             v-model="form.username"
             type="text"
             :class="[
-              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2',
               formErrors.username
                 ? 'border-red-500 bg-red-500/10'
                 : form.username
-                  ? 'border-green-500 bg-green-500/10'
+                  ? 'border-green-500 bg-green-500/10 focus:ring-green-500'
                   : 'border-zinc-700 bg-zinc-900',
             ]"
             autocomplete="username"
@@ -134,11 +132,11 @@ const handleLogin = async () => {
             v-model="form.password"
             type="password"
             :class="[
-              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500',
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 ',
               formErrors.password
                 ? 'border-red-500 bg-red-500/10'
                 : form.password
-                  ? 'border-green-500 bg-green-500/10'
+                  ? 'border-green-500 bg-green-500/10 focus:ring-green-500'
                   : 'border-zinc-700 bg-zinc-900',
             ]"
             autocomplete="current-password"

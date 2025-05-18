@@ -1,6 +1,5 @@
 <script setup>
 import { useToastStore } from '@/stores/toast'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
@@ -41,7 +40,6 @@ const navLinks = computed(() => [
 
 const handleNavigation = (path) => {
   router.push(path)
-  closeMobileMenu()
 }
 
 // Handle scroll behavior - hide header on scroll down, show on scroll up
@@ -81,7 +79,7 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300 backdrop-blur-lg"
+    class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300 backdrop-blur-lg bg-zinc-900"
     :class="[
       'glass-effect border-b border-zinc-800/50 shadow-lg',
       showHeader ? 'translate-y-0' : '-translate-y-full',
@@ -190,114 +188,100 @@ onUnmounted(() => {
     <!-- Mobile Navigation Overlay -->
     <div
       v-if="isMobileMenuOpen"
-      class="fixed inset-0 z-40 bg-black/80 md:hidden animate-fade-in"
+      class="fixed inset-0 md:hidden animate-fade-in"
       @click="closeMobileMenu"
-    ></div>
-
-    <!-- Mobile Navigation Menu -->
-    <div
-      class="fixed bottom-0 left-0 right-0 z-40 overflow-y-auto transition-transform duration-300 transform top-16 md:hidden glass-effect backdrop-blur-xl"
-      :class="isMobileMenuOpen ? 'translate-y-0 animate-slide-up' : 'translate-y-full'"
     >
-      <nav class="flex flex-col px-6 py-8 space-y-6">
-        <template v-for="link in navLinks" :key="link.path">
-          <button
-            v-if="!link.requiresAuth || authStore.isAuthenticated"
-            @click="handleNavigation(link.path)"
-            class="flex items-center justify-between py-3 text-lg font-medium text-left transition-colors duration-200"
-            :class="$route.path === link.path ? 'text-primary-400' : 'text-gray-300'"
-          >
-            {{ link.name }}
-            <svg
-              v-if="$route.path === link.path"
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 text-primary-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+      <!-- Mobile Navigation Menu -->
+      <div
+        class="fixed right-0 overflow-y-auto transition-transform duration-300 rounded-lg rounded-b-lg shadow-lg top-12 md:hidden bg-zinc-900/70 backdrop-blur-lg"
+        :class="isMobileMenuOpen ? 'translate-y-0 animate-slide-up' : 'translate-y-full'"
+      >
+        <nav class="flex flex-col px-6 py-8 space-y-6">
+          <template v-for="link in navLinks" :key="link.path">
+            <button
+              v-if="!link.requiresAuth || authStore.isAuthenticated"
+              @click="handleNavigation(link.path)"
+              class="flex items-center justify-between py-3 text-lg font-medium text-left transition-colors duration-200"
+              :class="
+                $route.path === link.path
+                  ? 'text-primary-400 hover:text-primary-600'
+                  : 'text-gray-300 hover:text-white'
+              "
             >
-              <path
-                fill-rule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </button>
-        </template>
+              {{ link.name }}
+              <svg
+                v-if="$route.path === link.path"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-6 h-6 text-primary-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </template>
 
-        <div class="my-2 border-t border-zinc-700"></div>
+          <div class="my-2 border-t border-zinc-700"></div>
 
-        <template v-if="authStore.isAuthenticated">
-          <button
-            @click="handleLogout"
-            class="flex items-center justify-between py-3 text-lg font-medium text-left text-gray-300"
-          >
-            Logout
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 text-gray-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <template v-if="authStore.isAuthenticated">
+            <button
+              @click="handleLogout"
+              class="flex items-center justify-between py-3 text-lg font-medium text-left text-gray-400 transition-colors duration-200 group hover:text-white"
             >
-              <path
-                fill-rule="evenodd"
-                d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11.293 9.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L10 10.414V14a1 1 0 102 0v-3.586l1.293 1.293z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </button>
-        </template>
+              Logout
+              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 16 16">
+                <!-- Icon from Fluent UI System Icons by Microsoft Corporation - https://github.com/microsoft/fluentui-system-icons/blob/main/LICENSE -->
+                <path
+                  fill="currentColor"
+                  class="text-gray-400 transition-colors duration-200 group-hover:text-gray-300"
+                  d="M3 2.75C3 1.784 3.784 1 4.75 1h6.5c.966 0 1.75.784 1.75 1.75v3.457A5.5 5.5 0 0 0 7.257 15H4.75A1.75 1.75 0 0 1 3 13.25zM6 9a1 1 0 1 0 0-2a1 1 0 0 0 0 2m5.5 7a4.5 4.5 0 1 0 0-9a4.5 4.5 0 0 0 0 9m.354-2.146a.5.5 0 0 1-.708-.708L12.293 12H9.5a.5.5 0 0 1 0-1h2.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 .146.351v.006a.5.5 0 0 1-.144.348l-.003.003z"
+                />
+              </svg>
+            </button>
+          </template>
 
-        <template v-else>
-          <button
-            @click="handleNavigation('/login')"
-            class="flex items-center justify-between py-3 text-lg font-medium text-left transition-colors duration-200"
-            :class="$route.path === '/login' ? 'text-primary-400' : 'text-gray-300'"
-          >
-            Login
-            <svg
-              v-if="$route.path === '/login'"
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 text-primary-500"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <template v-else>
+            <button
+              @click="handleNavigation('/login')"
+              class="flex items-center justify-between py-3 text-lg font-medium text-left transition-colors duration-200"
+              :class="$route.path === '/login' ? 'text-primary-400' : 'text-gray-300'"
             >
-              <path
-                fill-rule="evenodd"
-                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </button>
+              Login
+              <svg
+                v-if="$route.path === '/login'"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5 text-primary-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
 
-          <button
-            @click="handleNavigation('/register')"
-            class="w-full py-3 text-lg font-medium text-center text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800"
-          >
-            Register
-          </button>
-        </template>
-      </nav>
+            <button
+              @click="handleNavigation('/register')"
+              class="w-full py-3 text-lg font-medium text-center text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800"
+            >
+              Register
+            </button>
+          </template>
+        </nav>
 
-      <div class="p-6 text-sm text-center text-gray-500 border-t border-zinc-800">
-        <p>© {{ new Date().getFullYear() }} rovertAIChat</p>
-        <p class="mt-1">All rights reserved</p>
+        <div class="p-6 text-sm text-center text-gray-500 border-t border-zinc-800">
+          <p>© {{ new Date().getFullYear() }} rovertAIChat</p>
+          <p class="mt-1">All rights reserved</p>
+        </div>
       </div>
     </div>
   </header>
-
   <!-- Spacer to compensate for fixed header -->
   <div class="h-16"></div>
 </template>
-
-<style scoped>
-.glass-effect {
-  background-color: rgba(24, 24, 27, 0.7);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-</style>
