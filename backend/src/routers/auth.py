@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError
 from sqlalchemy.orm import Session
+from src.auth.config import clear_auth_cookies, set_auth_cookies
 from src.auth.jwt import create_access_token, create_refresh_token, decode_token
 from src.auth.service import (
     authenticate_user,
@@ -40,6 +41,7 @@ async def register(request: Request, user: UserCreate, db: Session = Depends(get
 @limiter.limit("10/minute")
 async def login(
     request: Request,
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
@@ -66,8 +68,10 @@ async def login(
         app_logger.warning(f"Login attempt for inactive user: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
-        )  # Update last login time
-    update_last_login(db, user)  # Create tokens
+        )
+
+    update_last_login(db, user)
+
     app_logger.debug(f"Creating JWT tokens for user: {user.username}")
     access_token = create_access_token(
         data={"sub": str(user.id), "username": user.username, "role": user.role},
@@ -77,6 +81,12 @@ async def login(
         data={"sub": str(user.id)}, token_version=user.token_version
     )
     app_logger.info(f"User {user.username} logged in successfully")
+
+    set_auth_cookies(
+        response=response,
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
 
     return {
         "access_token": access_token,
@@ -88,7 +98,10 @@ async def login(
 @router.post("/refresh", response_model=Token)
 @limiter.limit("10/minute")
 async def refresh_token(
-    request: Request, refresh_token_data: RefreshToken, db: Session = Depends(get_db)
+    request: Request,
+    response: Response,
+    refresh_token_data: RefreshToken,
+    db: Session = Depends(get_db),
 ):
     """
     Refresh an access token using a refresh token.
@@ -105,6 +118,7 @@ async def refresh_token(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
         payload = decode_token(refresh_token_data.refresh_token, is_refresh=True)
         user_id = payload.get("sub")
@@ -140,6 +154,12 @@ async def refresh_token(
         )
         app_logger.info(f"Tokens refreshed successfully for user: {user.username}")
 
+        set_auth_cookies(
+            response=response,
+            access_token=access_token,
+            refresh_token=refresh_token,
+        )
+
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -151,10 +171,11 @@ async def refresh_token(
         raise credentials_exception
 
 
-@router.delete("/logout")
+@router.post("/logout")
 @limiter.limit("10/minute")
 async def logout(
     request: Request,
+    response: Response,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -171,6 +192,9 @@ async def logout(
 
     # Increment the token version to invalidate all existing tokens
     increment_token_version(db, current_user)
+
+    # Clear cookies
+    clear_auth_cookies(response)
 
     app_logger.info(f"User logged out successfully: {current_user.username}")
     return {"detail": "Successfully logged out"}

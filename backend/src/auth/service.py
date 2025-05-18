@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
@@ -107,9 +107,16 @@ def increment_token_version(db: Session, user: User) -> None:
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+    access_token: str = Cookie(None), db: Session = Depends(get_db)
 ) -> User:
     """Get the current authenticated user."""
+    if access_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     app_logger.debug("Authenticating request with JWT token")
 
     credentials_exception = HTTPException(
@@ -119,7 +126,7 @@ def get_current_user(
     )
 
     try:
-        payload = decode_token(token)
+        payload = decode_token(access_token)
         user_id = payload.get("sub")
         token_version = payload.get("token_version")
         if user_id is None:

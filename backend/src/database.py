@@ -9,7 +9,10 @@ from src.core.logger import app_logger
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
-app_logger.info(f"Connecting to database at: {DATABASE_URL}")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")
+app_logger.info(
+    f"Connecting to database at: {DATABASE_URL.replace(POSTGRES_PASSWORD, '*' * len(POSTGRES_PASSWORD))}"
+)
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

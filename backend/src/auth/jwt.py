@@ -106,3 +106,5 @@ def decode_token(token: str, is_refresh: bool = False) -> Dict[str, Any]:
     """
     secret = REFRESH_SECRET_KEY if is_refresh else SECRET_KEY
     return jwt.decode(token, secret, algorithms=[ALGORITHM])
+
+

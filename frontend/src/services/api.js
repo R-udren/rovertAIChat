@@ -15,8 +15,23 @@ export const apiUrl = (path) => {
   return `${API_BASE_URL}/${cleanPath}`
 }
 
+// Track if we're currently refreshing to prevent multiple refresh attempts
+let isRefreshing = false
+let refreshSubscribers = []
+
+// Helper function to queue failed requests to retry after token refresh
+function subscribeToRefresh(callback) {
+  refreshSubscribers.push(callback)
+}
+
+// Helper function to retry queued requests after successful token refresh
+function onRefreshSuccess() {
+  refreshSubscribers.forEach((callback) => callback())
+  refreshSubscribers = []
+}
+
 /**
- * Make an authenticated API request
+ * Make an API request with cookie authentication
  * @param {string} url - The API endpoint
  * @param {Object} options - Fetch options
  * @param {boolean} refreshOnAuthError - Whether to attempt token refresh on 401
@@ -30,28 +45,59 @@ export const apiRequest = async (url, options = {}, refreshOnAuthError = true) =
     ...options.headers,
   }
 
-  // Add auth header if token exists
-  if (authStore.token) {
-    headers['Authorization'] = `Bearer ${authStore.token}`
+  // Ensure credentials are included (for cookies)
+  const requestOptions = {
+    ...options,
+    headers,
+    credentials: 'include', // Always include cookies
   }
+
   try {
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    })
+    const response = await fetch(url, requestOptions)
+
     // Handle 401 Unauthorized - attempt to refresh token
     if (response.status === 401 && refreshOnAuthError) {
-      // Try to refresh the token
-      const refreshed = await authStore.refreshAccessToken()
-      if (refreshed) {
-        // Retry the request with the new token
-        return apiRequest(url, options, false) // Pass false to prevent infinite loop
-      } else {
-        // Token refresh failed, force logout
+      // Prevent retry on the refresh endpoint itself
+      if (url.includes('auth/refresh')) {
+        // If refresh fails with 401, we're fully logged out
         authStore.logout()
-        // Parse response to get error details if available
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(`Authentication failed: ${errorData.detail || 'Token refresh failed'}`)
+        throw new Error('Authentication session expired')
+      }
+
+      // If another refresh is in progress, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          subscribeToRefresh(() => {
+            resolve(apiRequest(url, options, false)) // Don't try refreshing again
+          })
+        })
+      }
+
+      // Start refreshing process
+      isRefreshing = true
+
+      try {
+        // Try to refresh the token
+        const refreshed = await authStore.refreshAccessToken()
+
+        // Token refresh successful
+        isRefreshing = false
+        onRefreshSuccess()
+
+        if (refreshed) {
+          // Retry the original request
+          return apiRequest(url, options, false) // Don't try refreshing again
+        } else {
+          // Refresh failed, force logout
+          authStore.logout()
+          throw new Error('Authentication failed: Session expired')
+        }
+      } catch (refreshError) {
+        // Refresh failed
+        isRefreshing = false
+        refreshSubscribers = [] // Clear any queued requests
+        authStore.logout()
+        throw refreshError
       }
     }
 
@@ -93,7 +139,7 @@ export const apiRequest = async (url, options = {}, refreshOnAuthError = true) =
 
     return data
   } catch (error) {
-    console.error(`API request to ${url} returned ${error.status}:`, error)
+    console.error(`API request to ${url} returned ${error.status || 'error'}:`, error)
     throw error
   }
 }

@@ -1,17 +1,13 @@
 import { api } from '@/services/api'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('access_token') || null)
-  const refreshToken = ref(localStorage.getItem('refresh_token') || null)
+  // No need to store tokens locally, they'll be managed by cookies
   const user = ref(null)
   const loading = ref(false)
   const error = ref(null)
-  const isAuthenticated = computed(() => !!token.value)
-
-  // Flag to prevent multiple simultaneous refresh attempts
-  const isRefreshing = ref(false)
+  const isAuthenticated = ref(false)
 
   // Flag to prevent initialization loops
   const initializationAttempted = ref(false)
@@ -40,11 +36,9 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
+      // The server will set the cookies in the response
       const data = await api.postForm('auth/login', credentials)
-      token.value = data.access_token
-      refreshToken.value = data.refresh_token
-      localStorage.setItem('access_token', data.access_token)
-      localStorage.setItem('refresh_token', data.refresh_token)
+      isAuthenticated.value = true
       await fetchUserProfile()
       return data
     } catch (err) {
@@ -57,25 +51,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Logout user
   async function logout() {
-    // If already logging out or no token exists, prevent duplicate calls
-    if (!token.value) return
+    // If already logged out, prevent duplicate calls
+    if (!isAuthenticated.value) return
 
-    // Clear tokens first to prevent other operations from using them
-    const tempToken = token.value
-    token.value = null
-    refreshToken.value = null
+    // Clear local state
     user.value = null
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
+    isAuthenticated.value = false
 
     try {
-      // Only attempt API logout if we had a token
-      if (tempToken) {
-        await api.delete('auth/logout').catch((err) => {
-          // Silently handle logout API errors
-          console.error('Logout API error:', err)
-        })
-      }
+      // The server will clear the cookies
+      await api.post('auth/logout')
     } catch (err) {
       console.error('Logout error:', err)
     }
@@ -83,59 +68,36 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Refresh token
   async function refreshAccessToken() {
-    // Don't attempt refresh if no refresh token or already refreshing
-    if (!refreshToken.value || isRefreshing.value) return false
-
-    isRefreshing.value = true
-
     try {
-      const data = await api.post('auth/refresh', { refresh_token: refreshToken.value })
-
-      // Only update tokens if we got valid data back
-      if (data && data.access_token) {
-        token.value = data.access_token
-
-        // Only update refresh token if a new one was provided
-        if (data.refresh_token) {
-          refreshToken.value = data.refresh_token
-          localStorage.setItem('refresh_token', data.refresh_token)
-        }
-
-        localStorage.setItem('access_token', data.access_token)
-        return true
-      }
-      return false
+      // The server will use the refresh cookie automatically
+      await api.post('auth/refresh')
+      return true
     } catch (err) {
       console.error('Token refresh error:', err)
       // Clear auth state on refresh failure
       await logout()
       return false
-    } finally {
-      isRefreshing.value = false
     }
   }
 
   // Fetch user profile
   async function fetchUserProfile() {
-    if (!token.value) return null
-
     loading.value = true
     try {
       const data = await api.get('users/me')
-      user.value = data
-      return data
+      if (data) {
+        user.value = data
+        isAuthenticated.value = true
+        return data
+      }
+      return null
     } catch (err) {
       console.error('Profile fetch error:', err)
 
-      // Only attempt token refresh on specific errors
-      const status = err.response?.status
-
-      if (status === 401 || status === 403) {
-        // Only try to refresh once, then logout if that fails
-        const refreshed = await refreshAccessToken()
-        if (!refreshed) {
-          await logout()
-        }
+      // Only handle specific error statuses
+      if (err.status === 401 || err.status === 403) {
+        isAuthenticated.value = false
+        user.value = null
       }
       return null
     } finally {
@@ -143,32 +105,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Initialize - check if token exists and fetch user data
-  // Has protection against initialization loops
+  // Initialize - check if user is authenticated
   async function initialize() {
     // Prevent multiple initialization attempts
     if (initializationAttempted.value) return
     initializationAttempted.value = true
 
-    if (token.value) {
-      try {
-        // Set a timeout for initialization to prevent hanging
-        const profilePromise = fetchUserProfile()
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-        })
+    try {
+      // Set a timeout for initialization to prevent hanging
+      const profilePromise = fetchUserProfile()
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      })
 
-        await Promise.race([profilePromise, timeoutPromise])
-      } catch (err) {
-        console.error('Initialization error:', err)
-        await logout()
-      }
+      await Promise.race([profilePromise, timeoutPromise])
+    } catch (err) {
+      console.error('Initialization error:', err)
+      isAuthenticated.value = false
+      user.value = null
     }
   }
 
   return {
-    token,
-    refreshToken,
     user,
     loading,
     error,
