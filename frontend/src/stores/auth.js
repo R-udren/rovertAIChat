@@ -3,14 +3,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useAuthStore = defineStore('auth', () => {
-  // No need to store tokens locally, they'll be managed by cookies
   const user = ref(null)
   const loading = ref(false)
   const error = ref(null)
-  const isAuthenticated = ref(false)
-
-  // Flag to prevent initialization loops
-  const initializationAttempted = ref(false)
+  const isAuthenticated = ref(localStorage.getItem('user') !== null)
 
   // Register new user
   async function register(credentials) {
@@ -57,6 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
     // Clear local state
     user.value = null
     isAuthenticated.value = false
+    localStorage.removeItem('user')
 
     try {
       // The server will clear the cookies
@@ -88,6 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (data) {
         user.value = data
         isAuthenticated.value = true
+        localStorage.setItem('user', JSON.stringify(data))
         return data
       }
       return null
@@ -107,18 +105,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Initialize - check if user is authenticated
   async function initialize() {
-    // Prevent multiple initialization attempts
-    if (initializationAttempted.value) return
-    initializationAttempted.value = true
-
     try {
-      // Set a timeout for initialization to prevent hanging
-      const profilePromise = fetchUserProfile()
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-      })
-
-      await Promise.race([profilePromise, timeoutPromise])
+      await fetchUserProfile()
     } catch (err) {
       console.error('Initialization error:', err)
       isAuthenticated.value = false
