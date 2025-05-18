@@ -266,28 +266,6 @@ const handleKeyDown = (e) => {
       </div>
     </aside>
 
-    <!-- Mobile sidebar toggle -->
-    <button
-      @click="toggleSidebar"
-      class="fixed z-40 p-3 transition-transform duration-200 rounded-full shadow-lg bottom-6 left-6 bg-primary-600 hover:bg-primary-700 lg:hidden active:scale-95"
-      aria-label="Toggle sidebar"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        class="w-6 h-6 text-white"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M4 6h16M4 12h16m-7 6h7"
-        />
-      </svg>
-    </button>
-
     <!-- Main chat area -->
     <main
       class="relative flex flex-col flex-1 w-full h-full transition-all duration-300 ease-in-out sidebar-transition"
@@ -300,7 +278,7 @@ const handleKeyDown = (e) => {
           <!-- Toggle sidebar on desktop -->
           <button
             @click="toggleSidebar"
-            class="hidden mr-3 text-gray-400 transition-colors lg:block hover:text-white p-1.5 rounded-md hover:bg-zinc-800"
+            class="mr-3 text-gray-400 transition-colors lg:block hover:text-white p-1.5 rounded-md hover:bg-zinc-800"
             :title="showSidebar ? 'Hide sidebar' : 'Show sidebar'"
             :class="{ 'bg-zinc-800/50': !showSidebar, 'text-primary-400': !showSidebar }"
           >
