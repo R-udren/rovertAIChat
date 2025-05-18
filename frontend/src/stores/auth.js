@@ -17,9 +17,9 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      const reg_data = await api.post('auth/register', credentials)
+      const data = await api.post('auth/register', credentials)
 
-      const data = await api.postForm('auth/login', {
+      await login({
         username: credentials.username,
         password: credentials.password,
       })

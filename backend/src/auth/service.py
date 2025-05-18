@@ -59,25 +59,34 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
         return None
 
 
-def authenticate_user(db: Session, email_or_username: str, password: str) -> Optional[User]:
-    """Authenticate a user with username and password."""
-    app_logger.info(f"Authenticating user: {email_or_username}")
+def authenticate_user(
+    db: Session, email_or_username: str, password: str
+) -> Optional[User]:
+    """Authenticate a user with email or username and password."""
+    app_logger.info(f"Attempting authentication for: {email_or_username}")
+
+    # First try to find user by username
     user = get_user_by_username(db, email_or_username)
+
+    # If not found by username, try by email
     if not user:
-        app_logger.warning(f"Authentication failed: User not found - {email_or_username}")
-        return None
-    user = get_user_by_email(db, email_or_username)
+        user = get_user_by_email(db, email_or_username)
+
+    # Check if user exists
     if not user:
         app_logger.warning(
-            f"Authentication failed: User not found by Email - {email_or_username}"
+            f"Authentication failed: No user found with credential: {email_or_username}"
         )
         return None
+
+    # Verify password
     if not verify_password(password, user.password_hash):
         app_logger.warning(
-            f"Authentication failed: Invalid password for user - {email_or_username}"
+            f"Authentication failed: Invalid password for user: {user.username}"
         )
         return None
-    app_logger.info(f"User authenticated successfully: {email_or_username}")
+
+    app_logger.info(f"User authenticated successfully: {user.username}")
     return user
 
 
