@@ -1,1 +1,120 @@
 @import 'tailwindcss';
+
+@theme {
+  /* Define custom theme variables */
+  --color-primary-400: #60a5fa; /* Replace with your desired color */
+  --color-blue-500: #3b82f6; /* Replace with your desired color */
+
+  /* Define animation keyframes and associate them with variables */
+  --animate-fade-in: fadeIn 0.5s ease-out forwards;
+  --animate-slide-up: slideUp 0.3s ease-out forwards;
+  --animate-slide-in-right: slideInRight 0.3s ease-out forwards;
+  --animate-slide-in-left: slideInLeft 0.3s ease-out forwards;
+  --animate-pulse-subtle: pulseSlight 2s infinite;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      transform: translateX(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulseSlight {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply overflow-x-hidden text-white bg-zinc-900;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-zinc-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply transition-colors rounded-full bg-zinc-600 hover:bg-zinc-500;
+  }
+}
+
+@layer components {
+  .glass-effect {
+    @apply border bg-zinc-800/40 backdrop-blur-lg border-zinc-700/50;
+  }
+
+  .text-gradient {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: var(--animate-fade-in);
+  }
+
+  .animate-slide-up {
+    animation: var(--animate-slide-up);
+  }
+
+  .animate-slide-in-right {
+    animation: var(--animate-slide-in-right);
+  }
+
+  .animate-slide-in-left {
+    animation: var(--animate-slide-in-left);
+  }
+
+  .animate-pulse-subtle {
+    animation: var(--animate-pulse-subtle);
+  }
+}

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = defineProps({
   message: {
@@ -33,13 +33,31 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const isVisible = ref(false)
+const progress = ref(100)
 let timer = null
+let progressTimer = null
 
-const typeClasses = {
-  success: 'bg-green-500 border-green-600',
-  error: 'bg-red-500 border-red-600',
-  info: 'bg-blue-500 border-blue-600',
-  warning: 'bg-yellow-500 border-yellow-600',
+const typeConfig = {
+  success: {
+    bg: 'from-green-500/80 to-green-600/80',
+    border: 'border-green-400/30',
+    icon: 'M5 13l4 4L19 7',
+  },
+  error: {
+    bg: 'from-red-500/80 to-red-600/80',
+    border: 'border-red-400/30',
+    icon: 'M6 18L18 6M6 6l12 12',
+  },
+  info: {
+    bg: 'from-primary-500/80 to-primary-600/80',
+    border: 'border-primary-400/30',
+    icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  },
+  warning: {
+    bg: 'from-yellow-500/80 to-yellow-600/80',
+    border: 'border-yellow-400/30',
+    icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
+  },
 }
 
 const positionClasses = {
@@ -51,16 +69,37 @@ const positionClasses = {
   'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2',
 }
 
+const toastClasses = computed(() => [
+  'fixed z-50 p-4 rounded-lg shadow-xl max-w-md transition-all transform glass-effect backdrop-blur-md',
+  `bg-gradient-to-br ${typeConfig[props.type].bg}`,
+  `border ${typeConfig[props.type].border}`,
+  positionClasses[props.position],
+])
+
+const updateProgress = () => {
+  const step = 100 / (props.duration / 10)
+  progressTimer = setInterval(() => {
+    progress.value = Math.max(0, progress.value - step)
+    if (progress.value <= 0) {
+      clearInterval(progressTimer)
+    }
+  }, 10)
+}
+
 const closeToast = () => {
   isVisible.value = false
   clearTimeout(timer)
-  emit('close')
+  clearInterval(progressTimer)
+  setTimeout(() => {
+    emit('close')
+  }, 300)
 }
 
 onMounted(() => {
   isVisible.value = true
 
   if (props.duration > 0) {
+    updateProgress()
     timer = setTimeout(() => {
       closeToast()
     }, props.duration)
@@ -69,25 +108,19 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   clearTimeout(timer)
+  clearInterval(progressTimer)
 })
 </script>
 
 <template>
   <Transition name="toast">
-    <div
-      v-if="isVisible"
-      :class="[
-        'fixed z-50 px-4 py-3 rounded-lg shadow-lg border-l-4 max-w-md transition-all transform',
-        typeClasses[type],
-        positionClasses[position],
-      ]"
-    >
-      <div class="flex items-center">
+    <div v-if="isVisible" :class="toastClasses">
+      <div class="flex items-center gap-3">
         <!-- Icon based on type -->
-        <div v-if="type === 'success'" class="text-white mr-3">
+        <div class="flex-shrink-0 text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
+            class="w-6 h-6"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -96,67 +129,23 @@ onBeforeUnmount(() => {
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        </div>
-        <div v-else-if="type === 'error'" class="text-white mr-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </div>
-        <div v-else-if="type === 'info'" class="text-white mr-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-        <div v-else-if="type === 'warning'" class="text-white mr-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              :d="typeConfig[type].icon"
             />
           </svg>
         </div>
 
         <!-- Message -->
-        <div class="text-white">{{ message }}</div>
+        <div class="flex-1 font-medium text-white">{{ message }}</div>
 
         <!-- Close button -->
-        <button @click="closeToast" class="ml-auto text-white opacity-70 hover:opacity-100">
+        <button
+          @click="closeToast"
+          class="p-1 ml-auto text-white transition-colors rounded-full opacity-70 hover:opacity-100 hover:bg-black/10"
+          aria-label="Close notification"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
+            class="w-5 h-5"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -167,6 +156,11 @@ onBeforeUnmount(() => {
             />
           </svg>
         </button>
+      </div>
+
+      <!-- Progress bar -->
+      <div v-if="duration > 0" class="h-1 mt-3 overflow-hidden rounded-full bg-white/20">
+        <div class="h-full rounded-full bg-white/80" :style="{ width: `${progress}%` }"></div>
       </div>
     </div>
   </Transition>

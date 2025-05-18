@@ -7,6 +7,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  isLast: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const userSettingsStore = useUserSettingsStore()
@@ -38,20 +42,39 @@ const formatDate = (dateString) => {
 }
 
 const isUserMessage = computed(() => props.message.role === 'user')
+
+const messageClasses = computed(() => [
+  'flex max-w-full md:max-w-[80%] transition-all',
+  isUserMessage.value ? 'justify-end ml-auto' : 'justify-start mr-auto',
+  props.isLast ? 'animate-slide-up' : '',
+])
+
+const bubbleClasses = computed(() => [
+  'p-4 relative shadow-md',
+  isUserMessage.value
+    ? `bg-gradient-to-br from-primary-600 to-primary-700 text-white ${chatBubbleStyle.value.user}`
+    : `glass-effect text-gray-100 ${chatBubbleStyle.value.ai}`,
+  props.isLast ? (isUserMessage.value ? 'animate-slide-in-left' : 'animate-slide-in-right') : '',
+])
 </script>
 
 <template>
-  <div class="flex" :class="isUserMessage ? 'justify-end' : 'justify-start'">
-    <div
-      class="max-w-[80%] p-3 relative"
-      :class="[
-        isUserMessage
-          ? `bg-primary-600 text-white ${chatBubbleStyle.user}`
-          : `bg-zinc-700 text-gray-100 ${chatBubbleStyle.ai}`,
-      ]"
-    >
-      <div class="whitespace-pre-wrap">{{ message.content }}</div>
-      <div class="mt-1 text-xs text-right opacity-70">{{ formatDate(message.timestamp) }}</div>
+  <div :class="messageClasses">
+    <div :class="bubbleClasses">
+      <div class="whitespace-pre-wrap message-content">{{ message.content }}</div>
+      <div class="mt-2 text-xs opacity-70 flex justify-between items-center gap-2">
+        <div class="font-medium">
+          {{ isUserMessage ? 'You' : 'AI' }}
+        </div>
+        <div>{{ formatDate(message.timestamp) }}</div>
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.message-content {
+  line-height: 1.6;
+  word-break: break-word;
+}
+</style>
