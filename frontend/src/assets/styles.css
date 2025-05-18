@@ -117,4 +117,11 @@
   .animate-pulse-subtle {
     animation: var(--animate-pulse-subtle);
   }
+
+  .sidebar-transition {
+    transition:
+      transform 0.3s ease-in-out,
+      margin 0.3s ease-in-out,
+      width 0.3s ease-in-out;
+  }
 }

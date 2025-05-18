@@ -1,21 +1,20 @@
 <script setup>
 import ChatMessage from '@/components/ChatMessage.vue'
-import { useAuthStore } from '@/stores/auth'
 import { useChatStore } from '@/stores/chat'
 import { useToastStore } from '@/stores/toast'
 import { useUserSettingsStore } from '@/stores/userSettings'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
 const chatStore = useChatStore()
-const authStore = useAuthStore()
 const userSettingsStore = useUserSettingsStore()
 const toastStore = useToastStore()
 
 const messageInput = ref('')
 const chatContainer = ref(null)
-const showSidebar = ref(window.innerWidth >= 1024)
+const showSidebar = ref(
+  localStorage.getItem('sidebarVisible') !== null
+    ? localStorage.getItem('sidebarVisible') === 'true'
+    : window.innerWidth >= 1024,
+)
 const isSubmitting = ref(false)
 const isMobileSidebarOpen = ref(false)
 const expandedInput = ref(false)
@@ -46,7 +45,8 @@ watch(messageInput, () => {
 const sidebarClasses = computed(() => ({
   'translate-x-0 shadow-2xl': isMobileSidebarOpen.value,
   '-translate-x-full': !isMobileSidebarOpen.value,
-  'lg:translate-x-0': true,
+  'lg:translate-x-0 lg:w-80': showSidebar.value,
+  'lg:-translate-x-full lg:w-0 lg:min-w-0': !showSidebar.value,
 }))
 
 onMounted(async () => {
@@ -58,10 +58,19 @@ onMounted(async () => {
     chatStore.startNewConversation()
   }
 
+  // Load saved sidebar state from localStorage
+  const savedSidebarState = localStorage.getItem('sidebarVisible')
+  if (savedSidebarState !== null) {
+    showSidebar.value = savedSidebarState === 'true'
+  }
+
   // Setup resize listener for sidebar
   window.addEventListener('resize', () => {
     if (window.innerWidth >= 1024) {
-      showSidebar.value = true
+      // Only set isMobileSidebarOpen to false, don't change desktop sidebar state
+      isMobileSidebarOpen.value = false
+    } else {
+      // On mobile, ensure sidebar is always hidden initially
       isMobileSidebarOpen.value = false
     }
   })
@@ -120,9 +129,13 @@ const formatDate = (dateString) => {
 
 const toggleSidebar = () => {
   if (window.innerWidth < 1024) {
+    // Mobile: toggle the mobile sidebar overlay
     isMobileSidebarOpen.value = !isMobileSidebarOpen.value
   } else {
+    // Desktop: toggle the persistent sidebar
     showSidebar.value = !showSidebar.value
+    // Store user preference in localStorage
+    localStorage.setItem('sidebarVisible', showSidebar.value.toString())
   }
 }
 
@@ -142,7 +155,7 @@ const handleKeyDown = (e) => {
 </script>
 
 <template>
-  <div class="relative h-[calc(100vh-64px)] flex flex-col lg:flex-row bg-zinc-900">
+  <div class="relative h-[calc(100vh-64px)] flex flex-col lg:flex-row bg-zinc-900 overflow-hidden">
     <!-- Sidebar overlay -->
     <div
       v-if="isMobileSidebarOpen"
@@ -152,14 +165,14 @@ const handleKeyDown = (e) => {
 
     <!-- Sidebar with conversations -->
     <aside
-      class="fixed lg:sticky top-[64px] left-0 h-[calc(100vh-64px)] w-80 z-30 transition-transform duration-300 transform lg:transform-none bg-zinc-900 border-r border-zinc-800/50"
+      class="fixed lg:sticky top-[64px] left-0 h-[calc(100vh-64px)] w-80 z-30 transform bg-zinc-900 border-r border-zinc-800/50 transition-all duration-300 overflow-hidden"
       :class="sidebarClasses"
     >
       <div class="flex flex-col h-full">
-        <div class="p-4 border-b border-zinc-800/70 glass-effect">
+        <div class="p-3 border-b border-zinc-800/70 glass-effect">
           <button
             @click="startNewChat"
-            class="flex items-center justify-center w-full px-4 py-3 font-medium text-white transition-all duration-300 rounded-lg shadow-md bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 hover:shadow-lg active:scale-95"
+            class="flex items-center justify-center w-full px-4 py-2.5 font-medium text-white transition-all duration-300 rounded-lg shadow-md bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 hover:shadow-lg active:scale-95"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +236,7 @@ const handleKeyDown = (e) => {
                 <button
                   class="p-1 text-gray-400 hover:text-white"
                   title="Delete conversation"
-                  @click.stop="chatStore.deleteConversation(conversation.id)"
+                  @click.stop="chatStore.selectConversation(conversation.id)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -277,7 +290,7 @@ const handleKeyDown = (e) => {
 
     <!-- Main chat area -->
     <main
-      class="relative flex flex-col flex-1 h-full transition-all duration-300"
+      class="relative flex flex-col flex-1 w-full h-full transition-all duration-300 ease-in-out sidebar-transition"
       :class="mainContentClasses"
     >
       <!-- Chat header -->
@@ -288,10 +301,12 @@ const handleKeyDown = (e) => {
           <!-- Toggle sidebar on desktop -->
           <button
             @click="toggleSidebar"
-            class="hidden mr-3 text-gray-400 transition-colors lg:block hover:text-white"
-            title="Toggle sidebar"
+            class="hidden mr-3 text-gray-400 transition-colors lg:block hover:text-white p-1.5 rounded-md hover:bg-zinc-800"
+            :title="showSidebar ? 'Hide sidebar' : 'Show sidebar'"
+            :class="{ 'bg-zinc-800/50': !showSidebar, 'text-primary-400': !showSidebar }"
           >
             <svg
+              v-if="showSidebar"
               xmlns="http://www.w3.org/2000/svg"
               class="w-5 h-5"
               fill="none"
@@ -303,6 +318,21 @@ const handleKeyDown = (e) => {
                 stroke-linejoin="round"
                 stroke-width="2"
                 d="M4 6h16M4 12h16M4 18h7"
+              />
+            </svg>
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
               />
             </svg>
           </button>
@@ -399,12 +429,12 @@ const handleKeyDown = (e) => {
       <!-- Input area -->
       <div class="p-4 transition-all duration-300 border-t md:p-6 border-zinc-800 glass-effect">
         <form @submit.prevent="sendMessage" class="flex items-end space-x-3">
-          <div class="relative flex-1 overflow-hidden shadow-lg rounded-xl">
+          <div class="relative flex-1 overflow-hidden rounded-xl">
             <textarea
               ref="textareaRef"
               v-model="messageInput"
               placeholder="Type a message..."
-              class="w-full px-4 py-3 text-white transition-all duration-200 border resize-none bg-zinc-800 border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full px-4 py-3 text-white transition-all duration-200 border shadow-inner resize-none bg-zinc-800/80 border-zinc-700/50 rounded-xl focus:outline-none focus:border-primary-500/50"
               :rows="expandedInput ? 4 : 1"
               @keydown="handleKeyDown"
               @focus="adjustTextareaHeight"

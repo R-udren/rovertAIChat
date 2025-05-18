@@ -44,8 +44,8 @@ const formatDate = (dateString) => {
 const isUserMessage = computed(() => props.message.role === 'user')
 
 const messageClasses = computed(() => [
-  'flex max-w-full md:max-w-[80%] transition-all',
-  isUserMessage.value ? 'justify-end ml-auto' : 'justify-start mr-auto',
+  'flex max-w-[85%] transition-all',
+  isUserMessage.value ? 'justify-end ml-auto' : 'justify-start',
   props.isLast ? 'animate-slide-up' : '',
 ])
 
@@ -62,7 +62,7 @@ const bubbleClasses = computed(() => [
   <div :class="messageClasses">
     <div :class="bubbleClasses">
       <div class="whitespace-pre-wrap message-content">{{ message.content }}</div>
-      <div class="mt-2 text-xs opacity-70 flex justify-between items-center gap-2">
+      <div class="flex items-center justify-between gap-2 mt-2 text-xs opacity-70">
         <div class="font-medium">
           {{ isUserMessage ? 'You' : 'AI' }}
         </div>
