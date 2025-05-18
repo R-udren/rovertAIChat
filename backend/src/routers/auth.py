@@ -15,7 +15,7 @@ from src.core.logger import app_logger
 from src.core.rate_limiter import limiter
 from src.database import get_db
 from src.models.user import User
-from src.schemas.user import RefreshToken, Token, UserCreate, UserResponse
+from src.schemas.user import Token, UserCreate, UserResponse
 from src.services.user import create_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -100,17 +100,16 @@ async def login(
 async def refresh_token(
     request: Request,
     response: Response,
-    refresh_token_data: RefreshToken,
     db: Session = Depends(get_db),
 ):
     """
-    Refresh an access token using a refresh token.
+    Refresh an access token using a refresh token from cookies.
 
     Returns:
         New JWT access and refresh tokens
 
     Raises:
-        HTTPException: If refresh token is invalid
+        HTTPException: If refresh token is invalid or missing
     """
     app_logger.debug("Token refresh requested")
     credentials_exception = HTTPException(
@@ -119,8 +118,14 @@ async def refresh_token(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    # Get refresh token from cookies
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        app_logger.warning("Refresh token missing from cookies")
+        raise credentials_exception
+
     try:
-        payload = decode_token(refresh_token_data.refresh_token, is_refresh=True)
+        payload = decode_token(refresh_token, is_refresh=True)
         user_id = payload.get("sub")
         token_type = payload.get("type")
         token_version = payload.get("token_version")
