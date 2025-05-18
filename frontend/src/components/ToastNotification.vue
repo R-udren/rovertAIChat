@@ -77,13 +77,17 @@ const toastClasses = computed(() => [
 ])
 
 const updateProgress = () => {
-  const step = 100 / (props.duration / 10)
+  // Calculate actual step to complete exactly at the end of duration
+  const updateFrequency = 10 // ms between updates
+  const totalSteps = props.duration / updateFrequency
+  const step = 100 / totalSteps
+
   progressTimer = setInterval(() => {
     progress.value = Math.max(0, progress.value - step)
     if (progress.value <= 0) {
       clearInterval(progressTimer)
     }
-  }, 10)
+  }, updateFrequency)
 }
 
 const closeToast = () => {
@@ -100,9 +104,11 @@ onMounted(() => {
 
   if (props.duration > 0) {
     updateProgress()
+    // Set timer to close the toast at the same time the progress bar completes
+    // We add a tiny bit of extra time to ensure the progress bar has completed
     timer = setTimeout(() => {
       closeToast()
-    }, props.duration)
+    }, props.duration + 50)
   }
 })
 

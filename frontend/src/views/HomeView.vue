@@ -19,7 +19,7 @@ const goToChat = () => {
     <div class="container px-4 py-16 mx-auto">
       <div class="max-w-3xl mx-auto text-center">
         <h1 class="mb-6 text-4xl font-bold text-white md:text-5xl">
-          Welcome to <span class="text-primary-500">rovertAIChat</span>
+          Welcome to <span class="text-gradient">rovertAIChat</span>
         </h1>
         <p class="mb-8 text-xl text-gray-300">
           Your intelligent AI assistant for conversations and answers.
@@ -35,9 +35,9 @@ const goToChat = () => {
         </div>
 
         <div class="grid grid-cols-1 gap-8 mt-16 md:grid-cols-3">
-          <div class="p-6 rounded-lg shadow-md bg-zinc-800">
+          <div class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:scale-105">
             <div
-              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary-600"
+              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-3"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -60,9 +60,9 @@ const goToChat = () => {
             </p>
           </div>
 
-          <div class="p-6 rounded-lg shadow-md bg-zinc-800">
+          <div class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:scale-105">
             <div
-              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary-600"
+              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gradient"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -85,9 +85,9 @@ const goToChat = () => {
             </p>
           </div>
 
-          <div class="p-6 rounded-lg shadow-md bg-zinc-800">
+          <div class="p-6 transition-transform rounded-lg shadow-md bg-zinc-800 hover:scale-105">
             <div
-              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary-600"
+              class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gradient-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
