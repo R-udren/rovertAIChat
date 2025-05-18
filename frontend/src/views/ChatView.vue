@@ -291,7 +291,6 @@ const handleKeyDown = (e) => {
     <!-- Main chat area -->
     <main
       class="relative flex flex-col flex-1 w-full h-full transition-all duration-300 ease-in-out sidebar-transition"
-      :class="mainContentClasses"
     >
       <!-- Chat header -->
       <div

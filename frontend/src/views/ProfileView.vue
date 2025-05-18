@@ -2,7 +2,8 @@
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useUserSettingsStore } from '@/stores/userSettings'
-import { onMounted, ref } from 'vue'
+import { profileSchema, validateField, validateForm } from '@/utils/validation'
+import { onMounted, ref, watch } from 'vue'
 
 const authStore = useAuthStore()
 const userSettingsStore = useUserSettingsStore()
@@ -23,56 +24,53 @@ const formErrors = ref({
   avatar_url: '',
 })
 
-const validateForm = () => {
-  let isValid = true
-  formErrors.value = {
-    username: '',
-    email: '',
-    avatar_url: '',
-  }
+// Track image load status to properly handle preview validation
+const imageLoadStatus = ref({
+  loaded: false,
+  error: false,
+})
 
-  // Validate username (4-100 characters as per API schema)
-  if (!formData.value.username) {
-    formErrors.value.username = 'Username is required'
-    isValid = false
-  } else if (formData.value.username.length < 4) {
-    formErrors.value.username = 'Username must be at least 4 characters'
-    isValid = false
-  } else if (formData.value.username.length > 100) {
-    formErrors.value.username = 'Username cannot exceed 100 characters'
-    isValid = false
-  }
+// Add watchers for real-time validation
+watch(
+  () => formData.value.username,
+  (newValue) => {
+    const result = validateField(profileSchema, 'username', newValue)
+    formErrors.value.username = result.valid ? '' : result.message
+  },
+)
 
-  // Validate email format
-  if (!formData.value.email) {
-    formErrors.value.email = 'Email is required'
-    isValid = false
-  } else {
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailPattern.test(formData.value.email)) {
-      formErrors.value.email = 'Please enter a valid email address'
-      isValid = false
+watch(
+  () => formData.value.email,
+  (newValue) => {
+    const result = validateField(profileSchema, 'email', newValue)
+    formErrors.value.email = result.valid ? '' : result.message
+  },
+)
+
+watch(
+  () => formData.value.avatar_url,
+  (newValue) => {
+    if (newValue) {
+      // Reset image status when URL changes
+      imageLoadStatus.value = { loaded: false, error: false }
+
+      // Only validate if not empty
+      const result = validateField(profileSchema, 'avatar_url', newValue)
+      formErrors.value.avatar_url = result.valid ? '' : result.message
+    } else {
+      formErrors.value.avatar_url = ''
+      imageLoadStatus.value = { loaded: false, error: false }
     }
+  },
+)
+
+const validateProfileForm = () => {
+  const result = validateForm(profileSchema, formData.value)
+  if (!result.valid) {
+    formErrors.value = result.errors
+    return false
   }
-
-  // Validate avatar URL if provided
-  if (formData.value.avatar_url) {
-    // Basic URL validation
-    try {
-      new URL(formData.value.avatar_url)
-    } catch (e) {
-      formErrors.value.avatar_url = 'Please enter a valid URL'
-      isValid = false
-    }
-
-    // Check max length (255 characters from schema)
-    if (formData.value.avatar_url.length > 255) {
-      formErrors.value.avatar_url = 'URL cannot exceed 255 characters'
-      isValid = false
-    }
-  }
-
-  return isValid
+  return true
 }
 
 onMounted(async () => {
@@ -96,6 +94,11 @@ const startEditing = () => {
   formData.value.email = authStore.user?.email || ''
   formData.value.avatar_url = userSettingsStore.settings?.avatar_url || ''
   updateStatus.value = ''
+
+  // Reset image load status for the avatar preview
+  if (formData.value.avatar_url) {
+    imageLoadStatus.value = { loaded: false, error: false }
+  }
 }
 
 const cancelEditing = () => {
@@ -105,7 +108,7 @@ const cancelEditing = () => {
 
 const saveProfile = async () => {
   // Validate form before submission
-  if (!validateForm()) {
+  if (!validateProfileForm()) {
     updateStatus.value = 'Please fix the form errors'
     return
   }
@@ -195,7 +198,7 @@ const saveProfile = async () => {
           <div class="flex items-center space-x-4">
             <div
               v-if="userSettingsStore.settings?.avatar_url"
-              class="flex items-center justify-center w-16 h-16 overflow-hidden rounded-full bg-zinc-700"
+              class="flex items-center justify-center w-24 h-24 overflow-hidden rounded-full bg-zinc-700"
             >
               <img
                 :src="userSettingsStore.settings.avatar_url"
@@ -205,15 +208,15 @@ const saveProfile = async () => {
             </div>
             <div
               v-else
-              class="flex items-center justify-center w-16 h-16 text-xl text-white rounded-full bg-zinc-700"
+              class="flex items-center justify-center w-24 h-24 text-3xl text-white rounded-full bg-zinc-700"
             >
               {{ authStore.user.username.charAt(0).toUpperCase() }}
             </div>
             <div>
-              <h2 class="text-xl font-medium text-white">{{ authStore.user.username }}</h2>
-              <p class="text-gray-400">
-                {{ userSettingsStore.settings?.display_name || 'No display name set' }}
-              </p>
+              <h2 class="text-3xl font-semibold text-white">
+                {{ userSettingsStore.settings?.display_name || authStore.user.username }}
+              </h2>
+              <p class="text-gray-400">@{{ authStore.user.username }}</p>
             </div>
           </div>
 
@@ -279,14 +282,30 @@ const saveProfile = async () => {
               id="username"
               v-model="formData.username"
               type="text"
-              class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2"
+              :class="[
+                formErrors.username
+                  ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
+                  : formData.username
+                    ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500'
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+              ]"
               required
               minlength="4"
               maxlength="64"
             />
-            <p v-if="formErrors.username" class="mt-1 text-sm text-red-400">
-              {{ formErrors.username }}
-            </p>
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="-translate-y-1 opacity-0"
+              enter-to-class="translate-y-0 opacity-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="translate-y-0 opacity-100"
+              leave-to-class="-translate-y-1 opacity-0"
+            >
+              <p v-if="formErrors.username" class="flex items-center mt-1 text-sm text-red-400">
+                <span class="mr-1">&#9888;</span> {{ formErrors.username }}
+              </p>
+            </transition>
           </div>
 
           <div>
@@ -295,12 +314,28 @@ const saveProfile = async () => {
               id="email"
               v-model="formData.email"
               type="email"
-              class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2"
+              :class="[
+                formErrors.email
+                  ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
+                  : formData.email
+                    ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500'
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+              ]"
               required
             />
-            <p v-if="formErrors.email" class="mt-1 text-sm text-red-400">
-              {{ formErrors.email }}
-            </p>
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="-translate-y-1 opacity-0"
+              enter-to-class="translate-y-0 opacity-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="translate-y-0 opacity-100"
+              leave-to-class="-translate-y-1 opacity-0"
+            >
+              <p v-if="formErrors.email" class="flex items-center mt-1 text-sm text-red-400">
+                <span class="mr-1">&#9888;</span> {{ formErrors.email }}
+              </p>
+            </transition>
           </div>
 
           <div>
@@ -312,20 +347,58 @@ const saveProfile = async () => {
               v-model="formData.avatar_url"
               type="url"
               placeholder="https://example.com/avatar.jpg"
-              class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2"
+              :class="[
+                formErrors.avatar_url
+                  ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
+                  : formData.avatar_url
+                    ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500/50'
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+              ]"
             />
-            <p v-if="formErrors.avatar_url" class="mt-1 text-sm text-red-400">
-              {{ formErrors.avatar_url }}
-            </p>
-            <p v-if="formData.avatar_url" class="flex items-start mt-2 space-x-2">
-              <span class="text-sm text-gray-400">Preview:</span>
-              <img
-                :src="formData.avatar_url"
-                alt="Avatar preview"
-                class="object-cover w-10 h-10 rounded-full bg-zinc-700"
-                @error="(e) => e.target.classList.add('border', 'border-red-500')"
-              />
-            </p>
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="-translate-y-1 opacity-0"
+              enter-to-class="translate-y-0 opacity-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="translate-y-0 opacity-100"
+              leave-to-class="-translate-y-1 opacity-0"
+            >
+              <p v-if="formErrors.avatar_url" class="flex items-center mt-1 text-sm text-red-400">
+                <span class="mr-1">&#9888;</span> {{ formErrors.avatar_url }}
+              </p>
+            </transition>
+            <div
+              v-if="formData.avatar_url && !formErrors.avatar_url"
+              class="flex items-start mt-3 space-x-2"
+            >
+              <span class="mt-1 text-sm text-gray-400">Preview:</span>
+              <div class="relative">
+                <img
+                  :src="formData.avatar_url"
+                  alt="Avatar preview"
+                  class="object-cover w-16 h-16 rounded-full bg-zinc-700"
+                  @load="imageLoadStatus = { loaded: true, error: false }"
+                  @error="imageLoadStatus = { loaded: false, error: true }"
+                  :class="{ 'border border-red-500': imageLoadStatus.error }"
+                />
+                <div
+                  v-if="imageLoadStatus.loaded && !imageLoadStatus.error"
+                  class="absolute flex items-center justify-center w-5 h-5 text-xs text-white bg-green-500 rounded-full -bottom-1 -right-1"
+                >
+                  ✓
+                </div>
+                <div
+                  v-if="imageLoadStatus.error"
+                  class="absolute flex items-center justify-center w-5 h-5 text-xs text-white bg-red-500 rounded-full -bottom-1 -right-1"
+                >
+                  !
+                </div>
+              </div>
+              <div v-if="imageLoadStatus.error" class="mt-1 ml-1 text-sm text-red-400">
+                Image could not be loaded
+              </div>
+            </div>
           </div>
 
           <div class="flex pt-2 space-x-4">
