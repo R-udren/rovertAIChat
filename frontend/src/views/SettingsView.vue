@@ -45,10 +45,10 @@ const saveSettings = async () => {
 
   try {
     await userSettingsStore.updateSettings({
-      display_name: formData.value.display_name,
-      avatar_url: formData.value.avatar_url,
-      default_model_id: formData.value.default_model_id,
-      preferences: formData.value.preferences,
+      display_name: formData.value.display_name || null,
+      avatar_url: formData.value.avatar_url || null,
+      default_model_id: formData.value.default_model_id || null,
+      preferences: formData.value.preferences || null,
     })
 
     updateStatus.value = 'Settings updated successfully'
