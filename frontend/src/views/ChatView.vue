@@ -218,12 +218,7 @@ const handleModelChange = (model) => {
       </h1>
 
       <div class="flex items-center space-x-2">
-        <!-- Add the model selector here -->
-        <ModelSelector
-          v-model:modelId="selectedModel"
-          :chatId="chatStore.currentConversation?.id"
-          @model-changed="handleModelChange"
-        />
+        <ModelSelector :model-id="selectedModel" @model-changed="handleModelChange" />
         <button
           @click="startNewChat"
           class="p-2 text-gray-400 transition-colors rounded-lg hover:text-white hover:bg-zinc-700"
@@ -391,12 +386,7 @@ const handleModelChange = (model) => {
             </h1>
           </div>
           <div class="flex items-center space-x-2">
-            <!-- Add the model selector here -->
-            <ModelSelector
-              v-model:modelId="selectedModel"
-              :chatId="chatStore.currentConversation?.id"
-              @model-changed="handleModelChange"
-            />
+            <ModelSelector :model-id="selectedModel" @model-changed="handleModelChange" />
             <button
               @click="startNewChat"
               class="p-2 text-gray-400 transition-colors rounded-lg hover:text-white hover:bg-zinc-700"
