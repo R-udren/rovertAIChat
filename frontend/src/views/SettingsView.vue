@@ -73,7 +73,6 @@ const saveSettings = async () => {
 
     updateStatus.value = 'Settings updated successfully'
   } catch (error) {
-    // console.error(error)
     updateStatus.value = 'Failed to update settings: ' + (userSettingsStore.error || error.message)
   } finally {
     isSubmitting.value = false
@@ -119,9 +118,6 @@ const saveSettings = async () => {
               class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">Select a default model</option>
-              <option value="e6f1ae10-9b0e-4639-b4d9-daa82d125d4e">GPT-3.5</option>
-              <option value="5429a4ed-8112-4abb-bbed-777fb83a2476">GPT-4</option>
-              <option value="94b4848b-6176-41c6-8314-83a5297da424">Claude</option>
             </select>
             <p class="mt-1 text-xs text-gray-500">
               This model will be used by default for new conversations
@@ -135,32 +131,36 @@ const saveSettings = async () => {
           <div class="space-y-4">
             <div>
               <label for="theme" class="block mb-1 text-sm font-medium text-gray-300">
-                Theme
+                Theme (Coming soon)
               </label>
               <select
                 id="theme"
                 v-model="formData.preferences.theme"
                 class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                disabled
               >
                 <option value="dark">Dark</option>
                 <option value="light">Light</option>
                 <option value="system">System</option>
               </select>
+              <p class="mt-1 text-xs text-gray-500">This feature will be available soon</p>
             </div>
 
             <div>
               <label for="fontSize" class="block mb-1 text-sm font-medium text-gray-300">
-                Font Size
+                Font Size (Coming soon)
               </label>
               <select
                 id="fontSize"
                 v-model="formData.preferences.fontSize"
                 class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                disabled
               >
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
                 <option value="large">Large</option>
               </select>
+              <p class="mt-1 text-xs text-gray-500">This feature will be available soon</p>
             </div>
 
             <div>
@@ -180,6 +180,7 @@ const saveSettings = async () => {
 
             <div class="flex items-center">
               <input
+                disabled
                 id="messageSound"
                 v-model="formData.preferences.messageSound"
                 type="checkbox"
@@ -188,10 +189,12 @@ const saveSettings = async () => {
               <label for="messageSound" class="block ml-2 text-sm text-gray-300">
                 Play sound on message
               </label>
+              <span class="ml-2 text-xs text-gray-500">(Not implemented yet)</span>
             </div>
 
             <div class="flex items-center">
               <input
+                disabled
                 id="notifications"
                 v-model="formData.preferences.notifications"
                 type="checkbox"
@@ -200,10 +203,12 @@ const saveSettings = async () => {
               <label for="notifications" class="block ml-2 text-sm text-gray-300">
                 Enable browser notifications
               </label>
+              <span class="ml-2 text-xs text-gray-500">(Not implemented yet)</span>
             </div>
 
             <div class="flex items-center">
               <input
+                disabled
                 id="streamingEnabled"
                 v-model="formData.preferences.streamingEnabled"
                 type="checkbox"
@@ -212,7 +217,7 @@ const saveSettings = async () => {
               <label for="streamingEnabled" class="block ml-2 text-sm text-gray-300">
                 Enable streaming responses
               </label>
-              <span class="ml-2 text-xs text-gray-500">(Responses appear word by word)</span>
+              <span class="ml-2 text-xs text-gray-500">(Not implemented yet)</span>
             </div>
           </div>
         </div>
