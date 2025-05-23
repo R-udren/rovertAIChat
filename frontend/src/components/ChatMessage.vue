@@ -73,8 +73,8 @@ marked.setOptions({
 
 // Setup DOMPurify to allow certain attributes for styling
 DOMPurify.setConfig({
-  ADD_ATTR: ['class', 'style', 'data-lang', 'target', 'rel'],
-  ADD_TAGS: ['span', 'div', 'think'],
+  ADD_ATTR: ['class', 'style', 'data-lang', 'target', 'rel', 'data-toggle'],
+  ADD_TAGS: ['span', 'div', 'think', 'button', 'details', 'summary'],
 })
 
 // Render markdown and sanitize HTML
@@ -85,11 +85,20 @@ const renderedContent = computed(() => {
     // Process <think> tags before passing to marked
     let content = props.message.content.toString()
 
-    // Replace <think> tags with a special div that we can style
+    // Replace <think> tags with HTML5 details/summary for native collapsible behavior
     content = content.replace(/<think>([\s\S]*?)<\/think>/g, (match, thinkContent) => {
-      // We'll escape the content inside <think> tags to prevent markdown parsing
-      // and wrap it with a special div that we can style
-      return `\n\n<div class="thinking-content">${thinkContent}</div>\n\n`
+      // Use HTML5 details/summary for native collapsible functionality with improved accessibility
+      return `
+<details class="thinking-block">
+  <summary class="thinking-summary" role="button" aria-expanded="false" tabindex="0">
+    <span class="thinking-icon" aria-hidden="true"></span>
+    <span class="thinking-label">Thinking process</span>
+  </summary>
+  <div class="thinking-content">
+    ${thinkContent}
+  </div>
+</details>
+      `
     })
 
     const html = marked.parse(content)
@@ -106,6 +115,8 @@ const isTruncatable = computed(() => {
   return contentRef.value.scrollHeight > 500
 })
 
+// No need for custom event listeners or watchers with HTML5 details/summary
+
 // Watch for content changes (for streaming)
 watch(
   () => props.message.content,
@@ -114,9 +125,44 @@ watch(
     // Apply syntax highlighting to code blocks on content update
     nextTick(() => {
       if (contentRef.value) {
+        // Highlight all code blocks
         const codeBlocks = contentRef.value.querySelectorAll('pre code')
         codeBlocks.forEach((block) => {
           hljs.highlightElement(block)
+        })
+
+        // Set up details element enhancements
+        const detailsElements = contentRef.value.querySelectorAll('.thinking-block')
+        detailsElements.forEach((details) => {
+          const summary = details.querySelector('summary')
+
+          // Update aria-expanded attribute on toggle
+          details.addEventListener('toggle', (e) => {
+            if (summary) {
+              summary.setAttribute('aria-expanded', e.target.open ? 'true' : 'false')
+            }
+
+            if (e.target.open) {
+              // Re-highlight code blocks when details are opened
+              const thinkingCodeBlocks = e.target.querySelectorAll('pre code')
+              thinkingCodeBlocks.forEach((block) => {
+                hljs.highlightElement(block)
+              })
+            }
+          })
+
+          // Add keyboard support for Enter and Space
+          if (summary) {
+            summary.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                details.open = !details.open
+
+                // Trigger the toggle event manually
+                details.dispatchEvent(new Event('toggle'))
+              }
+            })
+          }
         })
       }
     })
@@ -367,25 +413,87 @@ const formatTime = (timestamp) => {
   -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
 }
 
-/* Styling for content inside <think> tags */
-.message-content .thinking-content {
-  background-color: rgba(67, 34, 100, 0.1);
-  border-left: 3px solid #6a45b5;
-  padding: 8px 12px;
-  margin: 1rem 0;
-  color: #b19cd9;
-  border-radius: 4px;
-  position: relative;
+/* Styling for thinking blocks using HTML5 details/summary */
+.message-content .thinking-block {
+  border: 1px solid rgba(107, 114, 128, 0.3);
+  border-radius: 0.375rem;
+  margin: 1.25rem 0;
+  background-color: rgba(30, 30, 30, 0.3);
+  color: #a1a1aa;
+  overflow: hidden;
 }
 
-.message-content .thinking-content::before {
-  content: 'Thinking...';
-  display: block;
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #8763cf;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.message-content .thinking-summary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.message-content .thinking-summary:hover {
+  background-color: rgba(55, 55, 55, 0.3);
+}
+
+.message-content .thinking-summary::-webkit-details-marker {
+  display: none;
+}
+
+.message-content .thinking-icon {
+  position: relative;
+  width: 0.6rem;
+  height: 0.6rem;
+}
+
+.message-content .thinking-icon:before {
+  content: '';
+  position: absolute;
+  border-right: 2px solid #a1a1aa;
+  border-bottom: 2px solid #a1a1aa;
+  width: 0.4rem;
+  height: 0.4rem;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+
+.message-content details[open] .thinking-icon:before {
+  transform: rotate(45deg);
+}
+
+.message-content .thinking-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.message-content .thinking-content {
+  padding: 0.75rem 1rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-top: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+/* Additional styling for links and code inside thinking blocks */
+.message-content .thinking-content a {
+  color: #94a3b8;
+  text-decoration: underline;
+  text-underline-offset: 0.15rem;
+}
+
+.message-content .thinking-content code {
+  color: #cbd5e1;
+  background-color: rgba(30, 30, 30, 0.5);
+}
+
+/* Improved styling for lists in thinking content */
+.message-content .thinking-content ul,
+.message-content .thinking-content ol {
+  margin: 0.5rem 0;
+}
+
+.message-content .thinking-content li {
+  margin: 0.25rem 0;
 }
 </style>
