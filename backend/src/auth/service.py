@@ -159,7 +159,7 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
     """Get the current user and verify they are active."""
     if current_user.is_active is False:
         app_logger.warning(f"Inactive user attempt: {current_user.id}")
-        raise HTTPException(status_code=403, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 

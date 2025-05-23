@@ -28,6 +28,19 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
+    chats = relationship(
+        "Chat",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    model_access = relationship(
+        "UserModelAccess", foreign_keys="UserModelAccess.user_id", back_populates="user"
+    )
+
+    def __str__(self):
+        return f"{self.username} ({self.id}) - {self.role})"
+
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email}, role={self.role}, created_at={self.created_at}, last_login={self.last_login}, is_active={self.is_active})>"
 

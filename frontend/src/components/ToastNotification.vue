@@ -17,7 +17,7 @@ const props = defineProps({
   },
   position: {
     type: String,
-    default: 'top-right',
+    default: 'bottom-right',
     validator: (value) =>
       [
         'top-right',

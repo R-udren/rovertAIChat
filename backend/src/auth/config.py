@@ -64,6 +64,6 @@ def clear_auth_cookies(response: Response):
 
     response.delete_cookie(
         key="refresh_token",
-        path="/api/auth/refresh",
+        path="/api/v1/auth/refresh",
         domain=COOKIE_DOMAIN,
     )

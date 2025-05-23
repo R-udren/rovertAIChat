@@ -10,6 +10,7 @@ from src.core.logger import app_logger
 from src.core.rate_limiter import setup_limiter
 from src.database import Base, engine, get_db
 from src.routers.auth import router as auth_router
+from src.routers.chats import router as chat_router
 from src.routers.ollama import router as ollama_router
 from src.routers.user import router as user_router
 from src.routers.user_settings import router as user_settings_router
@@ -49,6 +50,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(user_settings_router, prefix="/api/v1")
 app.include_router(ollama_router, prefix="/api/v1")
+app.include_router(chat_router, prefix="/api/v1")
 
 
 @app.get("/health")

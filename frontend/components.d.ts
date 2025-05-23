@@ -12,6 +12,7 @@ declare module 'vue' {
     ChatMessage: typeof import('./src/components/ChatMessage.vue')['default']
     ErrorMessage: typeof import('./src/components/ErrorMessage.vue')['default']
     LoadingSpinner: typeof import('./src/components/LoadingSpinner.vue')['default']
+    ModelSelector: typeof import('./src/components/ModelSelector.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ToastContainer: typeof import('./src/components/ToastContainer.vue')['default']

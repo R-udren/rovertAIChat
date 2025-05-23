@@ -226,6 +226,25 @@ export const api = {
   },
 
   /**
+   * Send a PATCH request
+   * @param {string} endpoint - API endpoint path
+   * @param {Object} data - Request payload
+   * @param {Object} options - Additional fetch options
+   * @returns {Promise<any>}
+   */
+  patch: (endpoint, data = {}, options = {}) => {
+    return apiRequest(apiUrl(endpoint), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      body: JSON.stringify(data),
+      ...options,
+    })
+  },
+
+  /**
    * Send a DELETE request
    * @param {string} endpoint - API endpoint path
    * @param {Object} options - Additional fetch options
