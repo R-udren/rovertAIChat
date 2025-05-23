@@ -93,7 +93,7 @@ const renderedContent = computed(() => {
 // Determine if the message should be truncated
 const isTruncatable = computed(() => {
   if (!contentRef.value || isExpanded.value) return false
-  return contentRef.value.scrollHeight > 300
+  return contentRef.value.scrollHeight > 500
 })
 
 // Watch for content changes (for streaming)
@@ -191,7 +191,7 @@ const formatTime = (timestamp) => {
       <div
         ref="contentRef"
         class="prose transition-all duration-300 message-content prose-invert max-w-none"
-        :class="[isTruncatable && !isExpanded ? 'max-h-[300px] overflow-hidden gradient-mask' : '']"
+        :class="[isTruncatable && !isExpanded ? 'max-h-[500px] overflow-hidden gradient-mask' : '']"
         v-html="renderedContent"
       ></div>
 
@@ -279,14 +279,42 @@ const formatTime = (timestamp) => {
   line-height: 1.25;
 }
 
+.message-content h1 {
+  font-size: 2rem;
+}
+
+.message-content h2 {
+  font-size: 1.75rem;
+}
+
+.message-content h3 {
+  font-size: 1.5rem;
+}
+
+.message-content h4 {
+  font-size: 1.25rem;
+}
+
+.message-content h5 {
+  font-size: 1.125rem;
+}
+
+.message-content h6 {
+  font-size: 1rem;
+}
+
 .message-content ul,
 .message-content ol {
   padding-left: 1.5rem;
   margin: 1rem 0;
+  list-style-position: outside;
+  list-style-type: disc;
 }
 
 .message-content li {
   margin: 0.5rem 0;
+  line-height: 1.5;
+  list-style-type: disc;
 }
 
 .message-content blockquote {
