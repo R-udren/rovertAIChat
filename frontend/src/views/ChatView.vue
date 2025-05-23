@@ -65,6 +65,11 @@ const sendMessage = async () => {
 
   await chatStore.sendMessage(message, model)
 
+  // If a new conversation was created, navigate to it
+  if (chatStore.currentConversation && route.path === '/chat') {
+    router.push(`/chat/${chatStore.currentConversation.id}`)
+  }
+
   scrollToBottom()
 }
 
@@ -103,6 +108,13 @@ const deleteChat = async (chatId) => {
       router.push('/chat')
     }
   }
+}
+
+// Update chat title
+const updateChatTitle = async (chatId, newTitle) => {
+  if (!chatId || !newTitle.trim()) return
+
+  await chatStore.updateChat(chatId, { title: newTitle.trim() })
 }
 
 // Load chats and set initial chat
@@ -186,6 +198,7 @@ const handleModelChange = (model) => {
       @toggle-mobile-sidebar="toggleMobileSidebar"
       @start-new-chat="startNewChat"
       @model-changed="handleModelChange"
+      @update-chat-title="updateChatTitle"
     />
 
     <div class="flex flex-1 overflow-hidden">
@@ -200,6 +213,7 @@ const handleModelChange = (model) => {
         @start-new-chat="startNewChat"
         @select-chat="selectChat"
         @delete-chat="deleteChat"
+        @update-chat-title="updateChatTitle"
       />
 
       <!-- Chat Area -->
@@ -212,6 +226,7 @@ const handleModelChange = (model) => {
           @toggle-sidebar="toggleSidebar"
           @start-new-chat="startNewChat"
           @model-changed="handleModelChange"
+          @update-chat-title="updateChatTitle"
         />
 
         <!-- Messages -->

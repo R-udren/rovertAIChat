@@ -1,4 +1,6 @@
 <script setup>
+import EditableTitle from '@/components/EditableTitle.vue'
+
 defineProps({
   showSidebar: Boolean,
   isMobileSidebarOpen: Boolean,
@@ -7,7 +9,13 @@ defineProps({
   loading: Boolean,
 })
 
-defineEmits(['toggle-mobile-sidebar', 'start-new-chat', 'select-chat', 'delete-chat'])
+defineEmits([
+  'toggle-mobile-sidebar',
+  'start-new-chat',
+  'select-chat',
+  'delete-chat',
+  'update-chat-title',
+])
 </script>
 
 <template>
@@ -79,15 +87,19 @@ defineEmits(['toggle-mobile-sidebar', 'start-new-chat', 'select-chat', 'delete-c
       <ul v-else class="space-y-1">
         <li v-for="chat in conversations" :key="chat.id" class="flex items-center">
           <div
-            @click="$emit('select-chat', chat)"
             :class="[
-              'flex items-center flex-grow w-full px-3 py-2 rounded-lg cursor-pointer',
+              'flex items-center flex-grow w-full px-3 py-2 rounded-lg',
               'hover:bg-zinc-700 transition-colors text-left',
               chat.id === currentConversation?.id ? 'bg-zinc-700 text-white' : 'text-gray-300',
             ]"
           >
             <div class="w-full overflow-hidden">
-              <div class="truncate">{{ chat.title || 'New Chat' }}</div>
+              <div @click="$emit('select-chat', chat)" class="cursor-pointer">
+                <EditableTitle
+                  :title="chat.title"
+                  @update-title="(newTitle) => $emit('update-chat-title', chat.id, newTitle)"
+                />
+              </div>
               <div class="text-xs text-gray-400">
                 {{ new Date(chat.updated_at).toLocaleDateString() }}
               </div>

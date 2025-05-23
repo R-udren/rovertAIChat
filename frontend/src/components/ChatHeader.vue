@@ -1,4 +1,5 @@
 <script setup>
+import EditableTitle from '@/components/EditableTitle.vue'
 import ModelSelector from '@/components/ModelSelector.vue'
 
 defineProps({
@@ -7,7 +8,13 @@ defineProps({
   isMobile: Boolean,
 })
 
-defineEmits(['toggle-sidebar', 'toggle-mobile-sidebar', 'start-new-chat', 'model-changed'])
+defineEmits([
+  'toggle-sidebar',
+  'toggle-mobile-sidebar',
+  'start-new-chat',
+  'model-changed',
+  'update-chat-title',
+])
 </script>
 
 <template>
@@ -33,9 +40,12 @@ defineEmits(['toggle-sidebar', 'toggle-mobile-sidebar', 'start-new-chat', 'model
         />
       </svg>
     </button>
-    <h1 class="text-lg font-medium text-white truncate">
-      {{ currentConversation?.title || 'New Chat' }}
-    </h1>
+    <div class="text-lg font-medium text-white truncate min-w-0">
+      <EditableTitle
+        :title="currentConversation?.title"
+        @update-title="(newTitle) => $emit('update-chat-title', currentConversation?.id, newTitle)"
+      />
+    </div>
 
     <div class="flex items-center space-x-2">
       <ModelSelector :model-id="selectedModel" @model-changed="$emit('model-changed', $event)" />
@@ -85,9 +95,14 @@ defineEmits(['toggle-sidebar', 'toggle-mobile-sidebar', 'start-new-chat', 'model
           />
         </svg>
       </button>
-      <h1 class="text-lg font-medium text-white truncate">
-        {{ currentConversation?.title || 'New Chat' }}
-      </h1>
+      <div class="text-lg font-medium text-white truncate min-w-0">
+        <EditableTitle
+          :title="currentConversation?.title"
+          @update-title="
+            (newTitle) => $emit('update-chat-title', currentConversation?.id, newTitle)
+          "
+        />
+      </div>
     </div>
     <div class="flex items-center space-x-2">
       <ModelSelector :model-id="selectedModel" @model-changed="$emit('model-changed', $event)" />

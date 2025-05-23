@@ -87,9 +87,7 @@ export const useChatStore = defineStore('chat', () => {
   // Update chat (title, archived status)
   async function updateChat(chatId, updates) {
     try {
-      const response = await api.patch(`/chats/${chatId}`, {
-        body: JSON.stringify(updates),
-      })
+      const response = await api.patch(`/chats/${chatId}`, updates)
 
       // Update in conversations list
       const index = conversations.value.findIndex((c) => c.id === chatId)
@@ -138,11 +136,6 @@ export const useChatStore = defineStore('chat', () => {
       return
     }
 
-    if (!currentConversation.value) {
-      toastStore.error('No active conversation')
-      return
-    }
-
     if (!model) {
       toastStore.error('Model is required')
       return
@@ -151,6 +144,21 @@ export const useChatStore = defineStore('chat', () => {
     if (!authStore.isAuthenticated) {
       toastStore.error('You must be logged in to send messages')
       return
+    }
+
+    // Auto-create conversation if none exists
+    if (!currentConversation.value) {
+      try {
+        await startNewConversation()
+        if (!currentConversation.value) {
+          toastStore.error('Failed to create new conversation')
+          return
+        }
+      } catch (err) {
+        toastStore.error('Failed to create new conversation')
+        console.error('Error creating conversation:', err)
+        return
+      }
     }
 
     error.value = null

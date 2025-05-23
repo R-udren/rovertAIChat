@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ChatSchema(BaseModel):
@@ -22,3 +22,12 @@ class ChatListResponse(BaseModel):
     chats: List[ChatSchema]
     skip: int
     limit: int
+
+
+class ChatCreateSchema(BaseModel):
+    title: str = Field(default="New Chat")
+
+
+class ChatUpdateSchema(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=100)
+    is_archived: Optional[bool] = None

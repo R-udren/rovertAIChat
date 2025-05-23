@@ -1,17 +1,17 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.auth.service import get_current_active_user
 from src.database import get_db
 from src.models.chat_models import Chat, Message, Model, ModelProvider
 from src.models.user import User
-from src.schemas.chat import ChatListResponse
+from src.schemas import chat as chat_schemas
 
 router = APIRouter(prefix="/chats", tags=["chats"])
 
 
-@router.get("/", response_model=ChatListResponse)
+@router.get("/", response_model=chat_schemas.ChatListResponse)
 async def get_user_chats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -60,10 +60,16 @@ async def get_chat(
 
 @router.post("/")
 async def create_chat(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)
+    chat_data: chat_schemas.ChatCreateSchema = Body(default=None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
     """Create a new empty chat"""
-    chat = Chat(user_id=current_user.id, title="New Chat")
+    title = "New Chat"
+    if chat_data and chat_data.title:
+        title = chat_data.title
+
+    chat = Chat(user_id=current_user.id, title=title)
     db.add(chat)
     db.commit()
     db.refresh(chat)
@@ -74,7 +80,7 @@ async def create_chat(
 @router.patch("/{chat_id}")
 async def update_chat(
     chat_id: UUID,
-    request: Request,
+    chat_update: chat_schemas.ChatUpdateSchema,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -88,13 +94,11 @@ async def update_chat(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
 
-    data = await request.json()
+    if chat_update.title is not None:
+        setattr(chat, "title", chat_update.title)
 
-    if "title" in data:
-        chat.title = data["title"]
-
-    if "is_archived" in data:
-        chat.is_archived = data["is_archived"]
+    if chat_update.is_archived is not None:
+        setattr(chat, "is_archived", chat_update.is_archived)
 
     db.commit()
     db.refresh(chat)
