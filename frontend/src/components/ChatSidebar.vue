@@ -167,7 +167,7 @@ function selectChat(chat) {
                 {{ chat.title }}
               </div>
               <!-- Desktop: Editable title (with click.stop to prevent event bubbling) -->
-              <div v-else class="cursor-pointer" @click.stop>
+              <div v-else class="cursor-pointer w-max" @click.stop>
                 <EditableTitle
                   :title="chat.title"
                   @update-title="(newTitle) => $emit('update-chat-title', chat.id, newTitle)"
