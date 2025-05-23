@@ -19,7 +19,7 @@ from src.services.user_settings import (
     update_user_settings,
 )
 
-router = APIRouter(prefix="/api/user-settings", tags=["user-settings"])
+router = APIRouter(prefix="/user-settings", tags=["user-settings"])
 
 
 @router.get("/me", response_model=UserSettingsResponse)

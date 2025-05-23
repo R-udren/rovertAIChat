@@ -1,4 +1,4 @@
-# rovertChat
+# rovertChat ( ͡° ͜ʖ ͡°)
 
 **rovertChat** is a feature-poor, self-hosted AI platform that prioritizes privacy and user experience. It seamlessly integrates with LLM runners like Ollama and supports OpenAI-compatible APIs, giving you complete control over your AI interactions.
 
@@ -17,8 +17,8 @@
 ## 🔧 Technical Stack
 
 - **Backend**: Python with FastAPI for API endpoints and real-time communication via Socket.IO
-- **Frontend**: Vue.js with Tailwind CSS 4 for a modern, responsive UI and Markdown support
-- **Database**: PostgreSQL database for storing user auth, user profiles, chat history, and configurations
+- **Frontend**: Vue.js with Tailwind CSS 4 for a modern, responsive UI and Markdown support with Bun as the build tool
+- **Database**: PostgreSQL/SQLite database for storing user auth, user profiles, chat history, and configurations
 
 ## 🛠️ Installation
 

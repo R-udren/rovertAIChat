@@ -1,6 +1,7 @@
+import os
 import time
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -8,45 +9,46 @@ from sqlalchemy.orm import Session
 from src.core.logger import app_logger
 from src.core.rate_limiter import setup_limiter
 from src.database import Base, engine, get_db
-from src.routers import auth, user, user_settings
+from src.routers.auth import router as auth_router
+from src.routers.ollama import router as ollama_router
+from src.routers.user import router as user_router
+from src.routers.user_settings import router as user_settings_router
 
-# Create database tables
+# Initialize database tables
 app_logger.info("Creating database tables")
 Base.metadata.create_all(bind=engine)
 
+# Create FastAPI app
 app = FastAPI(
     title="rovertAIChat API",
     description="Backend API for rovertAIChat application",
     version="0.1.0",
 )
 
-# Setup rate limiter
+# Apply rate limiter
 setup_limiter(app)
 
-# CORS middleware
+# Configure CORS
+origins = os.getenv(
+    "FRONTEND_ORIGINS",
+    "http://localhost:5173",
+).split(",")
+
+app_logger.info(f"Allowed CORS origins: {origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
-app_logger.info("Registering API routers")
-app.include_router(auth.router)
-app.include_router(user.router)
-app.include_router(user_settings.router)
-
-
-@app.get("/")
-async def root(request: Request):
-    """
-    Root endpoint to verify if the service is running.
-    """
-    return {
-        "headers": dict(request.headers),
-    }
+# Include API routers
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(user_router, prefix="/api/v1")
+app.include_router(user_settings_router, prefix="/api/v1")
+app.include_router(ollama_router, prefix="/api/v1")
 
 
 @app.get("/health")
@@ -58,20 +60,14 @@ async def health_check():
 
 
 @app.get("/health/db")
-async def db_health_check(db: Session = Depends(get_db)):
+async def health_db(db: Session = Depends(get_db)):
     """
     Health check endpoint to verify if the database is reachable.
     """
     try:
-        # Execute a simple query
-        start_time = time.time()
+        start = time.time()
         db.execute(text("SELECT 1"))
-        end_time = time.time()
-        latency_ms = (end_time - start_time) * 1000
-        db_status = "reachable"
-        app_logger.debug(f"Database is reachable - latency: {latency_ms:.2f}ms")
+        latency = (time.time() - start) * 1000
+        return {"db_status": "reachable", "latency_ms": latency}
     except Exception as e:
-        db_status = f"unreachable: {str(e)}"
-        app_logger.error(f"Database connection error: {str(e)}")
-
-    return {"db_status": db_status}
+        raise HTTPException(status_code=500, detail=str(e))

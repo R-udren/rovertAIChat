@@ -4,7 +4,6 @@ from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-
 from src.database import Base
 
 
@@ -38,3 +37,6 @@ class User(Base):
     def get_role(self) -> str:
         role = self.role
         return str(role)
+
+    def is_admin(self) -> bool:
+        return self.get_role() == "admin"

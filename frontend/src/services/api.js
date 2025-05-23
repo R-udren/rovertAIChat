@@ -2,7 +2,7 @@
 import { useAuthStore } from '@/stores/auth'
 
 // Base URL from environment variables
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 /**
  * Creates a full URL by combining the base URL with the provided endpoint path
@@ -12,7 +12,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 export const apiUrl = (path) => {
   // Remove leading slash from path if present to avoid double slashes
   const cleanPath = path.startsWith('/') ? path.slice(1) : path
-  return `${API_BASE_URL}/${cleanPath}`
+  return `${API_BASE_URL}/api/v1/${cleanPath}`
 }
 
 // Track if we're currently refreshing to prevent multiple refresh attempts

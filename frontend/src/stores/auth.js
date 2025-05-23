@@ -6,7 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const loading = ref(false)
   const error = ref(null)
-  const isAuthenticated = ref(localStorage.getItem('user') !== null)
+  const isAuthenticated = ref(localStorage.getItem('user') ? true : false)
 
   // Register new user
   async function register(credentials) {

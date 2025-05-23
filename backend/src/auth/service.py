@@ -111,6 +111,7 @@ def get_current_user(
 ) -> User:
     """Get the current authenticated user."""
     if access_token is None:
+        app_logger.warning("No access token provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -158,5 +159,18 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
     """Get the current user and verify they are active."""
     if current_user.is_active is False:
         app_logger.warning(f"Inactive user attempt: {current_user.id}")
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=403, detail="Inactive user")
+    return current_user
+
+
+def get_current_active_admin(
+    current_user: User = Depends(get_current_active_user),
+) -> User:
+    """Get the current user and verify they are an admin."""
+    app_logger.debug(
+        f"Checking if `{current_user.username}` is admin: {current_user.get_role()}"
+    )
+    if current_user.is_admin() is False:
+        app_logger.warning(f"Non-admin user attempt: {current_user.id}")
+        raise HTTPException(status_code=403, detail="Not an admin user")
     return current_user

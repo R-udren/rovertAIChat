@@ -6,7 +6,7 @@ export const useToastStore = defineStore('toast', () => {
   const toasts = ref([])
   let idCounter = 0
 
-  const addToast = ({ message, type = 'info', duration = 3000, position = 'top-right' }) => {
+  const addToast = ({ message, type = 'info', duration = 3000, position = 'bottom-right' }) => {
     const id = idCounter++
 
     const toast = {

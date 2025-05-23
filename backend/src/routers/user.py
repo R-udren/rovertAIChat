@@ -3,7 +3,6 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
-
 from src.auth.service import get_current_active_user
 from src.core.rate_limiter import limiter
 from src.database import get_db
@@ -17,7 +16,7 @@ from src.services.user import (
     update_user,
 )
 
-router = APIRouter(prefix="/api/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/me", response_model=UserResponse)

@@ -18,7 +18,7 @@ from src.models.user import User
 from src.schemas.user import Token, UserCreate, UserResponse
 from src.services.user import create_user
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post(
