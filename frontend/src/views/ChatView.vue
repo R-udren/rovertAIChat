@@ -96,15 +96,23 @@ const startNewChat = async () => {
 
 // Select conversation
 const selectChat = async (conversation) => {
-  if (conversation.id === chatStore.currentConversation?.id) return
+  if (conversation.id === chatStore.currentConversation?.id) {
+    // If selecting the current conversation, just close the sidebar on mobile
+    if (isMobileSidebarOpen.value) {
+      isMobileSidebarOpen.value = false
+    }
+    return
+  }
 
   await chatStore.selectConversation(conversation)
   router.push(`/chat/${conversation.id}`)
   scrollToBottom()
 
-  // Close mobile sidebar if open
+  // Close mobile sidebar with a slight delay to ensure navigation completes first
   if (isMobileSidebarOpen.value) {
-    isMobileSidebarOpen.value = false
+    setTimeout(() => {
+      isMobileSidebarOpen.value = false
+    }, 150)
   }
 }
 
@@ -201,7 +209,7 @@ const handleModelChange = (model) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-[calc(100vh-64px)] bg-zinc-900">
+  <div class="flex flex-col h-[calc(100vh-64px)] w-full bg-zinc-900">
     <!-- Mobile Header -->
     <ChatHeader
       :current-conversation="chatStore.currentConversation"
@@ -213,8 +221,8 @@ const handleModelChange = (model) => {
       @update-chat-title="updateChatTitle"
     />
 
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Sidebar -->
+    <div class="flex flex-1 w-full overflow-hidden">
+      <!-- Sidebar - Always render for proper mobile support -->
       <ChatSidebar
         :show-sidebar="showSidebar"
         :is-mobile-sidebar-open="isMobileSidebarOpen"
@@ -229,7 +237,7 @@ const handleModelChange = (model) => {
       />
 
       <!-- Chat Area -->
-      <div class="flex flex-col flex-1 overflow-hidden">
+      <div class="flex flex-col flex-1 w-full overflow-hidden">
         <!-- Desktop Header -->
         <ChatHeader
           :current-conversation="chatStore.currentConversation"

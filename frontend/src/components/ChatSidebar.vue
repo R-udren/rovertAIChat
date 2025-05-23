@@ -1,7 +1,8 @@
 <script setup>
 import EditableTitle from '@/components/EditableTitle.vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 
-defineProps({
+const props = defineProps({
   showSidebar: Boolean,
   isMobileSidebarOpen: Boolean,
   conversations: Array,
@@ -9,32 +10,74 @@ defineProps({
   loading: Boolean,
 })
 
-defineEmits([
+const emit = defineEmits([
   'toggle-mobile-sidebar',
   'start-new-chat',
   'select-chat',
   'delete-chat',
   'update-chat-title',
 ])
+
+// Track if we're on mobile or desktop
+const isMobile = ref(false)
+
+// Update on mount and when window is resized
+onMounted(() => {
+  checkScreenSize()
+  window.addEventListener('resize', checkScreenSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize)
+})
+
+// Check screen size
+function checkScreenSize() {
+  isMobile.value = window.innerWidth < 768
+}
+
+// Handle chat selection with touch support for mobile
+function selectChat(chat) {
+  emit('select-chat', chat)
+}
 </script>
 
 <template>
+  <!-- Mobile backdrop overlay when sidebar is open -->
+  <div
+    v-if="isMobile && isMobileSidebarOpen"
+    class="fixed inset-0 z-40 transition-opacity duration-300 bg-black bg-opacity-50 backdrop-blur-sm"
+    @click="$emit('toggle-mobile-sidebar')"
+  ></div>
+
+  <!-- Sidebar container -->
   <div
     :class="[
-      'bg-zinc-800 border-r border-zinc-700 flex flex-col',
+      'flex flex-col h-full',
       'transition-all duration-300 ease-in-out',
-      showSidebar ? 'w-72' : 'w-0 opacity-0 overflow-hidden',
-      isMobileSidebarOpen
-        ? 'fixed inset-0 z-50 w-full md:relative md:w-72'
-        : 'hidden md:flex md:flex-col',
+      // Desktop mode
+      { 'bg-zinc-800 border-r border-zinc-700 w-72 flex-shrink-0': !isMobile && showSidebar },
+      { 'w-0 overflow-hidden': !isMobile && !showSidebar },
+      // Mobile mode
+      { 'fixed inset-y-0 left-0 z-50 w-80 max-w-[80vw]': isMobile },
+      { 'bg-zinc-800/90 backdrop-blur-md shadow-xl': isMobile },
+      { 'transform -translate-x-full': isMobile && !isMobileSidebarOpen },
+      { 'transform translate-x-0': isMobile && isMobileSidebarOpen },
     ]"
   >
-    <div class="flex items-center justify-between p-4">
+    <!-- Header with title and action buttons -->
+    <div
+      :class="[
+        'flex items-center justify-between p-4 border-b',
+        isMobile ? 'border-zinc-700/30' : 'border-zinc-700',
+        isMobile ? 'bg-zinc-800/80 backdrop-blur-md' : '',
+      ]"
+    >
       <h2 class="text-xl font-bold text-white">Conversations</h2>
-      <div class="flex">
+      <div class="flex items-center">
         <button
           @click="$emit('start-new-chat')"
-          class="p-2 text-gray-400 transition-colors rounded-lg hover:text-white hover:bg-zinc-700"
+          class="p-2 text-gray-400 transition-all rounded-lg hover:text-white hover:bg-zinc-700/70 active:scale-95"
           aria-label="New chat"
         >
           <svg
@@ -53,8 +96,9 @@ defineEmits([
           </svg>
         </button>
         <button
+          v-if="isMobile"
           @click="$emit('toggle-mobile-sidebar')"
-          class="p-2 ml-2 text-gray-400 transition-colors rounded-lg md:hidden hover:text-white hover:bg-zinc-700"
+          class="p-2 ml-2 text-gray-400 transition-all rounded-lg hover:text-white hover:bg-zinc-700/70 active:scale-95"
           aria-label="Close sidebar"
         >
           <svg
@@ -75,39 +119,71 @@ defineEmits([
       </div>
     </div>
 
-    <div class="flex-1 px-2 py-3 overflow-y-auto">
+    <!-- Conversations list container -->
+    <div
+      :class="[
+        'flex-1 py-3 overflow-y-auto',
+        isMobile ? 'px-3' : 'px-2',
+        isMobile ? 'bg-gradient-to-b from-zinc-800/80 to-zinc-800/60' : '',
+      ]"
+    >
+      <!-- Loading state -->
       <div v-if="loading" class="flex justify-center p-4">
         <div
-          class="w-6 h-6 border-2 border-t-2 rounded-full border-zinc-600 border-t-zinc-400 animate-spin"
+          class="w-6 h-6 border-2 border-t-2 rounded-full border-zinc-600 border-t-indigo-400 animate-spin"
         ></div>
       </div>
+
+      <!-- Empty state -->
       <div v-else-if="conversations.length === 0" class="p-4 text-center text-gray-400">
         No conversations yet. Start a new chat!
       </div>
-      <ul v-else class="space-y-1">
-        <li v-for="chat in conversations" :key="chat.id" class="flex items-center">
+
+      <!-- Conversations list -->
+      <ul v-else class="space-y-2">
+        <li
+          v-for="chat in conversations"
+          :key="chat.id"
+          class="flex items-center transition-transform hover:translate-x-1"
+        >
+          <!-- Chat item (Explicitly clickable) -->
           <div
             :class="[
-              'flex items-center flex-grow w-full px-3 py-2 rounded-lg',
-              'hover:bg-zinc-700 transition-colors text-left',
-              chat.id === currentConversation?.id ? 'bg-zinc-700 text-white' : 'text-gray-300',
+              'flex items-center flex-grow w-full px-3 py-2 rounded-lg cursor-pointer',
+              'transition-all duration-200 text-left',
+              'hover:bg-zinc-700/80 hover:shadow-md',
+              isMobile ? 'backdrop-blur-sm' : '',
+              chat.id === currentConversation?.id
+                ? isMobile
+                  ? 'bg-indigo-600/20 border border-indigo-500/30 text-white shadow-md'
+                  : 'bg-zinc-700 text-white'
+                : 'text-gray-300',
             ]"
+            @click="selectChat(chat)"
           >
             <div class="w-full overflow-hidden">
-              <div @click="$emit('select-chat', chat)" class="cursor-pointer">
+              <!-- Mobile: Regular title (not editable) -->
+              <div v-if="isMobile" class="font-medium truncate">
+                {{ chat.title }}
+              </div>
+              <!-- Desktop: Editable title (with click.stop to prevent event bubbling) -->
+              <div v-else class="cursor-pointer" @click.stop>
                 <EditableTitle
                   :title="chat.title"
                   @update-title="(newTitle) => $emit('update-chat-title', chat.id, newTitle)"
                 />
               </div>
+              <!-- Date -->
               <div class="text-xs text-gray-400">
                 {{ new Date(chat.updated_at).toLocaleDateString() }}
               </div>
             </div>
           </div>
+
+          <!-- Delete button -->
           <button
-            @click="$emit('delete-chat', chat.id)"
-            class="p-1 ml-1 text-gray-400 transition-colors rounded hover:text-white hover:bg-red-500"
+            @click.stop="$emit('delete-chat', chat.id)"
+            class="p-1 ml-1 text-gray-400 transition-all rounded-full hover:text-white hover:bg-red-500/80 hover:shadow-md active:scale-95"
             aria-label="Delete chat"
           >
             <svg
