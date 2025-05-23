@@ -74,7 +74,7 @@ marked.setOptions({
 // Setup DOMPurify to allow certain attributes for styling
 DOMPurify.setConfig({
   ADD_ATTR: ['class', 'style', 'data-lang', 'target', 'rel'],
-  ADD_TAGS: ['span', 'div'],
+  ADD_TAGS: ['span', 'div', 'think'],
 })
 
 // Render markdown and sanitize HTML
@@ -82,7 +82,17 @@ const renderedContent = computed(() => {
   if (!props.message.content) return ''
 
   try {
-    const html = marked.parse(props.message.content.toString())
+    // Process <think> tags before passing to marked
+    let content = props.message.content.toString()
+
+    // Replace <think> tags with a special div that we can style
+    content = content.replace(/<think>([\s\S]*?)<\/think>/g, (match, thinkContent) => {
+      // We'll escape the content inside <think> tags to prevent markdown parsing
+      // and wrap it with a special div that we can style
+      return `\n\n<div class="thinking-content">${thinkContent}</div>\n\n`
+    })
+
+    const html = marked.parse(content)
     return DOMPurify.sanitize(html)
   } catch (error) {
     console.error('Error rendering markdown:', error)
@@ -355,5 +365,27 @@ const formatTime = (timestamp) => {
 .gradient-mask {
   mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 75%, transparent 100%);
+}
+
+/* Styling for content inside <think> tags */
+.message-content .thinking-content {
+  background-color: rgba(67, 34, 100, 0.1);
+  border-left: 3px solid #6a45b5;
+  padding: 8px 12px;
+  margin: 1rem 0;
+  color: #b19cd9;
+  border-radius: 4px;
+  position: relative;
+}
+
+.message-content .thinking-content::before {
+  content: 'Thinking...';
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #8763cf;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 </style>
