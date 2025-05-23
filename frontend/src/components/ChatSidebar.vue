@@ -23,7 +23,7 @@ defineEmits([
     :class="[
       'bg-zinc-800 border-r border-zinc-700 flex flex-col',
       'transition-all duration-300 ease-in-out',
-      showSidebar ? 'w-72' : 'w-0',
+      showSidebar ? 'w-72' : 'w-0 opacity-0 overflow-hidden',
       isMobileSidebarOpen
         ? 'fixed inset-0 z-50 w-full md:relative md:w-72'
         : 'hidden md:flex md:flex-col',
