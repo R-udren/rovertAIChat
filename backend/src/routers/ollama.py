@@ -208,16 +208,32 @@ async def chat_ollama(
                 "eval_duration": response_data.get("eval_duration", 0),
             },
         )
-        db.add(assistant_db_message)
-
-        # Update the chat's updated_at timestamp
+        db.add(assistant_db_message)  # Update the chat's updated_at timestamp
         setattr(chat, "updated_at", datetime.now())
+
+        # Auto-generate chat title from first user message if it's still "New Chat"
+        message_count = db.query(Message).filter(Message.chat_id == chat.id).count()
+        if (
+            str(chat.title) == "New Chat" and message_count <= 2
+        ):  # First user message + assistant response
+            # Get the user message (first message)
+            user_message = latest_user_message.content if latest_user_message else ""
+            # Create a title from the first ~30 characters of user message
+            if user_message:
+                new_title = user_message[:30].strip()
+                if len(user_message) > 30:
+                    new_title += "..."
+                setattr(chat, "title", new_title)
+                app_logger.info(f"Auto-generated title for chat {chat.id}: {new_title}")
 
         db.commit()
         db.refresh(assistant_db_message)
 
         # Set the ID in the response
         response_data["id"] = str(assistant_db_message.id)
+
+        # Include updated chat data in response
+        response_data["chat"] = {"id": str(chat.id), "title": chat.title}
 
     return response_data
 
@@ -299,9 +315,7 @@ async def stream_chat_ollama(
                                 full_content = "".join(accumulated_content)
                                 app_logger.info(
                                     f"Completed message: {full_content[:100]}..."
-                                )
-
-                                # Update the message in the database
+                                )  # Update the message in the database
                                 db.query(Message).filter(
                                     Message.id == UUID(message_id)
                                 ).update(
@@ -323,10 +337,44 @@ async def stream_chat_ollama(
                                 )
                                 # Update chat timestamp
                                 setattr(chat, "updated_at", datetime.now())
+
+                                # Auto-generate chat title from first user message if it's still "New Chat"
+                                message_count = (
+                                    db.query(Message)
+                                    .filter(Message.chat_id == chat.id)
+                                    .count()
+                                )
+                                chat_updated = False
+                                if (
+                                    str(chat.title) == "New Chat" and message_count <= 2
+                                ):  # First user message + assistant response
+                                    # Get the user message (first message)
+                                    user_message = (
+                                        latest_user_message.content
+                                        if latest_user_message
+                                        else ""
+                                    )
+                                    # Create a title from the first ~30 characters of user message
+                                    if user_message:
+                                        new_title = user_message[:30].strip()
+                                        if len(user_message) > 30:
+                                            new_title += "..."
+                                        setattr(chat, "title", new_title)
+                                        chat_updated = True
+                                        app_logger.info(
+                                            f"Auto-generated title for chat {chat.id}: {new_title}"
+                                        )
+
                                 db.commit()
 
-                                # Send the "done" event
-                                yield f"data: {json.dumps({'done': True, 'id': message_id})}\n\n"
+                                # Send the "done" event with updated chat data if title was generated
+                                response_data = {"done": True, "id": message_id}
+                                if chat_updated:
+                                    response_data["chat"] = {
+                                        "id": str(chat.id),
+                                        "title": chat.title,
+                                    }
+                                yield f"data: {json.dumps(response_data)}\n\n"
                         except json.JSONDecodeError:
                             app_logger.error(f"Failed to parse JSON chunk: {chunk}")
                             continue
