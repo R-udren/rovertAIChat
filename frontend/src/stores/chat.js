@@ -133,8 +133,13 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function sendMessage(message, model) {
-    if (!message || !currentConversation.value) {
+    if (!message) {
       toastStore.error('Message cannot be empty')
+      return
+    }
+
+    if (!currentConversation.value) {
+      toastStore.error('No active conversation')
       return
     }
 

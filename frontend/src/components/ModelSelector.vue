@@ -1,7 +1,6 @@
 <script setup>
 import { api } from '@/services/api'
 import { useToastStore } from '@/stores/toast'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps({
   modelId: {
@@ -67,7 +66,6 @@ const fetchModels = async () => {
 // Save model preference to localStorage
 const saveModelPreference = (modelName) => {
   localStorage.setItem('preferredModel', modelName)
-  console.log('Saved model preference to localStorage:', modelName)
 }
 
 // Handle model selection
