@@ -31,6 +31,20 @@ class ChatSchema(BaseModel):
         from_attributes = True
 
 
+class ChatResponse(BaseModel):
+    """Response schema for a single chat"""
+
+    id: UUID
+    user_id: UUID
+    title: str
+    is_archived: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class ChatListResponse(BaseModel):
     total: int
     chats: List[ChatSchema]
@@ -58,6 +72,56 @@ class MessageCreateSchema(BaseModel):
     extended_metadata: Optional[Dict[str, Any]] = None
 
 
+class MessageResponse(BaseModel):
+    """Response schema for a message"""
+
+    id: UUID
+    chat_id: UUID
+    role: str
+    content: str
+    model_id: Optional[UUID] = None
+    created_at: datetime
+    tokens_used: int = 0
+    extended_metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
 class ChatMessagesResponse(BaseModel):
     chat: ChatSchema
     messages: List[MessageSchema]
+
+
+class ModelResponse(BaseModel):
+    """Response schema for a model"""
+
+    id: UUID
+    name: str
+    provider_id: UUID
+    is_active: bool
+    max_tokens: int
+    description: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ModelProviderResponse(BaseModel):
+    """Response schema for a model provider"""
+
+    id: UUID
+    name: str
+    is_active: bool
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ModelListResponse(BaseModel):
+    """Response schema for the list of available models"""
+
+    models: List[ModelResponse]
+    providers: List[ModelProviderResponse]
