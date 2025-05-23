@@ -48,7 +48,14 @@ export const useChatStore = defineStore('chat', () => {
       const response = await api.get(`/chats/${chatId}`)
 
       currentConversation.value = response.chat
-      messages.value = response.messages
+      messages.value = response.messages.map((msg) => ({
+        id: msg.id,
+        content: msg.content,
+        role: msg.role,
+        timestamp: msg.created_at,
+        model_id: msg.model_id,
+        tokens_used: msg.tokens_used,
+      }))
 
       return response
     } catch (err) {
@@ -173,14 +180,19 @@ export const useChatStore = defineStore('chat', () => {
       messages.value.push(userMessage)
       sending.value = true
 
+      // Send request to Ollama API with the chatId
       const response = await api.post('ollama/chat', {
         chatId: currentConversation.value.id,
-        messages: messages.value,
+        messages: messages.value.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
         model: model,
         stream: false,
       })
+      // Create the assistant message using the ID returned from the backend
       const assistantMessage = {
-        id: response.id,
+        id: response.id, // This ID comes from the database now
         content: response.message.content,
         role: 'assistant',
         timestamp: new Date().toISOString(),
@@ -209,6 +221,242 @@ export const useChatStore = defineStore('chat', () => {
         msg.isStreaming = false
       }
     })
+  }
+
+  // Stream chat response
+  async function streamChatResponse(message, model) {
+    if (!message) {
+      toastStore.error('Message cannot be empty')
+      return
+    }
+
+    if (!model) {
+      toastStore.error('Model is required')
+      return
+    }
+
+    if (!authStore.isAuthenticated) {
+      toastStore.error('You must be logged in to send messages')
+      return
+    }
+
+    // Auto-create conversation if none exists
+    if (!currentConversation.value) {
+      try {
+        await startNewConversation()
+        if (!currentConversation.value) {
+          toastStore.error('Failed to create new conversation')
+          return
+        }
+      } catch (err) {
+        toastStore.error('Failed to create new conversation')
+        console.error('Error creating conversation:', err)
+        return
+      }
+    }
+
+    // Close any existing connection
+    closeEventSource()
+
+    error.value = null
+    try {
+      const userMessage = {
+        id: Date.now().toString(),
+        content: message,
+        role: 'user',
+        timestamp: new Date().toISOString(),
+      }
+
+      messages.value.push(userMessage)
+      streaming.value = true
+
+      // Create a placeholder for the streaming response
+      const assistantMessage = {
+        id: null, // Will be updated from the stream
+        content: '',
+        role: 'assistant',
+        isStreaming: true,
+        timestamp: new Date().toISOString(),
+      }
+
+      messages.value.push(assistantMessage)
+
+      // Create the API URL for the EventSource
+      const queryParams = encodeURIComponent(
+        JSON.stringify({
+          chatId: currentConversation.value.id,
+          messages: messages.value
+            .filter((msg) => !msg.isStreaming) // Don't include the placeholder
+            .map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
+          model: model,
+        }),
+      )
+
+      const streamUrl = `${api.baseUrl}/ollama/chat/stream?payload=${queryParams}`
+
+      eventSource = new EventSource(streamUrl)
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          // Update the message ID if it's the first chunk
+          if (data.id && !assistantMessage.id) {
+            assistantMessage.id = data.id
+          }
+
+          // Append content if any
+          if (data.content) {
+            assistantMessage.content += data.content
+          }
+
+          // Handle stream completion
+          if (data.done) {
+            assistantMessage.isStreaming = false
+            streaming.value = false
+            closeEventSource()
+          }
+        } catch (err) {
+          console.error('Error parsing event data:', err)
+        }
+      }
+
+      eventSource.onerror = (err) => {
+        console.error('EventSource error:', err)
+        assistantMessage.isStreaming = false
+        streaming.value = false
+        closeEventSource()
+        error.value = 'Connection error during streaming'
+        toastStore.error('Connection error occurred')
+      }
+    } catch (err) {
+      error.value = 'Failed to initiate streaming'
+      toastStore.error('Failed to connect to streaming API')
+      console.error('Error setting up streaming:', err)
+      streaming.value = false
+    }
+  }
+
+  // Stream chat response
+  async function streamChatResponse(message, model) {
+    if (!message) {
+      toastStore.error('Message cannot be empty')
+      return
+    }
+
+    if (!model) {
+      toastStore.error('Model is required')
+      return
+    }
+
+    if (!authStore.isAuthenticated) {
+      toastStore.error('You must be logged in to send messages')
+      return
+    }
+
+    // Auto-create conversation if none exists
+    if (!currentConversation.value) {
+      try {
+        await startNewConversation()
+        if (!currentConversation.value) {
+          toastStore.error('Failed to create new conversation')
+          return
+        }
+      } catch (err) {
+        toastStore.error('Failed to create new conversation')
+        console.error('Error creating conversation:', err)
+        return
+      }
+    }
+
+    // Close any existing connection
+    closeEventSource()
+
+    error.value = null
+    try {
+      const userMessage = {
+        id: Date.now().toString(),
+        content: message,
+        role: 'user',
+        timestamp: new Date().toISOString(),
+      }
+
+      messages.value.push(userMessage)
+      streaming.value = true
+
+      // Create a placeholder for the streaming response
+      const assistantMessage = {
+        id: null, // Will be updated from the stream
+        content: '',
+        role: 'assistant',
+        isStreaming: true,
+        timestamp: new Date().toISOString(),
+      }
+
+      messages.value.push(assistantMessage)
+
+      // Prepare payload for streaming endpoint
+      const payload = {
+        chatId: currentConversation.value.id,
+        messages: messages.value
+          .filter((msg) => !msg.isStreaming) // Don't include the placeholder
+          .map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+        model: model,
+        stream: true,
+      }
+
+      // Create event source for streaming
+      const queryParams = new URLSearchParams({
+        payload: JSON.stringify(payload),
+      }).toString()
+
+      eventSource = new EventSource(`${api.baseUrl}/ollama/chat/stream?${queryParams}`)
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          // Update the message ID if it's the first chunk
+          if (data.id && !assistantMessage.id) {
+            assistantMessage.id = data.id
+          }
+
+          // Append content if any
+          if (data.content) {
+            assistantMessage.content += data.content
+          }
+
+          // Handle stream completion
+          if (data.done) {
+            assistantMessage.isStreaming = false
+            streaming.value = false
+            closeEventSource()
+          }
+        } catch (err) {
+          console.error('Error parsing event data:', err)
+        }
+      }
+
+      eventSource.onerror = (err) => {
+        console.error('EventSource error:', err)
+        assistantMessage.isStreaming = false
+        streaming.value = false
+        closeEventSource()
+        error.value = 'Connection error during streaming'
+        toastStore.error('Connection error occurred')
+      }
+    } catch (err) {
+      error.value = 'Failed to initiate streaming'
+      toastStore.error('Failed to connect to streaming API')
+      console.error('Error setting up streaming:', err)
+      streaming.value = false
+    }
   }
 
   // Select a conversation
@@ -245,6 +493,7 @@ export const useChatStore = defineStore('chat', () => {
     updateChat,
     deleteChat,
     sendMessage,
+    streamChatResponse,
     selectConversation,
     resetChat,
     closeEventSource,

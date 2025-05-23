@@ -17,6 +17,7 @@ const formData = ref({
     chatBubbleStyle: 'rounded',
     messageSound: true,
     notifications: true,
+    streamingEnabled: true,
   },
 })
 
@@ -35,6 +36,7 @@ onMounted(async () => {
       chatBubbleStyle: 'rounded',
       messageSound: true,
       notifications: true,
+      streamingEnabled: true,
     }
   }
 
@@ -198,6 +200,19 @@ const saveSettings = async () => {
               <label for="notifications" class="block ml-2 text-sm text-gray-300">
                 Enable browser notifications
               </label>
+            </div>
+
+            <div class="flex items-center">
+              <input
+                id="streamingEnabled"
+                v-model="formData.preferences.streamingEnabled"
+                type="checkbox"
+                class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-zinc-600 bg-zinc-900"
+              />
+              <label for="streamingEnabled" class="block ml-2 text-sm text-gray-300">
+                Enable streaming responses
+              </label>
+              <span class="ml-2 text-xs text-gray-500">(Responses appear word by word)</span>
             </div>
           </div>
         </div>

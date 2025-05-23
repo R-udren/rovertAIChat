@@ -63,6 +63,7 @@ export const userSettingsSchema = z.object({
       chatBubbleStyle: z.enum(['rounded', 'square', 'modern']),
       messageSound: z.boolean(),
       notifications: z.boolean(),
+      streamingEnabled: z.boolean(),
     })
     .optional()
     .nullable(),

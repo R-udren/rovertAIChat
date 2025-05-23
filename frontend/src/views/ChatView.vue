@@ -2,10 +2,12 @@
 import { useAuthStore } from '@/stores/auth'
 import { useChatStore } from '@/stores/chat'
 import { useToastStore } from '@/stores/toast'
+import { useUserSettingsStore } from '@/stores/userSettings'
 
 const chatStore = useChatStore()
 const toastStore = useToastStore()
 const authStore = useAuthStore()
+const userSettingsStore = useUserSettingsStore()
 const route = useRoute()
 const router = useRouter()
 const selectedModel = ref(chatStore.currentConversation?.model)
@@ -63,7 +65,14 @@ const sendMessage = async () => {
 
   const model = localStorage.getItem('preferredModel') || selectedModel.value
 
-  await chatStore.sendMessage(message, model)
+  // Check if streaming is enabled in user settings
+  const useStreaming = userSettingsStore.settings?.preferences?.streamingEnabled ?? false
+
+  if (useStreaming) {
+    await chatStore.streamChatResponse(message, model)
+  } else {
+    await chatStore.sendMessage(message, model)
+  }
 
   // If a new conversation was created, navigate to it
   if (chatStore.currentConversation && route.path === '/chat') {
@@ -124,6 +133,9 @@ onMounted(async () => {
     router.push('/login')
     return
   }
+
+  // Load user settings
+  await userSettingsStore.fetchSettings()
 
   // Load user chats
   await chatStore.fetchChats()

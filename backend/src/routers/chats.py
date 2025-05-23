@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException
@@ -32,7 +33,7 @@ async def get_user_chats(
     return {"total": total, "chats": chats, "skip": skip, "limit": limit}
 
 
-@router.get("/{chat_id}")
+@router.get("/{chat_id}", response_model=chat_schemas.ChatMessagesResponse)
 async def get_chat(
     chat_id: UUID,
     db: Session = Depends(get_db),
@@ -138,3 +139,41 @@ async def get_available_models(
     models = db.query(Model).filter(Model.is_active.is_(True)).all()
     providers = db.query(ModelProvider).filter(ModelProvider.is_active.is_(True)).all()
     return {"models": models, "providers": providers}
+
+
+@router.post("/{chat_id}/messages")
+async def create_message(
+    chat_id: UUID,
+    message: chat_schemas.MessageCreateSchema,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Create a new message in a chat"""
+    # Verify chat belongs to the user
+    chat = (
+        db.query(Chat)
+        .filter(Chat.id == chat_id, Chat.user_id == current_user.id)
+        .first()
+    )
+
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    # Create the message
+    db_message = Message(
+        chat_id=chat_id,
+        role=message.role,
+        content=message.content,
+        model_id=message.model_id,
+        tokens_used=message.tokens_used,
+        extended_metadata=message.extended_metadata,
+    )
+
+    # Update the chat's last activity timestamp
+    setattr(chat, "updated_at", datetime.now())
+
+    db.add(db_message)
+    db.commit()
+    db.refresh(db_message)
+
+    return db_message
