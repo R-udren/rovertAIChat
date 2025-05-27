@@ -47,6 +47,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${DATABASE_PASSWORD}@postgres:5432/postgres
       OLLAMA_API_BASE_URL: ${OLLAMA_API_BASE_URL}
+      DOMAIN: ${DOMAIN}
+      FRONTEND_ORIGINS: ${FRONTEND_ORIGINS}
     networks:
       - rovertchat-net
 
@@ -64,18 +66,18 @@ services:
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
 
-  ollama:
-    volumes:
-      - ollama:/root/.ollama
-    container_name: ollama
-    pull_policy: always
-    tty: true
-    restart: unless-stopped
-    image: ollama/ollama:lastest
-    ports:
-      - "11434:11434"
-    networks:
-      - rovertchat-net
+  # ollama:
+  #   volumes:
+  #     - ollama:/root/.ollama
+  #   container_name: ollama
+  #   pull_policy: always
+  #   tty: true
+  #   restart: unless-stopped
+  #   image: ollama/ollama:lastest
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - rovertchat-net
 
 volumes:
   postgres_data:
