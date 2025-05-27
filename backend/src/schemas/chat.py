@@ -125,3 +125,21 @@ class ModelListResponse(BaseModel):
 
     models: List[ModelResponse]
     providers: List[ModelProviderResponse]
+
+class ChatMessage(BaseModel):
+    role: str = Field(
+        ..., description="Role of the message sender (e.g., 'user', 'assistant')"
+    )
+    content: str = Field(..., description="Content of the message")
+
+
+class OllamaChatRequest(BaseModel):
+    model: str = Field(..., description="Name of the Ollama model to use")
+    messages: List[ChatMessage] = Field(
+        ..., description="List of conversation messages"
+    )
+    stream: Optional[bool] = Field(False, description="Whether to stream the response")
+    options: Optional[Dict[str, Any]] = Field(
+        None, description="Additional model options"
+    )
+    chatId: UUID = Field(..., description="ID of the chat this message belongs to")
