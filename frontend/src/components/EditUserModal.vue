@@ -1,12 +1,14 @@
 <template>
   <div
     v-if="isOpen"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
   >
-    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Edit User</h3>
-        <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
+    <div class="w-full max-w-md p-6 mx-4 border rounded-lg bg-zinc-800 border-zinc-700">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-white">
+          {{ isCreating ? 'Create User' : 'Edit User' }}
+        </h3>
+        <button @click="closeModal" class="transition-colors text-zinc-400 hover:text-white">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -17,10 +19,9 @@
           </svg>
         </button>
       </div>
-
-      <form @submit.prevent="updateUser" class="space-y-4">
+      <form @submit.prevent="submitForm" class="space-y-4">
         <div>
-          <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="username" class="block mb-1 text-sm font-medium text-zinc-300">
             Username
           </label>
           <input
@@ -28,61 +29,97 @@
             v-model="editForm.username"
             type="text"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :placeholder="isCreating ? 'Enter username' : props.user?.username"
+            class="w-full px-3 py-2 text-white border rounded-md bg-zinc-700 border-zinc-600 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             :class="{ 'border-red-500': errors.username }"
           />
-          <p v-if="errors.username" class="text-red-500 text-sm mt-1">{{ errors.username }}</p>
+          <p v-if="errors.username" class="mt-1 text-sm text-red-400">{{ errors.username }}</p>
         </div>
 
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700 mb-1"> Email </label>
+          <label for="email" class="block mb-1 text-sm font-medium text-zinc-300">Email</label>
           <input
             id="email"
             v-model="editForm.email"
             type="email"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :placeholder="isCreating ? 'Enter email address' : props.user?.email"
+            class="w-full px-3 py-2 text-white border rounded-md bg-zinc-700 border-zinc-600 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             :class="{ 'border-red-500': errors.email }"
           />
-          <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+          <p v-if="errors.email" class="mt-1 text-sm text-red-400">{{ errors.email }}</p>
+        </div>
+
+        <!-- Password field for new users -->
+        <div v-if="isCreating">
+          <label for="password" class="block mb-1 text-sm font-medium text-zinc-300">
+            Password
+          </label>
+          <input
+            id="password"
+            v-model="editForm.password"
+            type="password"
+            required
+            placeholder="Enter password (min 6 characters)"
+            class="w-full px-3 py-2 text-white border rounded-md bg-zinc-700 border-zinc-600 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            :class="{ 'border-red-500': errors.password }"
+          />
+          <p v-if="errors.password" class="mt-1 text-sm text-red-400">{{ errors.password }}</p>
         </div>
 
         <div>
-          <label for="role" class="block text-sm font-medium text-gray-700 mb-1"> Role </label>
+          <label for="role" class="block mb-1 text-sm font-medium text-zinc-300">Role</label>
           <select
             id="role"
             v-model="editForm.role"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full px-3 py-2 text-white border rounded-md cursor-pointer bg-zinc-700 border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            :class="{ 'border-red-500': errors.role }"
           >
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
+            <option value="user" class="text-white bg-zinc-700">User</option>
+            <option value="admin" class="text-white bg-zinc-700">Admin</option>
           </select>
         </div>
 
-        <div class="flex items-center">
-          <input
-            id="is_active"
-            v-model="editForm.is_active"
-            type="checkbox"
-            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label for="is_active" class="ml-2 block text-sm text-gray-700"> Active User </label>
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <input
+              id="is_active"
+              v-model="editForm.is_active"
+              type="checkbox"
+              class="w-4 h-4 text-blue-600 rounded cursor-pointer bg-zinc-700 border-zinc-600 focus:ring-blue-500 focus:ring-2"
+            />
+          </div>
+          <label for="is_active" class="text-sm cursor-pointer text-zinc-300">Active User</label>
         </div>
 
-        <div class="flex justify-end space-x-3 pt-4">
+        <div class="flex justify-end pt-4 space-x-3">
           <button
             type="button"
             @click="closeModal"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            class="px-4 py-2 text-sm font-medium transition-colors border rounded-lg text-zinc-300 bg-zinc-700 border-zinc-600 hover:bg-zinc-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-zinc-500"
           >
             Cancel
           </button>
           <button
             type="submit"
             :disabled="loading"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            class="flex items-center px-4 py-2 space-x-2 text-sm font-medium text-white transition-colors bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {{ loading ? 'Updating...' : 'Update User' }}
+            <div
+              v-if="loading"
+              class="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"
+            ></div>
+            <span>
+              {{
+                loading
+                  ? isCreating
+                    ? 'Creating...'
+                    : 'Updating...'
+                  : isCreating
+                    ? 'Create User'
+                    : 'Update User'
+              }}
+            </span>
           </button>
         </div>
       </form>
@@ -93,7 +130,7 @@
 <script>
 import { useAdminStore } from '@/stores/admin'
 import { useToastStore } from '@/stores/toast'
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 export default {
   name: 'EditUserModal',
@@ -118,17 +155,29 @@ export default {
     const editForm = reactive({
       username: '',
       email: '',
+      password: '',
       role: 'user',
       is_active: true,
     })
 
+    const isCreating = computed(() => !props.user)
+
     const resetForm = () => {
       Object.assign(errors, {})
       if (props.user) {
+        // Editing existing user - populate with current values
         editForm.username = props.user.username || ''
         editForm.email = props.user.email || ''
         editForm.role = props.user.role || 'user'
         editForm.is_active = props.user.is_active !== false
+        editForm.password = '' // Don't show password for existing users
+      } else {
+        // Creating new user - use empty defaults
+        editForm.username = ''
+        editForm.email = ''
+        editForm.password = ''
+        editForm.role = 'user'
+        editForm.is_active = true
       }
     }
 
@@ -147,26 +196,48 @@ export default {
         errors.email = 'Please enter a valid email address'
       }
 
+      // Password validation only for new users
+      if (isCreating.value) {
+        if (!editForm.password.trim()) {
+          errors.password = 'Password is required'
+        } else if (editForm.password.length < 6) {
+          errors.password = 'Password must be at least 6 characters'
+        }
+      }
+
       return Object.keys(errors).length === 0
     }
 
-    const updateUser = async () => {
+    const submitForm = async () => {
       if (!validateForm()) return
 
       loading.value = true
       try {
-        await adminStore.updateUser(props.user.id, {
-          username: editForm.username,
-          email: editForm.email,
-          role: editForm.role,
-          is_active: editForm.is_active,
-        })
+        if (isCreating.value) {
+          // Creating new user
+          await adminStore.createUser({
+            username: editForm.username,
+            email: editForm.email,
+            password: editForm.password,
+            role: editForm.role,
+            is_active: editForm.is_active,
+          })
+          toastStore.addToast('User created successfully', 'success')
+        } else {
+          // Updating existing user
+          await adminStore.updateUser(props.user.id, {
+            username: editForm.username,
+            email: editForm.email,
+            role: editForm.role,
+            is_active: editForm.is_active,
+          })
+          toastStore.addToast('User updated successfully', 'success')
+        }
 
-        toastStore.addToast('User updated successfully', 'success')
         emit('updated')
         closeModal()
       } catch (error) {
-        toastStore.addToast(error.message || 'Failed to update user', 'error')
+        toastStore.addToast(error.message || 'Failed to save user', 'error')
       } finally {
         loading.value = false
       }
@@ -198,8 +269,10 @@ export default {
       loading,
       errors,
       editForm,
-      updateUser,
+      isCreating,
+      submitForm,
       closeModal,
+      props,
     }
   },
 }

@@ -1,53 +1,69 @@
 <template>
   <div class="space-y-6">
     <!-- Header with Actions -->
-    <div class="flex justify-between items-center">
+    <div class="flex items-center justify-between">
       <div>
         <h2 class="text-2xl font-bold text-white">User Management</h2>
-        <p class="text-zinc-400 mt-1">Manage system users and their permissions</p>
+        <p class="mt-1 text-zinc-400">Manage system users and their permissions</p>
       </div>
-      <button
-        @click="refreshUsers"
-        :disabled="adminStore.loading"
-        class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-      >
-        <svg
-          v-if="!adminStore.loading"
-          class="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      <div class="flex space-x-3">
+        <button
+          @click="showCreateUserModal = true"
+          class="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-          ></path>
-        </svg>
-        <div
-          v-else
-          class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
-        ></div>
-        <span>Refresh</span>
-      </button>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            ></path>
+          </svg>
+          <span>Create User</span>
+        </button>
+        <button
+          @click="refreshUsers"
+          :disabled="adminStore.loading"
+          class="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          <svg
+            v-if="!adminStore.loading"
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            ></path>
+          </svg>
+          <div
+            v-else
+            class="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"
+          ></div>
+          <span>Refresh</span>
+        </button>
+      </div>
     </div>
 
     <!-- Loading State -->
     <div v-if="adminStore.loading && !users.length" class="flex justify-center py-12">
       <div class="text-center">
         <div
-          class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+          class="w-8 h-8 mx-auto mb-4 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"
         ></div>
         <p class="text-zinc-400">Loading users...</p>
       </div>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="adminStore.error" class="bg-red-900/20 border border-red-500 rounded-lg p-4">
+    <div v-else-if="adminStore.error" class="p-4 border border-red-500 rounded-lg bg-red-900/20">
       <div class="flex items-center space-x-3">
         <svg
-          class="w-5 h-5 text-red-400 flex-shrink-0"
+          class="flex-shrink-0 w-5 h-5 text-red-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -60,58 +76,58 @@
           ></path>
         </svg>
         <div>
-          <h3 class="text-red-400 font-medium">Error loading users</h3>
-          <p class="text-red-300 text-sm">{{ adminStore.error }}</p>
+          <h3 class="font-medium text-red-400">Error loading users</h3>
+          <p class="text-sm text-red-300">{{ adminStore.error }}</p>
         </div>
       </div>
     </div>
 
     <!-- Users Table -->
-    <div v-else-if="users.length" class="bg-zinc-800 rounded-lg overflow-hidden">
+    <div v-else-if="users.length" class="overflow-hidden rounded-lg bg-zinc-800">
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-zinc-700">
             <tr>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider"
+                class="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-zinc-300"
               >
                 User
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider"
+                class="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-zinc-300"
               >
                 Role
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider"
+                class="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-zinc-300"
               >
                 Status
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider"
+                class="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-zinc-300"
               >
                 Created
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-zinc-300 uppercase tracking-wider"
+                class="px-6 py-3 text-xs font-medium tracking-wider text-left uppercase text-zinc-300"
               >
                 Last Login
               </th>
               <th
-                class="px-6 py-3 text-right text-xs font-medium text-zinc-300 uppercase tracking-wider"
+                class="px-6 py-3 text-xs font-medium tracking-wider text-right uppercase text-zinc-300"
               >
                 Actions
               </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-zinc-700">
-            <tr v-for="user in users" :key="user.id" class="hover:bg-zinc-750 transition-colors">
+            <tr v-for="user in users" :key="user.id" class="transition-colors hover:bg-zinc-750">
               <!-- User Info -->
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <div class="flex-shrink-0 h-10 w-10">
+                  <div class="flex-shrink-0 w-10 h-10">
                     <div
-                      class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center"
+                      class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"
                     >
                       <span class="text-sm font-medium text-white">{{
                         getUserInitials(user)
@@ -153,22 +169,22 @@
               </td>
 
               <!-- Created -->
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-400">
+              <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-400">
                 {{ formatDate(user.created_at) }}
               </td>
 
               <!-- Last Login -->
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-400">
+              <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-400">
                 {{ user.last_login ? formatDate(user.last_login) : 'Never' }}
               </td>
 
               <!-- Actions -->
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <td class="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                 <div class="flex justify-end space-x-2">
                   <!-- Edit User Button -->
                   <button
                     @click="editUser(user)"
-                    class="text-blue-400 hover:text-blue-300 transition-colors"
+                    class="text-blue-400 transition-colors hover:text-blue-300"
                     title="Edit User"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,51 +197,10 @@
                     </svg>
                   </button>
 
-                  <!-- Activate/Deactivate Button -->
-                  <button
-                    v-if="user.id !== authStore.user?.id"
-                    @click="user.is_active ? deactivateUser(user) : activateUser(user)"
-                    :class="{
-                      'text-red-400 hover:text-red-300': user.is_active,
-                      'text-green-400 hover:text-green-300': !user.is_active,
-                    }"
-                    class="transition-colors"
-                    :title="user.is_active ? 'Deactivate User' : 'Activate User'"
-                  >
-                    <svg
-                      v-if="user.is_active"
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
-                      ></path>
-                    </svg>
-                    <svg
-                      v-else
-                      class="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      ></path>
-                    </svg>
-                  </button>
-
                   <!-- View Settings Button -->
                   <button
                     @click="viewUserSettings(user)"
-                    class="text-zinc-400 hover:text-zinc-300 transition-colors"
+                    class="transition-colors text-zinc-400 hover:text-zinc-300"
                     title="View Settings"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,6 +218,23 @@
                       ></path>
                     </svg>
                   </button>
+
+                  <!-- Delete User Button -->
+                  <button
+                    v-if="user.id !== authStore.user?.id"
+                    @click="showDeleteConfirmation(user)"
+                    class="text-red-400 transition-colors hover:text-red-300"
+                    title="Delete User"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      ></path>
+                    </svg>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -252,9 +244,9 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else class="text-center py-12">
+    <div v-else class="py-12 text-center">
       <svg
-        class="mx-auto h-12 w-12 text-zinc-400"
+        class="w-12 h-12 mx-auto text-zinc-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -269,31 +261,62 @@
       <h3 class="mt-2 text-sm font-medium text-zinc-300">No users found</h3>
       <p class="mt-1 text-sm text-zinc-400">No users have been registered yet.</p>
     </div>
-
     <!-- Edit User Modal -->
     <EditUserModal
       v-if="editingUser"
       :user="editingUser"
+      :is-open="!!editingUser"
       @close="editingUser = null"
       @updated="handleUserUpdated"
+    />
+
+    <!-- Create User Modal -->
+    <EditUserModal
+      v-if="showCreateUserModal"
+      :user="null"
+      :is-open="showCreateUserModal"
+      @close="showCreateUserModal = false"
+      @updated="handleUserCreated"
     />
 
     <!-- User Settings Modal -->
     <UserSettingsModal
       v-if="viewingUserSettings"
       :user="viewingUserSettings"
+      :is-open="!!viewingUserSettings"
       @close="viewingUserSettings = null"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <ConfirmationModal
+      :is-open="!!userToDelete"
+      :title="`Delete User: ${userToDelete?.username}`"
+      :message="`Are you sure you want to permanently delete <strong>${userToDelete?.username}</strong>? This action cannot be undone and will remove all their data including chats and settings.`"
+      confirm-text="Delete User"
+      cancel-text="Cancel"
+      type="danger"
+      :loading="deletingUser"
+      @confirm="confirmDeleteUser"
+      @cancel="userToDelete = null"
     />
   </div>
 </template>
 
 <script setup>
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import EditUserModal from '@/components/EditUserModal.vue'
 import UserSettingsModal from '@/components/UserSettingsModal.vue'
 import { useAdminStore } from '@/stores/admin'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
+
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const adminStore = useAdminStore()
 const authStore = useAuthStore()
@@ -301,6 +324,9 @@ const toastStore = useToastStore()
 
 const editingUser = ref(null)
 const viewingUserSettings = ref(null)
+const showCreateUserModal = ref(false)
+const userToDelete = ref(null)
+const deletingUser = ref(false)
 
 const users = computed(() => adminStore.users)
 
@@ -363,13 +389,43 @@ const viewUserSettings = (user) => {
   viewingUserSettings.value = user
 }
 
-const handleUserUpdated = (updatedUser) => {
-  editingUser.value = null
-  toastStore.success(`User ${updatedUser.username} updated successfully`)
+const showDeleteConfirmation = (user) => {
+  userToDelete.value = user
 }
 
-// Load users on component mount
-onMounted(() => {
+const confirmDeleteUser = async () => {
+  if (!userToDelete.value) return
+
+  deletingUser.value = true
+  try {
+    await adminStore.deleteUser(userToDelete.value.id)
+    toastStore.success(`User ${userToDelete.value.username} deleted successfully`)
+    userToDelete.value = null
+  } catch (error) {
+    toastStore.error('Failed to delete user: ' + error.message)
+  } finally {
+    deletingUser.value = false
+  }
+}
+
+const handleUserUpdated = () => {
+  editingUser.value = null
   refreshUsers()
-})
+}
+
+const handleUserCreated = () => {
+  showCreateUserModal.value = false
+  refreshUsers()
+}
+
+// Load users when component becomes active
+watch(
+  () => props.active,
+  (isActive) => {
+    if (isActive && users.value.length === 0) {
+      refreshUsers()
+    }
+  },
+  { immediate: true },
+)
 </script>

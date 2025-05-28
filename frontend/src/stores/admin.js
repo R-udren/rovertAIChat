@@ -38,6 +38,29 @@ export const useAdminStore = defineStore('admin', () => {
       loading.value = false
     }
   }
+  async function createUser(userData) {
+    if (!isAdmin()) {
+      throw new Error('Unauthorized: Admin access required')
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      const newUser = await api.post('auth/register', userData)
+
+      // Add the new user to the local state
+      users.value.unshift(newUser)
+
+      return newUser
+    } catch (err) {
+      error.value = err.message
+      console.error('Error creating user:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
 
   async function updateUser(userId, userData) {
     if (!isAdmin()) {
@@ -114,6 +137,30 @@ export const useAdminStore = defineStore('admin', () => {
     } catch (err) {
       error.value = err.message
       console.error('Error activating user:', err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function deleteUser(userId) {
+    if (!isAdmin()) {
+      throw new Error('Unauthorized: Admin access required')
+    }
+
+    loading.value = true
+    error.value = null
+
+    try {
+      await api.delete(`users/${userId}`)
+
+      // Remove the user from the local state
+      users.value = users.value.filter((user) => user.id !== userId)
+
+      return true
+    } catch (err) {
+      error.value = err.message
+      console.error('Error deleting user:', err)
       throw err
     } finally {
       loading.value = false
@@ -255,7 +302,6 @@ export const useAdminStore = defineStore('admin', () => {
     error.value = null
     loading.value = false
   }
-
   return {
     users,
     models,
@@ -263,7 +309,9 @@ export const useAdminStore = defineStore('admin', () => {
     error,
     isAdmin,
     fetchUsers,
+    createUser,
     updateUser,
+    deleteUser,
     deactivateUser,
     activateUser,
     fetchOllamaModels,

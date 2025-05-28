@@ -17,6 +17,7 @@ declare module 'vue' {
     ChatInput: typeof import('./src/components/ChatInput.vue')['default']
     ChatMessage: typeof import('./src/components/ChatMessage.vue')['default']
     ChatSidebar: typeof import('./src/components/ChatSidebar.vue')['default']
+    ConfirmationModal: typeof import('./src/components/ConfirmationModal.vue')['default']
     EditableTitle: typeof import('./src/components/EditableTitle.vue')['default']
     EditUserModal: typeof import('./src/components/EditUserModal.vue')['default']
     ErrorMessage: typeof import('./src/components/ErrorMessage.vue')['default']

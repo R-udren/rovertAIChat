@@ -3,13 +3,13 @@
     <!-- Header -->
     <div>
       <h2 class="text-2xl font-bold text-white">System Information</h2>
-      <p class="text-zinc-400 mt-1">System status and configuration overview</p>
+      <p class="mt-1 text-zinc-400">System status and configuration overview</p>
     </div>
 
     <!-- System Stats Grid -->
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <!-- Total Users -->
-      <div class="bg-zinc-800 rounded-lg p-6">
+      <div class="p-6 rounded-lg bg-zinc-800">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <svg
@@ -22,7 +22,7 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
               ></path>
             </svg>
           </div>
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Active Users -->
-      <div class="bg-zinc-800 rounded-lg p-6">
+      <div class="p-6 rounded-lg bg-zinc-800">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <svg
@@ -59,7 +59,7 @@
       </div>
 
       <!-- Total Models -->
-      <div class="bg-zinc-800 rounded-lg p-6">
+      <div class="p-6 rounded-lg bg-zinc-800">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <svg
@@ -84,7 +84,7 @@
       </div>
 
       <!-- Admin Users -->
-      <div class="bg-zinc-800 rounded-lg p-6">
+      <div class="p-6 rounded-lg bg-zinc-800">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,8 +105,8 @@
     </div>
 
     <!-- Service Status -->
-    <div class="bg-zinc-800 rounded-lg p-6">
-      <h3 class="text-lg font-semibold text-white mb-4">Service Status</h3>
+    <div class="p-6 rounded-lg bg-zinc-800">
+      <h3 class="mb-4 text-lg font-semibold text-white">Service Status</h3>
       <div class="space-y-4">
         <!-- Backend API -->
         <div class="flex items-center justify-between">
@@ -114,7 +114,7 @@
             <div class="w-3 h-3 bg-green-400 rounded-full"></div>
             <span class="text-white">Backend API</span>
           </div>
-          <span class="text-green-400 text-sm">Online</span>
+          <span class="text-sm text-green-400">Online</span>
         </div>
 
         <!-- Database -->
@@ -123,7 +123,7 @@
             <div class="w-3 h-3 bg-green-400 rounded-full"></div>
             <span class="text-white">Database</span>
           </div>
-          <span class="text-green-400 text-sm">Connected</span>
+          <span class="text-sm text-green-400">Connected</span>
         </div>
 
         <!-- Ollama Service -->
@@ -143,8 +143,8 @@
     </div>
 
     <!-- Recent Activity -->
-    <div class="bg-zinc-800 rounded-lg p-6">
-      <h3 class="text-lg font-semibold text-white mb-4">Recent User Activity</h3>
+    <div class="p-6 rounded-lg bg-zinc-800">
+      <h3 class="mb-4 text-lg font-semibold text-white">Recent User Activity</h3>
       <div class="space-y-3">
         <div
           v-for="user in recentUsers"
@@ -153,29 +153,29 @@
         >
           <div class="flex items-center space-x-3">
             <div
-              class="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center"
+              class="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"
             >
               <span class="text-xs font-medium text-white">{{ getUserInitials(user) }}</span>
             </div>
             <div>
-              <p class="text-white text-sm">{{ user.username }}</p>
-              <p class="text-zinc-400 text-xs">{{ user.email }}</p>
+              <p class="text-sm text-white">{{ user.username }}</p>
+              <p class="text-xs text-zinc-400">{{ user.email }}</p>
             </div>
           </div>
           <div class="text-right">
-            <p class="text-zinc-400 text-xs">Last login</p>
-            <p class="text-white text-sm">{{ formatDate(user.last_login) }}</p>
+            <p class="text-xs text-zinc-400">Last login</p>
+            <p class="text-sm text-white">{{ formatDate(user.last_login) }}</p>
           </div>
         </div>
-        <div v-if="!recentUsers.length" class="text-center py-4 text-zinc-400">
+        <div v-if="!recentUsers.length" class="py-4 text-center text-zinc-400">
           No recent activity
         </div>
       </div>
     </div>
 
     <!-- System Configuration -->
-    <div class="bg-zinc-800 rounded-lg p-6">
-      <h3 class="text-lg font-semibold text-white mb-4">Configuration</h3>
+    <div class="p-6 rounded-lg bg-zinc-800">
+      <h3 class="mb-4 text-lg font-semibold text-white">Configuration</h3>
       <div class="space-y-3">
         <div class="flex justify-between">
           <span class="text-zinc-400">Environment</span>
@@ -201,13 +201,13 @@
     </div>
 
     <!-- Admin Actions -->
-    <div class="bg-zinc-800 rounded-lg p-6">
-      <h3 class="text-lg font-semibold text-white mb-4">Admin Actions</h3>
+    <div class="p-6 rounded-lg bg-zinc-800">
+      <h3 class="mb-4 text-lg font-semibold text-white">Admin Actions</h3>
       <div class="grid gap-4 md:grid-cols-2">
         <button
           @click="refreshAllData"
           :disabled="loading"
-          class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
+          class="flex items-center px-4 py-3 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
           <svg
             v-if="!loading"
@@ -225,14 +225,14 @@
           </svg>
           <div
             v-else
-            class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"
+            class="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"
           ></div>
           <span>Refresh All Data</span>
         </button>
 
         <button
           @click="checkSystemHealth"
-          class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
+          class="flex items-center px-4 py-3 space-x-2 text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -253,13 +253,32 @@
 import { api } from '@/services/api'
 import { useAdminStore } from '@/stores/admin'
 import { useToastStore } from '@/stores/toast'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const adminStore = useAdminStore()
 const toastStore = useToastStore()
 
 const loading = ref(false)
 const ollamaStatus = ref({ connected: false })
+
+// Watch for active prop changes
+watch(
+  () => props.active,
+  async (newActive) => {
+    if (newActive) {
+      await refreshAllData()
+      await checkSystemHealth()
+    }
+  },
+  { immediate: true },
+)
 
 // System configuration
 const systemConfig = ref({

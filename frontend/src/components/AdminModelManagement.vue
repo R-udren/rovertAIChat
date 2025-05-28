@@ -1,15 +1,15 @@
 <template>
   <div class="space-y-6">
     <!-- Header with Actions -->
-    <div class="flex justify-between items-center">
+    <div class="flex items-center justify-between">
       <div>
         <h2 class="text-2xl font-bold text-white">Model Management</h2>
-        <p class="text-zinc-400 mt-1">Manage Ollama models and their availability</p>
+        <p class="mt-1 text-zinc-400">Manage Ollama models and their availability</p>
       </div>
       <div class="flex space-x-3">
         <button
           @click="showPullModal = true"
-          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+          class="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -24,7 +24,7 @@
         <button
           @click="refreshModels"
           :disabled="adminStore.loading"
-          class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+          class="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
           <svg
             v-if="!adminStore.loading"
@@ -42,7 +42,7 @@
           </svg>
           <div
             v-else
-            class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+            class="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"
           ></div>
           <span>Refresh</span>
         </button>
@@ -50,18 +50,18 @@
     </div>
 
     <!-- Ollama Status -->
-    <div class="bg-zinc-800 rounded-lg p-4">
+    <div class="p-4 rounded-lg bg-zinc-800">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="flex items-center space-x-2">
             <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-            <span class="text-white font-medium">Ollama Status</span>
+            <span class="font-medium text-white">Ollama Status</span>
           </div>
           <span class="text-zinc-400">Connected</span>
         </div>
         <button
           @click="checkOllamaVersion"
-          class="text-blue-400 hover:text-blue-300 transition-colors text-sm"
+          class="text-sm text-blue-400 transition-colors hover:text-blue-300"
         >
           Check Version
         </button>
@@ -75,17 +75,17 @@
     <div v-if="adminStore.loading && !models.length" class="flex justify-center py-12">
       <div class="text-center">
         <div
-          class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+          class="w-8 h-8 mx-auto mb-4 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"
         ></div>
         <p class="text-zinc-400">Loading models...</p>
       </div>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="adminStore.error" class="bg-red-900/20 border border-red-500 rounded-lg p-4">
+    <div v-else-if="adminStore.error" class="p-4 border border-red-500 rounded-lg bg-red-900/20">
       <div class="flex items-center space-x-3">
         <svg
-          class="w-5 h-5 text-red-400 flex-shrink-0"
+          class="flex-shrink-0 w-5 h-5 text-red-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -98,8 +98,8 @@
           ></path>
         </svg>
         <div>
-          <h3 class="text-red-400 font-medium">Error loading models</h3>
-          <p class="text-red-300 text-sm">{{ adminStore.error }}</p>
+          <h3 class="font-medium text-red-400">Error loading models</h3>
+          <p class="text-sm text-red-300">{{ adminStore.error }}</p>
         </div>
       </div>
     </div>
@@ -109,20 +109,20 @@
       <div
         v-for="model in models"
         :key="model.name"
-        class="bg-zinc-800 rounded-lg p-6 hover:bg-zinc-750 transition-colors"
+        class="p-6 transition-colors rounded-lg bg-zinc-800 hover:bg-zinc-750"
       >
         <!-- Model Header -->
         <div class="flex items-start justify-between mb-4">
           <div class="flex-1">
-            <h3 class="text-lg font-semibold text-white mb-1">{{ model.name }}</h3>
+            <h3 class="mb-1 text-lg font-semibold text-white">{{ model.name }}</h3>
             <p class="text-sm text-zinc-400">
               {{ model.digest ? model.digest.substring(0, 12) + '...' : 'No digest' }}
             </p>
           </div>
-          <div class="ml-4 flex space-x-2">
+          <div class="flex ml-4 space-x-2">
             <button
               @click="deleteModel(model)"
-              class="text-red-400 hover:text-red-300 transition-colors p-1"
+              class="p-1 text-red-400 transition-colors hover:text-red-300"
               title="Delete Model"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,7 +158,7 @@
         </div>
 
         <!-- Model Parameters (if available) -->
-        <div v-if="model.details?.parameter_size" class="mt-4 pt-4 border-t border-zinc-700">
+        <div v-if="model.details?.parameter_size" class="pt-4 mt-4 border-t border-zinc-700">
           <div class="flex justify-between text-sm">
             <span class="text-zinc-400">Parameters:</span>
             <span class="text-white">{{ model.details.parameter_size }}</span>
@@ -168,9 +168,9 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else class="text-center py-12">
+    <div v-else class="py-12 text-center">
       <svg
-        class="mx-auto h-12 w-12 text-zinc-400"
+        class="w-12 h-12 mx-auto text-zinc-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -186,7 +186,7 @@
       <p class="mt-1 text-sm text-zinc-400">No Ollama models are currently installed.</p>
       <button
         @click="showPullModal = true"
-        class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+        class="px-4 py-2 mt-4 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
       >
         Pull Your First Model
       </button>
@@ -195,10 +195,10 @@
     <!-- Pull Model Modal -->
     <div
       v-if="showPullModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
     >
-      <div class="bg-zinc-800 rounded-lg p-6 w-full max-w-md mx-4">
-        <div class="flex justify-between items-center mb-4">
+      <div class="w-full max-w-md p-6 mx-4 rounded-lg bg-zinc-800">
+        <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">Pull New Model</h3>
           <button @click="showPullModal = false" class="text-zinc-400 hover:text-zinc-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +214,7 @@
 
         <form @submit.prevent="pullModel">
           <div class="mb-4">
-            <label for="modelName" class="block text-sm font-medium text-zinc-300 mb-2">
+            <label for="modelName" class="block mb-2 text-sm font-medium text-zinc-300">
               Model Name
             </label>
             <input
@@ -222,7 +222,7 @@
               v-model="newModelName"
               type="text"
               placeholder="e.g., llama2, codellama, mistral"
-              class="w-full px-3 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="w-full px-3 py-2 text-white border rounded-lg bg-zinc-700 border-zinc-600 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
             <p class="mt-1 text-xs text-zinc-400">
@@ -234,18 +234,18 @@
             <button
               type="button"
               @click="showPullModal = false"
-              class="px-4 py-2 text-zinc-400 hover:text-zinc-300 transition-colors"
+              class="px-4 py-2 transition-colors text-zinc-400 hover:text-zinc-300"
             >
               Cancel
             </button>
             <button
               type="submit"
               :disabled="!newModelName.trim() || pullingModel"
-              class="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+              class="flex items-center px-4 py-2 space-x-2 text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
               <div
                 v-if="pullingModel"
-                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                class="w-4 h-4 border-2 border-white rounded-full border-t-transparent animate-spin"
               ></div>
               <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -267,7 +267,7 @@
 <script setup>
 import { useAdminStore } from '@/stores/admin'
 import { useToastStore } from '@/stores/toast'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const adminStore = useAdminStore()
 const toastStore = useToastStore()
@@ -304,7 +304,6 @@ const formatDate = (dateString) => {
 const refreshModels = async () => {
   try {
     await adminStore.fetchOllamaModels()
-    toastStore.success('Models refreshed successfully')
   } catch (error) {
     toastStore.error('Failed to refresh models: ' + error.message)
   }
@@ -342,15 +341,28 @@ const deleteModel = async (model) => {
 const checkOllamaVersion = async () => {
   try {
     ollamaVersion.value = await adminStore.getOllamaVersion()
-    toastStore.success('Ollama version fetched successfully')
   } catch (error) {
     toastStore.error('Failed to fetch Ollama version: ' + error.message)
   }
 }
 
 // Load models on component mount
-onMounted(async () => {
-  await refreshModels()
-  await checkOllamaVersion()
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: false,
+  },
 })
+
+// Watch for active prop changes
+watch(
+  () => props.active,
+  async (newActive) => {
+    if (newActive) {
+      await refreshModels()
+      await checkOllamaVersion()
+    }
+  },
+  { immediate: true },
+)
 </script>

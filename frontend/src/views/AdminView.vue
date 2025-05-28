@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen bg-zinc-900 pt-20">
-    <div class="container mx-auto px-4 py-8">
+  <div class="min-h-screen pt-20 bg-zinc-900">
+    <div class="container px-4 py-8 mx-auto">
       <!-- Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-white mb-2">Admin Panel</h1>
+        <h1 class="mb-2 text-3xl font-bold text-white">Admin Panel</h1>
         <p class="text-zinc-400">Manage users and Ollama models</p>
       </div>
 
       <!-- Access Denied for Non-Admins -->
-      <div v-if="!adminStore.isAdmin()" class="bg-red-900/20 border border-red-500 rounded-lg p-6">
+      <div v-if="!adminStore.isAdmin()" class="p-6 border border-red-500 rounded-lg bg-red-900/20">
         <div class="flex items-center space-x-3">
           <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -19,7 +19,7 @@
             ></path>
           </svg>
           <div>
-            <h3 class="text-red-400 font-semibold">Access Denied</h3>
+            <h3 class="font-semibold text-red-400">Access Denied</h3>
             <p class="text-red-300">You need administrator privileges to access this panel.</p>
           </div>
         </div>
@@ -28,8 +28,8 @@
       <!-- Admin Panel Content -->
       <div v-else>
         <!-- Tab Navigation -->
-        <div class="border-b border-zinc-700 mb-8">
-          <nav class="-mb-px flex space-x-8">
+        <div class="mb-8 border-b border-zinc-700">
+          <nav class="flex -mb-px space-x-8">
             <button
               v-for="tab in tabs"
               :key="tab.id"
@@ -39,7 +39,7 @@
                 'border-transparent text-zinc-400 hover:text-zinc-300 hover:border-zinc-300':
                   activeTab !== tab.id,
               }"
-              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors"
+              class="px-1 py-4 text-sm font-medium transition-colors border-b-2 whitespace-nowrap"
             >
               <div class="flex items-center space-x-2">
                 <component :is="tab.icon" class="w-5 h-5" />
@@ -48,22 +48,21 @@
             </button>
           </nav>
         </div>
-
         <!-- Tab Content -->
         <div class="space-y-6">
           <!-- User Management Tab -->
           <div v-show="activeTab === 'users'">
-            <AdminUserManagement />
+            <AdminUserManagement :active="activeTab === 'users'" />
           </div>
 
           <!-- Model Management Tab -->
           <div v-show="activeTab === 'models'">
-            <AdminModelManagement />
+            <AdminModelManagement :active="activeTab === 'models'" />
           </div>
 
           <!-- System Info Tab -->
           <div v-show="activeTab === 'system'">
-            <AdminSystemInfo />
+            <AdminSystemInfo :active="activeTab === 'system'" />
           </div>
         </div>
       </div>
