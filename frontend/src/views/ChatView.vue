@@ -129,6 +129,20 @@ const deleteChat = async (chatId) => {
   }
 }
 
+const deleteChats = async (chatIds) => {
+  if (confirm('Are you sure you want to delete these conversations?')) {
+    const success = await chatStore.deleteChats(chatIds)
+
+    if (
+      success &&
+      chatStore.currentConversation &&
+      chatIds.includes(chatStore.currentConversation.id)
+    ) {
+      router.push('/chat')
+    }
+  }
+}
+
 // Update chat title
 const updateChatTitle = async (chatId, newTitle) => {
   if (!chatId || !newTitle.trim()) return
@@ -255,6 +269,7 @@ const handleModelChange = (model) => {
         @start-new-chat="startNewChat"
         @select-chat="selectChat"
         @delete-chat="deleteChat"
+        @delete-chats="deleteChats"
         @update-chat-title="updateChatTitle"
       />
 

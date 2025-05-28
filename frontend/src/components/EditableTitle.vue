@@ -69,20 +69,20 @@ watch(
 </script>
 
 <template>
-  <div class="flex items-center min-w-0">
+  <div class="flex items-center w-full min-w-0">
     <input
       v-if="isEditing"
       ref="inputRef"
       v-model="editTitle"
       @keydown="handleKeyDown"
       @blur="handleBlur"
-      class="flex-1 px-2 py-1 text-white bg-zinc-600 border border-zinc-500 rounded focus:outline-none focus:border-zinc-400"
+      class="w-full px-2 py-1 text-white border rounded bg-zinc-600 border-zinc-500 focus:outline-none focus:border-zinc-400"
       maxlength="100"
     />
     <div
       v-else
       @click="startEdit"
-      class="flex-1 cursor-pointer truncate hover:text-zinc-300 transition-colors"
+      class="w-full truncate transition-colors cursor-pointer hover:text-zinc-300"
       :title="title || defaultTitle"
     >
       {{ title || defaultTitle }}

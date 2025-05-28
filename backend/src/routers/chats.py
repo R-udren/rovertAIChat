@@ -215,6 +215,26 @@ async def delete_chat(
     return {"success": True, "message": "Chat and all messages deleted"}
 
 
+@router.delete("/", status_code=status.HTTP_200_OK)
+async def delete_all_chats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Delete all chats for the current user.
+
+    Returns:
+        Success confirmation
+    """
+    app_logger.info(f"Deleting all chats for user {current_user.id}")
+    db.query(Message).filter(Message.chat.has(user_id=current_user.id)).delete()
+    db.query(Chat).filter(Chat.user_id == current_user.id).delete()
+    db.commit()
+    app_logger.info(f"Deleted all chats for user {current_user.id}")
+
+    return {"success": True, "message": "All chats deleted"}
+
+
 @router.get("/models", response_model=chat_schemas.ModelListResponse)
 async def get_available_models(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)

@@ -154,6 +154,21 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  async function deleteChats() {
+    try {
+      await api.delete('/chats')
+      conversations.value = []
+      currentConversation.value = null
+      messages.value = []
+      toastStore.success('All chats deleted successfully')
+      return true
+    } catch (err) {
+      toastStore.error('Failed to delete all chats')
+      console.error('Error deleting all chats:', err)
+      return false
+    }
+  }
+
   async function sendMessage(message, model) {
     if (!message) {
       toastStore.error('Message cannot be empty')
@@ -437,6 +452,7 @@ export const useChatStore = defineStore('chat', () => {
     startNewConversation,
     updateChat,
     deleteChat,
+    deleteChats,
     sendMessage,
     streamChatResponse,
     selectConversation,
