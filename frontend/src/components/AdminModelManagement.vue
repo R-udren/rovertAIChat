@@ -191,7 +191,6 @@
         Pull Your First Model
       </button>
     </div>
-
     <!-- Pull Model Modal -->
     <div
       v-if="showPullModal"
@@ -261,23 +260,57 @@
         </form>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <ConfirmationModal
+      :is-open="showDeleteModal"
+      type="danger"
+      :title="`Delete Model: ${modelToDelete?.name}`"
+      :message="`Are you sure you want to delete the model '${modelToDelete?.name}'? This action cannot be undone and will permanently remove the model from your system.`"
+      confirm-text="Delete Model"
+      cancel-text="Cancel"
+      @confirm="confirmDeleteModel"
+      @cancel="cancelDeleteModel"
+    />
   </div>
 </template>
 
 <script setup>
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
 import { useAdminStore } from '@/stores/admin'
 import { useToastStore } from '@/stores/toast'
 import { computed, ref, watch } from 'vue'
+
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const adminStore = useAdminStore()
 const toastStore = useToastStore()
 
 const showPullModal = ref(false)
+const showDeleteModal = ref(false)
+const modelToDelete = ref(null)
 const newModelName = ref('')
 const pullingModel = ref(false)
 const ollamaVersion = ref(null)
 
 const models = computed(() => adminStore.models)
+
+// Watch for active prop changes
+watch(
+  () => props.active,
+  async (newActive) => {
+    if (newActive) {
+      await refreshModels()
+      await checkOllamaVersion()
+    }
+  },
+  { immediate: true },
+)
 
 // Utility functions
 const formatSize = (bytes) => {
@@ -326,16 +359,26 @@ const pullModel = async () => {
 }
 
 const deleteModel = async (model) => {
-  if (
-    confirm(`Are you sure you want to delete model "${model.name}"? This action cannot be undone.`)
-  ) {
-    try {
-      await adminStore.deleteOllamaModel(model.name)
-      toastStore.success(`Model "${model.name}" deleted successfully`)
-    } catch (error) {
-      toastStore.error('Failed to delete model: ' + error.message)
-    }
+  modelToDelete.value = model
+  showDeleteModal.value = true
+}
+
+const confirmDeleteModel = async () => {
+  if (!modelToDelete.value) return
+
+  try {
+    await adminStore.deleteOllamaModel(modelToDelete.value.name)
+    toastStore.success(`Model "${modelToDelete.value.name}" deleted successfully`)
+  } catch (error) {
+    toastStore.error('Failed to delete model: ' + error.message)
+  } finally {
+    cancelDeleteModel()
   }
+}
+
+const cancelDeleteModel = () => {
+  showDeleteModal.value = false
+  modelToDelete.value = null
 }
 
 const checkOllamaVersion = async () => {
@@ -345,24 +388,4 @@ const checkOllamaVersion = async () => {
     toastStore.error('Failed to fetch Ollama version: ' + error.message)
   }
 }
-
-// Load models on component mount
-const props = defineProps({
-  active: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-// Watch for active prop changes
-watch(
-  () => props.active,
-  async (newActive) => {
-    if (newActive) {
-      await refreshModels()
-      await checkOllamaVersion()
-    }
-  },
-  { immediate: true },
-)
 </script>

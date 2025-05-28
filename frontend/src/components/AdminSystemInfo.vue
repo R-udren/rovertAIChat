@@ -32,11 +32,10 @@
           </div>
         </div>
       </div>
-
       <!-- Active Users -->
       <div class="p-6 rounded-lg bg-zinc-800">
         <div class="flex items-center">
-          <div class="flex-shrink-0">
+          <div class="relative flex-shrink-0">
             <svg
               class="w-8 h-8 text-green-400"
               fill="none"
@@ -50,6 +49,11 @@
                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               ></path>
             </svg>
+            <!-- Ping animation for active status -->
+            <span
+              class="absolute top-0 right-0 block w-3 h-3 bg-green-400 rounded-full animate-ping"
+            ></span>
+            <span class="absolute top-0 right-0 block w-3 h-3 bg-green-400 rounded-full"></span>
           </div>
           <div class="ml-4">
             <h3 class="text-lg font-semibold text-white">{{ systemStats.activeUsers }}</h3>
@@ -111,7 +115,12 @@
         <!-- Backend API -->
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+            <div class="relative">
+              <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+              <div
+                class="absolute top-0 left-0 w-3 h-3 bg-green-400 rounded-full animate-ping"
+              ></div>
+            </div>
             <span class="text-white">Backend API</span>
           </div>
           <span class="text-sm text-green-400">Online</span>
@@ -120,7 +129,12 @@
         <!-- Database -->
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+            <div class="relative">
+              <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+              <div
+                class="absolute top-0 left-0 w-3 h-3 bg-green-400 rounded-full animate-ping"
+              ></div>
+            </div>
             <span class="text-white">Database</span>
           </div>
           <span class="text-sm text-green-400">Connected</span>
@@ -129,10 +143,17 @@
         <!-- Ollama Service -->
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div
-              :class="ollamaStatus.connected ? 'bg-green-400' : 'bg-red-400'"
-              class="w-3 h-3 rounded-full"
-            ></div>
+            <div class="relative">
+              <div
+                :class="ollamaStatus.connected ? 'bg-green-400' : 'bg-red-400'"
+                class="w-3 h-3 rounded-full"
+              ></div>
+              <div
+                v-if="ollamaStatus.connected"
+                :class="ollamaStatus.connected ? 'bg-green-400' : 'bg-red-400'"
+                class="absolute top-0 left-0 w-3 h-3 rounded-full animate-ping"
+              ></div>
+            </div>
             <span class="text-white">Ollama Service</span>
           </div>
           <span :class="ollamaStatus.connected ? 'text-green-400' : 'text-red-400'" class="text-sm">
@@ -347,6 +368,13 @@ const checkSystemHealth = async () => {
     // Check backend health
     await api.get('health')
 
+    // Check database health separately
+    try {
+      await api.get('health/db')
+    } catch (error) {
+      console.warn('Database health check failed:', error)
+    }
+
     // Check Ollama status
     try {
       await adminStore.getOllamaVersion()
@@ -360,10 +388,4 @@ const checkSystemHealth = async () => {
     toastStore.error('System health check failed: ' + error.message)
   }
 }
-
-// Initialize data on mount
-onMounted(async () => {
-  await refreshAllData()
-  await checkSystemHealth()
-})
 </script>
