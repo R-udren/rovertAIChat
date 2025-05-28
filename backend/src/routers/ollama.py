@@ -77,7 +77,7 @@ async def pull_ollama_model(
                 f"{OLLAMA_API_BASE_URL}/api/pull", json=payload
             ) as resp:
                 resp.raise_for_status()
-                return await resp.json()
+                return await resp.text()
         except aiohttp.ClientError as e:
             raise HTTPException(status_code=502, detail=str(e))
 
@@ -90,6 +90,9 @@ async def delete_ollama_model(
     """
     Delete an Ollama model by name.
     Expects JSON body: { "model": "model_name" }
+
+    Returns a success message if the model is deleted.
+    { "message": "Model deleted successfully" }
     """
     if not admin_user.is_admin():
         raise HTTPException(
@@ -103,7 +106,7 @@ async def delete_ollama_model(
                 f"{OLLAMA_API_BASE_URL}/api/delete", json=payload
             ) as resp:
                 resp.raise_for_status()
-                return await resp.json()
+                return {"message": "Model deleted successfully"}
         except aiohttp.ClientError as e:
             raise HTTPException(status_code=502, detail=str(e))
 
