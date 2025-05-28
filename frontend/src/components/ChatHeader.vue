@@ -70,7 +70,10 @@ defineEmits([
   </div>
 
   <!-- Desktop Header -->
-  <div v-else class="items-center justify-between hidden px-4 py-2 md:flex bg-zinc-800">
+  <div
+    v-else
+    class="items-center justify-between hidden px-4 py-2 border-b md:flex bg-zinc-800 border-zinc-700"
+  >
     <div class="flex items-center">
       <button
         @click="$emit('toggle-sidebar')"

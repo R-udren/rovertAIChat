@@ -69,7 +69,7 @@ function selectChat(chat) {
     <!-- Header with title and action buttons -->
     <div
       :class="[
-        'flex items-center justify-between p-4 border-b',
+        'flex items-center justify-between p-2 border-b',
         isMobile ? 'border-zinc-700/30' : 'border-zinc-700',
         isMobile ? 'bg-zinc-800/80 backdrop-blur-md' : '',
       ]"
