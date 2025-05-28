@@ -45,6 +45,7 @@ watch(selectedModel, (newModel) => {
 
 // Fetch available models from the API
 const fetchModels = async () => {
+  if (loading.value) return
   try {
     loading.value = true
     const response = await api.get('/ollama/tags')
