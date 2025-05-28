@@ -1,7 +1,4 @@
 <script setup>
-import EditableTitle from '@/components/EditableTitle.vue'
-import ModelSelector from '@/components/ModelSelector.vue'
-
 defineProps({
   currentConversation: Object,
   selectedModel: String,
@@ -40,7 +37,7 @@ defineEmits([
         />
       </svg>
     </button>
-    <div class="text-lg font-medium text-white truncate min-w-0">
+    <div class="min-w-0 text-lg font-medium text-white truncate">
       <EditableTitle
         :title="currentConversation?.title"
         @update-title="(newTitle) => $emit('update-chat-title', currentConversation?.id, newTitle)"
@@ -95,7 +92,7 @@ defineEmits([
           />
         </svg>
       </button>
-      <div class="text-lg font-medium text-white truncate min-w-0">
+      <div class="min-w-0 text-lg font-medium text-white truncate">
         <EditableTitle
           :title="currentConversation?.title"
           @update-title="

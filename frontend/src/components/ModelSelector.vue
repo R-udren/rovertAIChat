@@ -1,6 +1,5 @@
 <script setup>
-import { api } from '@/services/api'
-import { useToastStore } from '@/stores/toast'
+import { useModelsStore } from '@/stores/models'
 
 const props = defineProps({
   modelId: {
@@ -11,16 +10,23 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelId', 'modelChanged'])
 
-const models = ref([])
-const loading = ref(false)
+const modelsStore = useModelsStore()
 const selectedModel = ref('')
-const toastStore = useToastStore()
 const isDropdownOpen = ref(false)
 
-onMounted(() => {
+onMounted(async () => {
   const storedModel = localStorage.getItem('preferredModel')
   selectedModel.value = props.modelId || storedModel || ''
-  fetchModels()
+
+  // Fetch models using the shared store
+  await modelsStore.fetchModels()
+
+  // If no model is selected yet and we have models, select the first one
+  if (!selectedModel.value && modelsStore.models.length > 0) {
+    selectedModel.value = modelsStore.models[0].name
+    saveModelPreference(selectedModel.value)
+  }
+
   document.addEventListener('click', closeDropdown)
 })
 
@@ -42,27 +48,6 @@ watch(selectedModel, (newModel) => {
     emit('modelChanged', newModel)
   }
 })
-
-// Fetch available models from the API
-const fetchModels = async () => {
-  if (loading.value) return
-  try {
-    loading.value = true
-    const response = await api.get('/ollama/tags')
-    models.value = response.models || []
-
-    // If no model is selected yet, select the first one
-    if (!selectedModel.value && models.value.length > 0) {
-      selectedModel.value = models.value[0].name
-      saveModelPreference(selectedModel.value)
-    }
-  } catch (error) {
-    console.error('Error fetching models:', error)
-    toastStore.error('Failed to load available models')
-  } finally {
-    loading.value = false
-  }
-}
 
 // Save model preference to localStorage
 const saveModelPreference = (modelName) => {
@@ -95,8 +80,19 @@ onUnmounted(() => {
 
 // Get currently selected model details
 const selectedModelDetails = computed(() => {
-  return models.value.find((model) => model.name === selectedModel.value) || {}
+  return modelsStore.models.find((model) => model.name === selectedModel.value) || {}
 })
+
+// Handle refresh
+const handleRefresh = async () => {
+  await modelsStore.refreshModels()
+
+  // If no model is selected yet and we have models, select the first one
+  if (!selectedModel.value && modelsStore.models.length > 0) {
+    selectedModel.value = modelsStore.models[0].name
+    saveModelPreference(selectedModel.value)
+  }
+}
 </script>
 
 <template>
@@ -104,10 +100,10 @@ const selectedModelDetails = computed(() => {
     <button
       @click.stop="toggleDropdown"
       class="flex items-center gap-2 px-3 py-1.5 text-sm rounded-md bg-zinc-700 hover:bg-zinc-600 text-white"
-      :disabled="loading"
+      :disabled="modelsStore.loading"
     >
       <span
-        v-if="loading"
+        v-if="modelsStore.loading"
         class="w-4 h-4 border-2 border-t-2 rounded-full border-zinc-500 border-t-zinc-200 animate-spin"
       ></span>
       <span v-else class="truncate max-w-[150px]">
@@ -130,17 +126,61 @@ const selectedModelDetails = computed(() => {
       class="absolute right-0 z-10 w-64 mt-2 overflow-hidden rounded-md shadow-lg bg-zinc-800"
     >
       <div class="py-1 overflow-y-auto max-h-60">
-        <div v-if="loading" class="flex justify-center py-4">
+        <div v-if="modelsStore.loading" class="flex justify-center py-4">
           <div
             class="w-5 h-5 border-2 border-t-2 rounded-full border-zinc-600 border-t-zinc-300 animate-spin"
           ></div>
         </div>
-        <div v-else-if="models.length === 0" class="px-4 py-2 text-sm text-gray-400">
+        <div v-else-if="modelsStore.error" class="px-4 py-3">
+          <div class="mb-2 text-sm text-red-400">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="inline w-4 h-4 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+            Ollama unavailable
+          </div>
+          <div class="mb-3 text-xs text-gray-400">
+            {{ modelsStore.error }}
+          </div>
+          <button
+            @click="handleRefresh"
+            class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-zinc-700 hover:bg-zinc-600 text-white transition-colors w-full justify-center"
+            :disabled="modelsStore.loading"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              :class="{ 'animate-spin': modelsStore.loading }"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Retry Connection
+          </button>
+        </div>
+        <div v-else-if="modelsStore.models.length === 0" class="px-4 py-2 text-sm text-gray-400">
           No models available
         </div>
         <template v-else>
           <button
-            v-for="model in models"
+            v-for="model in modelsStore.models"
             :key="model.id || model.name"
             @click="selectModel(model)"
             class="flex items-start w-full px-4 py-2 text-left text-white transition-colors hover:bg-zinc-700"
