@@ -24,6 +24,7 @@ const userSettingsStore = useUserSettingsStore()
 const isExpanded = ref(false)
 const isRendered = ref(false)
 const contentRef = ref(null)
+const copySuccess = ref({}) // To track copy success state for each code block
 
 // User display name and initial for avatar
 const displayName = computed(() => {
@@ -79,14 +80,19 @@ DOMPurify.setConfig({
 
 // Render markdown and sanitize HTML
 const renderedContent = computed(() => {
-  if (!props.message.content) return ''
+  if (!props.message.content && !props.message.isLoading) return ''
+
+  // If message is loading, return the typing animation placeholder
+  if (props.message.isLoading) {
+    return '<div class="typing-animation"><span></span><span></span><span></span></div>'
+  }
 
   try {
     // Process <think> tags before passing to marked
     let content = props.message.content.toString()
 
     // Replace <think> tags with HTML5 details/summary for native collapsible behavior
-    content = content.replace(/<think>([\s\S]*?)<\/think>/g, (match, thinkContent) => {
+    content = content.replace(/<think>([\s\S]*?)<\/think>/g, (_match, thinkContent) => {
       // Use HTML5 details/summary for native collapsible functionality with improved accessibility
       return `
 <details class="thinking-block">
@@ -109,6 +115,24 @@ const renderedContent = computed(() => {
   }
 })
 
+// Function to copy code to clipboard
+const copyCodeToClipboard = (code, id) => {
+  navigator.clipboard.writeText(code).then(
+    () => {
+      // Set success state for this specific code block
+      copySuccess.value[id] = true
+
+      // Reset success state after 2 seconds
+      setTimeout(() => {
+        copySuccess.value[id] = false
+      }, 2000)
+    },
+    (err) => {
+      console.error('Could not copy text: ', err)
+    },
+  )
+}
+
 // Determine if the message should be truncated
 const isTruncatable = computed(() => {
   if (!contentRef.value || isExpanded.value) return false
@@ -127,8 +151,52 @@ watch(
       if (contentRef.value) {
         // Highlight all code blocks
         const codeBlocks = contentRef.value.querySelectorAll('pre code')
-        codeBlocks.forEach((block) => {
+        codeBlocks.forEach((block, index) => {
           hljs.highlightElement(block)
+
+          // Generate a unique ID for this code block
+          const blockId = `code-block-${props.message.id}-${index}`
+
+          // Get the parent pre element
+          const preElement = block.parentElement
+
+          // Only add the copy button if it doesn't already exist
+          if (!preElement.querySelector('.copy-code-button')) {
+            // Create the copy button container
+            const buttonContainer = document.createElement('div')
+            buttonContainer.className = 'copy-code-button-container'
+
+            // Create the copy button
+            const copyButton = document.createElement('button')
+            copyButton.className = 'copy-code-button'
+            copyButton.setAttribute('aria-label', 'Copy code')
+            copyButton.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" class="copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" class="check-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            `
+            buttonContainer.appendChild(copyButton)
+
+            // Add button container to pre element
+            preElement.style.position = 'relative'
+            preElement.appendChild(buttonContainer)
+
+            // Add click event listener
+            copyButton.addEventListener('click', () => {
+              copyCodeToClipboard(block.textContent, blockId)
+
+              // Show success state
+              copyButton.classList.add('copied')
+
+              // Remove success state after animation completes
+              setTimeout(() => {
+                copyButton.classList.remove('copied')
+              }, 2000)
+            })
+          }
         })
 
         // Set up details element enhancements
@@ -252,7 +320,7 @@ const isErrorMessage = computed(() => {
     :class="[
       'flex items-start gap-4 px-4 py-6 transition-opacity duration-300',
       message.role === 'assistant' ? 'bg-zinc-800/50 rounded-lg' : '',
-      isStreaming ? 'animate-pulse opacity-80' : 'opacity-100',
+      isStreaming || message.isLoading ? 'animate-pulse' : 'opacity-100',
     ]"
   >
     <!-- Avatar -->
@@ -285,9 +353,6 @@ const isErrorMessage = computed(() => {
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
             d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
           ></path>
         </svg>
@@ -302,7 +367,7 @@ const isErrorMessage = computed(() => {
           {{ message.role === 'assistant' ? 'AI Assistant' : displayName }}
         </div>
         <div class="text-xs text-gray-400">
-          {{ formatTime(message.created_at) }}
+          {{ formatTime(message.created_at || message.timestamp) }}
         </div>
       </div>
 
@@ -324,16 +389,10 @@ const isErrorMessage = computed(() => {
       </button>
 
       <!-- Streaming indicator -->
-      <div v-if="isStreaming" class="h-4 mt-1">
+      <div v-if="isStreaming && !message.isLoading" class="h-4 mt-1">
         <span class="inline-block w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></span>
-        <span
-          class="inline-block w-2 h-2 ml-1 bg-indigo-400 rounded-full animate-pulse"
-          style="animation-delay: 0.2s"
-        ></span>
-        <span
-          class="inline-block w-2 h-2 ml-1 bg-indigo-400 rounded-full animate-pulse"
-          style="animation-delay: 0.4s"
-        ></span>
+        <span style="animation-delay: 0.2s"></span>
+        <span style="animation-delay: 0.4s"></span>
       </div>
     </div>
   </div>
@@ -367,6 +426,7 @@ const isErrorMessage = computed(() => {
   border-radius: 0.375rem;
   margin: 1rem 0;
   padding: 0;
+  position: relative; /* For copy button positioning */
 }
 
 .message-content code {
@@ -381,6 +441,105 @@ const isErrorMessage = computed(() => {
   white-space: nowrap;
 }
 
+/* Copy code button styles */
+.copy-code-button-container {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+.copy-code-button {
+  background-color: rgba(30, 30, 30, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
+  color: #a1a1aa;
+}
+
+.copy-code-button:hover {
+  opacity: 1;
+  background-color: rgba(50, 50, 50, 0.7);
+  color: #f1f1f1;
+}
+
+.copy-code-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.copy-code-button .check-icon {
+  display: none;
+}
+
+.copy-code-button.copied .copy-icon {
+  display: none;
+}
+
+.copy-code-button.copied .check-icon {
+  display: block;
+  color: #10b981;
+}
+
+.copy-code-button.copied {
+  background-color: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Typing animation styles */
+.typing-animation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  height: 2rem;
+}
+
+.typing-animation span {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #818cf8;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: typing 1.4s ease-in-out infinite;
+}
+
+.typing-animation span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-animation span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-animation span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-0.5rem);
+    opacity: 1;
+  }
+}
+
+/* Remaining styles */
 .message-content p {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;

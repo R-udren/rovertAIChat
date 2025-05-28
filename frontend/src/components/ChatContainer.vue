@@ -52,15 +52,42 @@ defineExpose({
     <div v-else class="space-y-6">
       <ChatMessage
         v-for="(message, index) in messages"
-        :key="`${message.id || index}-${message.created_at}`"
+        :key="`${message.id || index}-${message.created_at || Date.now()}`"
         :message="message"
         :is-streaming="message.isStreaming"
+        :is-last="index === messages.length - 1"
       />
 
-      <div v-if="streaming" class="flex items-center ml-2 space-x-2 text-gray-400">
+      <div
+        v-if="
+          streaming &&
+          !messages[messages.length - 1]?.isStreaming &&
+          !messages[messages.length - 1]?.isLoading
+        "
+        class="flex items-center ml-2 space-x-2 text-gray-400"
+      >
         <span>AI is thinking</span>
         <span class="animate-ellipsis">...</span>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.animate-ellipsis {
+  display: inline-block;
+  animation: ellipsis 1.5s infinite;
+}
+
+@keyframes ellipsis {
+  0% {
+    content: '.';
+  }
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
+}
+</style>

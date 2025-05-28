@@ -212,16 +212,36 @@ export const useChatStore = defineStore('chat', () => {
       messages.value.push(userMessage)
       sending.value = true
 
+      // Add a temporary loading message
+      const loadingMessageId = `loading-${Date.now()}`
+      const loadingMessage = {
+        id: loadingMessageId,
+        content: '',
+        role: 'assistant',
+        isLoading: true,
+        timestamp: new Date().toISOString(),
+      }
+      messages.value.push(loadingMessage)
+
       // Send request to Ollama API with the chatId
       const response = await api.post('ollama/chat', {
         chatId: currentConversation.value.id,
-        messages: messages.value.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        })),
+        messages: messages.value
+          .filter((msg) => !msg.isLoading) // Don't include the loading placeholder
+          .map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
         model: model,
         stream: false,
       })
+
+      // Replace the loading message with the actual response
+      const loadingIndex = messages.value.findIndex((m) => m.id === loadingMessageId)
+      if (loadingIndex !== -1) {
+        messages.value.splice(loadingIndex, 1)
+      }
+
       // Create the assistant message using the ID returned from the backend
       const assistantMessage = {
         id: response.id, // This ID comes from the database now
@@ -232,6 +252,12 @@ export const useChatStore = defineStore('chat', () => {
       messages.value.push(assistantMessage)
     } catch (err) {
       error.value = 'Failed to send message'
+
+      // Remove the loading message
+      const loadingIndex = messages.value.findIndex((m) => m.isLoading)
+      if (loadingIndex !== -1) {
+        messages.value.splice(loadingIndex, 1)
+      }
 
       // Add system error message to chat
       let errorMessage = 'Failed to get response from Ollama'
