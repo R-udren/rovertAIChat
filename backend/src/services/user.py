@@ -2,7 +2,6 @@ import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-
 from src.auth.jwt import get_password_hash
 from src.core.logger import app_logger
 from src.models.user import User
@@ -47,6 +46,15 @@ def create_user(db: Session, user: UserCreate) -> User:
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
+    # Check if this is the first user - if so, make them admin
+    user_count = db.query(User).count()
+    role = "admin" if user_count == 0 else "user"
+
+    if role == "admin":
+        app_logger.info(
+            f"First user detected - assigning admin role to: {user.username}"
+        )
+
     # Create user
     hashed_password = get_password_hash(user.password)
     db_user = User(
@@ -54,13 +62,16 @@ def create_user(db: Session, user: UserCreate) -> User:
         username=user.username,
         email=user.email,
         password_hash=hashed_password,
+        role=role,
     )
-    app_logger.debug(f"Adding user to database: {user.username}")
+    app_logger.debug(f"Adding user to database: {user.username} with role: {role}")
 
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    app_logger.info(f"User created successfully: {user.username}, id: {db_user.id}")
+    app_logger.info(
+        f"User created successfully: {user.username}, id: {db_user.id}, role: {role}"
+    )
 
     # Create default user settings
     app_logger.debug(f"Creating default settings for user: {db_user.username}")

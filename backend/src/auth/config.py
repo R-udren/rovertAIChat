@@ -1,11 +1,8 @@
 import os
 from datetime import timedelta
 
-from dotenv import load_dotenv
 from fastapi import Response
 from src.core.logger import app_logger
-
-load_dotenv()
 
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "mysupersecretkey")
