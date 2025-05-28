@@ -21,14 +21,7 @@ export const useChatStore = defineStore('chat', () => {
 
   // Helper function to add system error message
   function addSystemErrorMessage(errorMessage) {
-    const systemMessage = {
-      id: `system-error-${Date.now()}`,
-      content: errorMessage,
-      role: 'system',
-      isError: true,
-      timestamp: new Date().toISOString(),
-    }
-    messages.value.push(systemMessage)
+    addSystemMessage(errorMessage, 'error')
   }
 
   // Helper function to add system message (info or error)
