@@ -55,7 +55,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
         secure=COOKIE_SECURE,
         samesite="lax",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/api/auth/refresh",
+        path="/api/v1/auth/refresh",
         domain=COOKIE_DOMAIN,
     )
 
