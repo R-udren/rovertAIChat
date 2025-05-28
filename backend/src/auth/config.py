@@ -23,6 +23,12 @@ REFRESH_TOKEN_EXPIRE_DELTA = timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
 
 # Log configuration details
 app_logger.debug(f"JWT algorithm: {ALGORITHM}")
+app_logger.debug(
+    f"JWT secret key: {'*' * (len(SECRET_KEY) // 2) + SECRET_KEY[len(SECRET_KEY) // 2 :]}"
+)
+app_logger.debug(
+    f"JWT refresh secret key: {'*' * (len(REFRESH_SECRET_KEY) // 2) + REFRESH_SECRET_KEY[len(REFRESH_SECRET_KEY) // 2 :]}"
+)
 app_logger.debug(f"Access token expiry: {ACCESS_TOKEN_EXPIRE_MINUTES} minutes")
 app_logger.debug(f"Refresh token expiry: {REFRESH_TOKEN_EXPIRE_DAYS} days")
 app_logger.debug(f"Cookie domain: {COOKIE_DOMAIN}")
