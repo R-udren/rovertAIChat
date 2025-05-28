@@ -33,7 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       // The server will set the cookies in the response
-      const data = await api.postForm('auth/login', credentials)
+      const data = await api.postForm('auth/login', credentials, {}, true)
       isAuthenticated.value = true
       await fetchUserProfile()
       return data
@@ -57,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       // The server will clear the cookies
-      await api.post('auth/logout')
+      await api.post('auth/logout', {}, {}, false)
     } catch (err) {
       console.error('Logout error:', err)
     }

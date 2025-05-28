@@ -168,16 +168,20 @@ export const api = {
    * @param {Object} options - Additional fetch options
    * @returns {Promise<any>}
    */
-  post: (endpoint, data = {}, options = {}) => {
-    return apiRequest(apiUrl(endpoint), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
+  post: (endpoint, data = {}, options = {}, refreshOnAuthError = true) => {
+    return apiRequest(
+      apiUrl(endpoint),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        body: JSON.stringify(data),
+        ...options,
       },
-      body: JSON.stringify(data),
-      ...options,
-    })
+      refreshOnAuthError,
+    )
   },
 
   /**
@@ -187,7 +191,7 @@ export const api = {
    * @param {Object} options - Additional fetch options
    * @returns {Promise<any>}
    */
-  postForm: (endpoint, formData = {}, options = {}) => {
+  postForm: (endpoint, formData = {}, options = {}, refreshOnAuthError = true) => {
     const urlEncodedData = new URLSearchParams()
 
     // Add each key-value pair to the URLSearchParams object
@@ -195,15 +199,19 @@ export const api = {
       urlEncodedData.append(key, value)
     })
 
-    return apiRequest(apiUrl(endpoint), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        ...options.headers,
+    return apiRequest(
+      apiUrl(endpoint),
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          ...options.headers,
+        },
+        body: urlEncodedData,
+        ...options,
       },
-      body: urlEncodedData,
-      ...options,
-    })
+      refreshOnAuthError,
+    )
   },
 
   /**
