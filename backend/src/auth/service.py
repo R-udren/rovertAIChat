@@ -111,14 +111,12 @@ def get_current_user(
 ) -> User:
     """Get the current authenticated user."""
     if access_token is None:
-        app_logger.warning("No access token provided")
+        app_logger.warning("No access token provided in cookies")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    app_logger.debug("Authenticating request with JWT token")
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
