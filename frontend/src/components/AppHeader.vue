@@ -31,12 +31,26 @@ const closeMobileMenu = () => {
 }
 
 // Navigation links with active state management
-const navLinks = computed(() => [
-  { name: 'Home', path: '/', requiresAuth: false },
-  { name: 'Chat', path: '/chat', requiresAuth: true },
-  { name: 'Profile', path: '/profile', requiresAuth: true },
-  { name: 'Settings', path: '/settings', requiresAuth: true },
-])
+const navLinks = computed(() => {
+  const links = [
+    { name: 'Home', path: '/', requiresAuth: false },
+    { name: 'Chat', path: '/chat', requiresAuth: true },
+    { name: 'Profile', path: '/profile', requiresAuth: true },
+    { name: 'Settings', path: '/settings', requiresAuth: true },
+  ]
+
+  // Add admin panel link for admin users
+  if (authStore.isAuthenticated && authStore.user?.role === 'admin') {
+    links.splice(-1, 0, {
+      name: 'Admin Panel',
+      path: '/admin',
+      requiresAuth: true,
+      requiresAdmin: true,
+    })
+  }
+
+  return links
+})
 
 const handleNavigation = (path) => {
   router.push(path)
@@ -94,7 +108,10 @@ onUnmounted(() => {
       <nav class="items-center hidden space-x-6 md:flex">
         <template v-for="link in navLinks" :key="link.path">
           <router-link
-            v-if="!link.requiresAuth || authStore.isAuthenticated"
+            v-if="
+              (!link.requiresAuth || authStore.isAuthenticated) &&
+              (!link.requiresAdmin || authStore.user?.role === 'admin')
+            "
             :to="link.path"
             class="relative px-1 py-1 text-gray-300 transition-all duration-200 hover:text-white group"
             active-class="text-primary-400"
@@ -199,7 +216,10 @@ onUnmounted(() => {
         <nav class="flex flex-col px-6 py-8 space-y-6">
           <template v-for="link in navLinks" :key="link.path">
             <button
-              v-if="!link.requiresAuth || authStore.isAuthenticated"
+              v-if="
+                (!link.requiresAuth || authStore.isAuthenticated) &&
+                (!link.requiresAdmin || authStore.user?.role === 'admin')
+              "
               @click="handleNavigation(link.path)"
               class="flex items-center justify-between py-3 text-lg font-medium text-left transition-colors duration-200"
               :class="

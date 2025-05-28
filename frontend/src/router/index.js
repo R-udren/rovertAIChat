@@ -56,6 +56,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue'),
@@ -67,11 +73,16 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   // Get auth store and isAuthenticated state
   const authStore = useAuthStore()
-  const { isAuthenticated } = storeToRefs(authStore)
+  const { isAuthenticated, user } = storeToRefs(authStore)
 
   // Check for protected routes
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     return next({ name: 'login', query: { redirect: to.fullPath } })
+  }
+
+  // Check for admin-only routes
+  if (to.meta.requiresAdmin && (!isAuthenticated.value || user.value?.role !== 'admin')) {
+    return next({ name: 'home' })
   }
 
   // Check for guest-only routes (like login, register)
