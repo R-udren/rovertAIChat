@@ -80,7 +80,25 @@ onUnmounted(() => {
 
 // Get currently selected model details
 const selectedModelDetails = computed(() => {
+  // If there's an error or no models available, don't show a selected model
+  if (modelsStore.error || modelsStore.models.length === 0) {
+    return {}
+  }
   return modelsStore.models.find((model) => model.name === selectedModel.value) || {}
+})
+
+// Computed property to show the display text
+const displayText = computed(() => {
+  if (modelsStore.loading) {
+    return 'Loading models...'
+  }
+  if (modelsStore.error) {
+    return 'Ollama unavailable'
+  }
+  if (modelsStore.models.length === 0) {
+    return 'No models available :('
+  }
+  return selectedModelDetails.value.display_name || selectedModel.value || 'Select model'
 })
 
 // Handle refresh
@@ -93,6 +111,39 @@ const handleRefresh = async () => {
     saveModelPreference(selectedModel.value)
   }
 }
+
+// Watch for models store changes to clear selected model when offline
+watch(
+  () => modelsStore.error,
+  (hasError) => {
+    if (hasError) {
+      // Clear selected model when there's an error
+      selectedModel.value = ''
+    }
+  },
+)
+
+watch(
+  () => modelsStore.models,
+  (models) => {
+    // If models become empty, clear the selected model
+    if (models.length === 0) {
+      selectedModel.value = ''
+    }
+    // If we have models but no selected model, select the first one
+    else if (!selectedModel.value) {
+      const storedModel = localStorage.getItem('preferredModel')
+      const modelExists = models.find((m) => m.name === storedModel)
+
+      if (modelExists) {
+        selectedModel.value = storedModel
+      } else {
+        selectedModel.value = models[0].name
+        saveModelPreference(selectedModel.value)
+      }
+    }
+  },
+)
 </script>
 
 <template>
@@ -107,7 +158,7 @@ const handleRefresh = async () => {
         class="w-4 h-4 border-2 border-t-2 rounded-full border-zinc-500 border-t-zinc-200 animate-spin"
       ></span>
       <span v-else class="truncate max-w-[150px]">
-        {{ selectedModelDetails.display_name || selectedModel || 'Select model' }}
+        {{ displayText }}
       </span>
       <svg
         xmlns="http://www.w3.org/2000/svg"

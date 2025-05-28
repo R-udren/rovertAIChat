@@ -139,7 +139,7 @@ export const apiRequest = async (url, options = {}, refreshOnAuthError = true) =
 
     return data
   } catch (error) {
-    console.error(`API request to ${url} returned ${error.status || 'error'}:`, error)
+    console.debug(`API request to ${url} returned ${error.status || 'error'}:`, error)
     throw error
   }
 }
