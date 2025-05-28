@@ -1,6 +1,7 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth'
 import { useChatStore } from '@/stores/chat'
+import { useModelsStore } from '@/stores/models'
 import { useToastStore } from '@/stores/toast'
 import { useUserSettingsStore } from '@/stores/userSettings'
 
@@ -8,6 +9,7 @@ const chatStore = useChatStore()
 const toastStore = useToastStore()
 const authStore = useAuthStore()
 const userSettingsStore = useUserSettingsStore()
+const modelsStore = useModelsStore()
 const route = useRoute()
 const router = useRouter()
 const selectedModel = ref(chatStore.currentConversation?.model)
@@ -145,6 +147,9 @@ onMounted(async () => {
   // Load user settings
   await userSettingsStore.fetchSettings()
 
+  // Initialize models store and check Ollama status
+  await modelsStore.fetchModels()
+
   // Load user chats
   await chatStore.fetchChats()
 
@@ -199,6 +204,23 @@ watch(
   },
 )
 
+// Watch for Ollama status changes to show system messages
+watch(
+  () => modelsStore.ollamaStatus,
+  (newStatus, oldStatus) => {
+    // Only show messages after initial load and when status actually changes
+    if (oldStatus && oldStatus !== newStatus && chatStore.currentConversation) {
+      if (newStatus === 'offline' || newStatus === 'no-models') {
+        chatStore.addSystemErrorMessage(
+          'Ollama is currently unavailable. Please check your connection and try again.',
+        )
+      } else if (newStatus === 'online' && (oldStatus === 'offline' || oldStatus === 'no-models')) {
+        chatStore.addSystemMessage('Ollama is now available.', 'info')
+      }
+    }
+  },
+)
+
 const handleModelChange = (model) => {
   console.log('Model changed to:', model)
   selectedModel.value = model
@@ -248,6 +270,14 @@ const handleModelChange = (model) => {
           @model-changed="handleModelChange"
           @update-chat-title="updateChatTitle"
         />
+
+        <!-- Ollama Status Indicator -->
+        <div
+          v-if="!modelsStore.isOllamaAvailable || modelsStore.ollamaStatus === 'loading'"
+          class="px-4 py-2 border-b bg-zinc-800/50 border-zinc-700/50"
+        >
+          <OllamaStatusIndicator :compact="true" />
+        </div>
 
         <!-- Messages -->
         <ChatContainer

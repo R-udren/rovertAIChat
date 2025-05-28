@@ -18,6 +18,7 @@ declare module 'vue' {
     ErrorMessage: typeof import('./src/components/ErrorMessage.vue')['default']
     LoadingSpinner: typeof import('./src/components/LoadingSpinner.vue')['default']
     ModelSelector: typeof import('./src/components/ModelSelector.vue')['default']
+    OllamaStatusIndicator: typeof import('./src/components/OllamaStatusIndicator.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ToastContainer: typeof import('./src/components/ToastContainer.vue')['default']

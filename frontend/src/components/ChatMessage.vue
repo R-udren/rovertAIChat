@@ -182,10 +182,73 @@ const formatTime = (timestamp) => {
   const date = new Date(timestamp)
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
+
+// Check if this is a system message
+const isSystemMessage = computed(() => {
+  return props.message.role === 'system'
+})
+
+// Check if this is an error message
+const isErrorMessage = computed(() => {
+  return props.message.isError === true
+})
 </script>
 
 <template>
+  <!-- System/Error Messages -->
   <div
+    v-if="isSystemMessage"
+    :class="[
+      'flex items-center justify-center px-4 py-3 mx-4 mb-4 rounded-lg transition-opacity duration-300',
+      isErrorMessage
+        ? 'bg-red-900/20 border border-red-500/30 text-red-300'
+        : 'bg-blue-900/20 border border-blue-500/30 text-blue-300',
+      isStreaming ? 'animate-pulse opacity-80' : 'opacity-100',
+    ]"
+  >
+    <div class="flex items-center gap-2 text-sm">
+      <!-- Error icon -->
+      <svg
+        v-if="isErrorMessage"
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-5 h-5 text-red-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+        />
+      </svg>
+      <!-- Info icon -->
+      <svg
+        v-else
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-5 h-5 text-blue-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      <span>{{ message.content }}</span>
+      <span v-if="message.timestamp" class="ml-2 text-xs opacity-60">
+        {{ formatTime(message.timestamp) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Regular User/Assistant Messages -->
+  <div
+    v-else
     :class="[
       'flex items-start gap-4 px-4 py-6 transition-opacity duration-300',
       message.role === 'assistant' ? 'bg-zinc-800/50 rounded-lg' : '',

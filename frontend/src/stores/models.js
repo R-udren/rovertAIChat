@@ -1,7 +1,7 @@
 import { api } from '@/services/api'
 import { useToastStore } from '@/stores/toast'
 import { defineStore } from 'pinia'
-import { readonly, ref } from 'vue'
+import { computed, readonly, ref } from 'vue'
 
 export const useModelsStore = defineStore('models', () => {
   const models = ref([])
@@ -64,15 +64,44 @@ export const useModelsStore = defineStore('models', () => {
   const refreshModels = () => {
     return fetchModels(true)
   }
-
   const getModelByName = (name) => {
     return models.value.find((model) => model.name === name)
   }
+
+  // Computed properties for Ollama status
+  const isOllamaAvailable = computed(() => {
+    return !error.value && models.value.length > 0
+  })
+
+  const ollamaStatus = computed(() => {
+    if (loading.value) return 'loading'
+    if (error.value) return 'offline'
+    if (models.value.length === 0) return 'no-models'
+    return 'online'
+  })
+
+  const statusMessage = computed(() => {
+    switch (ollamaStatus.value) {
+      case 'loading':
+        return 'Connecting to Ollama...'
+      case 'offline':
+        return 'Ollama is not available'
+      case 'no-models':
+        return 'No models found in Ollama'
+      case 'online':
+        return `${models.value.length} model${models.value.length === 1 ? '' : 's'} available`
+      default:
+        return 'Unknown status'
+    }
+  })
 
   return {
     models: readonly(models),
     loading: readonly(loading),
     error: readonly(error),
+    isOllamaAvailable: readonly(isOllamaAvailable),
+    ollamaStatus: readonly(ollamaStatus),
+    statusMessage: readonly(statusMessage),
     fetchModels,
     refreshModels,
     getModelByName,

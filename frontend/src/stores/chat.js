@@ -19,6 +19,18 @@ export const useChatStore = defineStore('chat', () => {
   // EventSource for streaming responses
   let eventSource = null
 
+  // Helper function to add system error message
+  function addSystemErrorMessage(errorMessage) {
+    const systemMessage = {
+      id: `system-error-${Date.now()}`,
+      content: errorMessage,
+      role: 'system',
+      isError: true,
+      timestamp: new Date().toISOString(),
+    }
+    messages.value.push(systemMessage)
+  }
+
   // Get all user chats
   async function fetchChats() {
     try {
@@ -200,6 +212,21 @@ export const useChatStore = defineStore('chat', () => {
       messages.value.push(assistantMessage)
     } catch (err) {
       error.value = 'Failed to send message'
+
+      // Add system error message to chat
+      let errorMessage = 'Failed to get response from Ollama'
+
+      // Try to extract more specific error message
+      if (err.response?.data?.details) {
+        errorMessage = `Ollama Error: ${err.response.data.details}`
+      } else if (err.response?.data?.error) {
+        errorMessage = `Error: ${err.response.data.error}`
+      } else if (err.message) {
+        errorMessage = `Connection Error: ${err.message}`
+      }
+
+      addSystemErrorMessage(errorMessage)
+
       toastStore.error('Failed to send message')
       console.error('Error sending message:', err)
     } finally {
@@ -326,6 +353,18 @@ export const useChatStore = defineStore('chat', () => {
 
       eventSource.onerror = (err) => {
         console.error('EventSource error:', err)
+
+        // Remove the streaming placeholder message
+        if (assistantMessage.isStreaming) {
+          const messageIndex = messages.value.findIndex((m) => m === assistantMessage)
+          if (messageIndex !== -1) {
+            messages.value.splice(messageIndex, 1)
+          }
+        }
+
+        // Add system error message
+        addSystemErrorMessage('Connection lost during streaming. Please try again.')
+
         assistantMessage.isStreaming = false
         streaming.value = false
         closeEventSource()
@@ -333,125 +372,26 @@ export const useChatStore = defineStore('chat', () => {
         toastStore.error('Connection error occurred')
       }
     } catch (err) {
-      error.value = 'Failed to initiate streaming'
-      toastStore.error('Failed to connect to streaming API')
-      console.error('Error setting up streaming:', err)
-      streaming.value = false
-    }
-  }
-
-  // Stream chat response
-  async function streamChatResponse(message, model) {
-    if (!message) {
-      toastStore.error('Message cannot be empty')
-      return
-    }
-
-    if (!model) {
-      toastStore.error('Model is required')
-      return
-    }
-
-    if (!authStore.isAuthenticated) {
-      toastStore.error('You must be logged in to send messages')
-      return
-    }
-
-    // Auto-create conversation if none exists
-    if (!currentConversation.value) {
-      try {
-        await startNewConversation()
-        if (!currentConversation.value) {
-          toastStore.error('Failed to create new conversation')
-          return
-        }
-      } catch (err) {
-        toastStore.error('Failed to create new conversation')
-        console.error('Error creating conversation:', err)
-        return
-      }
-    }
-
-    // Close any existing connection
-    closeEventSource()
-
-    error.value = null
-    try {
-      const userMessage = {
-        id: Date.now().toString(),
-        content: message,
-        role: 'user',
-        timestamp: new Date().toISOString(),
-      }
-
-      messages.value.push(userMessage)
-      streaming.value = true
-
-      // Create a placeholder for the streaming response
-      const assistantMessage = {
-        id: null, // Will be updated from the stream
-        content: '',
-        role: 'assistant',
-        isStreaming: true,
-        timestamp: new Date().toISOString(),
-      }
-
-      messages.value.push(assistantMessage)
-
-      // Prepare payload for streaming endpoint
-      const payload = {
-        chatId: currentConversation.value.id,
-        messages: messages.value
-          .filter((msg) => !msg.isStreaming) // Don't include the placeholder
-          .map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-        model: model,
-        stream: true,
-      }
-
-      // Create event source for streaming
-      const queryParams = new URLSearchParams({
-        payload: JSON.stringify(payload),
-      }).toString()
-
-      eventSource = new EventSource(`${api.baseUrl}/ollama/chat/stream?${queryParams}`)
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-
-          // Update the message ID if it's the first chunk
-          if (data.id && !assistantMessage.id) {
-            assistantMessage.id = data.id
-          }
-
-          // Append content if any
-          if (data.content) {
-            assistantMessage.content += data.content
-          }
-
-          // Handle stream completion
-          if (data.done) {
-            assistantMessage.isStreaming = false
-            streaming.value = false
-            closeEventSource()
-          }
-        } catch (err) {
-          console.error('Error parsing event data:', err)
+      // Remove the streaming placeholder message if it was added
+      if (assistantMessage && assistantMessage.isStreaming) {
+        const messageIndex = messages.value.findIndex((m) => m === assistantMessage)
+        if (messageIndex !== -1) {
+          messages.value.splice(messageIndex, 1)
         }
       }
 
-      eventSource.onerror = (err) => {
-        console.error('EventSource error:', err)
-        assistantMessage.isStreaming = false
-        streaming.value = false
-        closeEventSource()
-        error.value = 'Connection error during streaming'
-        toastStore.error('Connection error occurred')
+      // Add system error message
+      let errorMessage = 'Failed to connect to streaming API'
+      if (err.response?.data?.details) {
+        errorMessage = `Ollama Error: ${err.response.data.details}`
+      } else if (err.response?.data?.error) {
+        errorMessage = `Error: ${err.response.data.error}`
+      } else if (err.message) {
+        errorMessage = `Connection Error: ${err.message}`
       }
-    } catch (err) {
+
+      addSystemErrorMessage(errorMessage)
+
       error.value = 'Failed to initiate streaming'
       toastStore.error('Failed to connect to streaming API')
       console.error('Error setting up streaming:', err)
