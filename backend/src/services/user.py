@@ -126,7 +126,7 @@ def update_user(db: Session, user_id: uuid.UUID, user_update: UserUpdate) -> Use
 def deactivate_user(db: Session, user_id: uuid.UUID) -> User:
     """Deactivate a user (soft delete)."""
     db_user = get_user(db, user_id)
-    db_user.is_active = db_user.is_active.expression.false()
+    db_user.is_active.expression.false()
 
     db.commit()
     db.refresh(db_user)
@@ -138,7 +138,7 @@ def deactivate_user(db: Session, user_id: uuid.UUID) -> User:
 def activate_user(db: Session, user_id: uuid.UUID) -> User:
     """Activate a deactivated user."""
     db_user = get_user(db, user_id)
-    db_user.is_active = db_user.is_active.expression.true()
+    db_user.is_active.expression.true()
 
     db.commit()
     db.refresh(db_user)
