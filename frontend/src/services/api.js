@@ -98,6 +98,9 @@ export const apiRequest = async (url, options = {}, refreshOnAuthError = true) =
         refreshSubscribers = [] // Clear any queued requests
         authStore.logout()
         throw refreshError
+      } finally {
+        // Ensure we reset the refreshing state
+        isRefreshing = false
       }
     }
 

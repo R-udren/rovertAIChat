@@ -33,7 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       // The server will set the cookies in the response
-      const data = await api.postForm('auth/login', credentials, {}, true)
+      const data = await api.postForm('auth/login', credentials, {}, false)
       isAuthenticated.value = true
       await fetchUserProfile()
       return data
