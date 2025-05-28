@@ -117,20 +117,56 @@ const renderedContent = computed(() => {
 
 // Function to copy code to clipboard
 const copyCodeToClipboard = (code, id) => {
-  navigator.clipboard.writeText(code).then(
-    () => {
-      // Set success state for this specific code block
-      copySuccess.value[id] = true
+  // Check if Clipboard API is available
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(code).then(
+      () => {
+        // Set success state for this specific code block
+        copySuccess.value[id] = true
 
-      // Reset success state after 2 seconds
+        // Reset success state after 2 seconds
+        setTimeout(() => {
+          copySuccess.value[id] = false
+        }, 2000)
+      },
+      (err) => {
+        console.error('Could not copy text: ', err)
+        fallbackCopyTextToClipboard(code, id)
+      },
+    )
+  } else {
+    // Fallback for browsers that don't support clipboard API
+    fallbackCopyTextToClipboard(code, id)
+  }
+}
+
+// Fallback method using a temporary textarea element
+const fallbackCopyTextToClipboard = (text, id) => {
+  const textArea = document.createElement('textarea')
+  textArea.value = text
+  textArea.style.position = 'fixed'
+  textArea.style.left = '0'
+  textArea.style.top = '0'
+  textArea.style.opacity = '0'
+  document.body.appendChild(textArea)
+  textArea.focus()
+  textArea.select()
+
+  try {
+    const successful = document.execCommand('copy')
+    if (successful) {
+      copySuccess.value[id] = true
       setTimeout(() => {
         copySuccess.value[id] = false
       }, 2000)
-    },
-    (err) => {
-      console.error('Could not copy text: ', err)
-    },
-  )
+    } else {
+      console.error('Failed to copy using fallback method')
+    }
+  } catch (err) {
+    console.error('Fallback copy method failed:', err)
+  }
+
+  document.body.removeChild(textArea)
 }
 
 // Determine if the message should be truncated
@@ -320,7 +356,7 @@ const isErrorMessage = computed(() => {
     :class="[
       'flex items-start gap-4 px-4 py-6 transition-opacity duration-300',
       message.role === 'assistant' ? 'bg-zinc-800/50 rounded-lg' : '',
-      isStreaming || message.isLoading ? 'animate-pulse' : 'opacity-100',
+      isStreaming || message.isLoading ? 'opacity-80' : 'opacity-100',
     ]"
   >
     <!-- Avatar -->
