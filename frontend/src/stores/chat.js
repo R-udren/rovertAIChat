@@ -31,6 +31,18 @@ export const useChatStore = defineStore('chat', () => {
     messages.value.push(systemMessage)
   }
 
+  // Helper function to add system message (info or error)
+  function addSystemMessage(content, type = 'info') {
+    const systemMessage = {
+      id: `system-${type}-${Date.now()}`,
+      content: content,
+      role: 'system',
+      isError: type === 'error',
+      timestamp: new Date().toISOString(),
+    }
+    messages.value.push(systemMessage)
+  }
+
   // Get all user chats
   async function fetchChats() {
     try {
@@ -437,5 +449,7 @@ export const useChatStore = defineStore('chat', () => {
     selectConversation,
     resetChat,
     closeEventSource,
+    addSystemErrorMessage,
+    addSystemMessage,
   }
 })
