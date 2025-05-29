@@ -143,30 +143,6 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
-  async function deleteUser(userId) {
-    if (!isAdmin()) {
-      throw new Error('Unauthorized: Admin access required')
-    }
-
-    loading.value = true
-    error.value = null
-
-    try {
-      await api.delete(`users/${userId}`)
-
-      // Remove the user from the local state
-      users.value = users.value.filter((user) => user.id !== userId)
-
-      return true
-    } catch (err) {
-      error.value = err.message
-      console.error('Error deleting user:', err)
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
   // Ollama Model Management Functions
   async function fetchOllamaModels() {
     if (!isAdmin()) {
@@ -311,7 +287,7 @@ export const useAdminStore = defineStore('admin', () => {
     fetchUsers,
     createUser,
     updateUser,
-    deleteUser,
+    deleteUser: deactivateUser,
     deactivateUser,
     activateUser,
     fetchOllamaModels,

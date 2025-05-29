@@ -1,3 +1,83 @@
+<script setup>
+import { useAdminStore } from '@/stores/admin'
+import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toast'
+
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const adminStore = useAdminStore()
+const authStore = useAuthStore()
+const toastStore = useToastStore()
+
+const editingUser = ref(null)
+const viewingUserSettings = ref(null)
+const showCreateUserModal = ref(false)
+const userToDelete = ref(null)
+const deletingUser = ref(false)
+
+const users = computed(() => adminStore.users)
+
+// Utility functions
+const getUserInitials = (user) => {
+  return (user.username.charAt(0) + (user.username.charAt(1) || '')).toUpperCase()
+}
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+// User management functions
+const refreshUsers = async () => {
+  try {
+    await adminStore.fetchUsers()
+    toastStore.success('Users refreshed successfully')
+  } catch (error) {
+    toastStore.error('Failed to refresh users: ' + error.message)
+  }
+}
+
+const editUser = (user) => {
+  editingUser.value = { ...user }
+}
+
+const viewUserSettings = (user) => {
+  viewingUserSettings.value = user
+}
+
+const handleUserUpdated = () => {
+  editingUser.value = null
+  refreshUsers()
+}
+
+const handleUserCreated = () => {
+  showCreateUserModal.value = false
+  refreshUsers()
+}
+
+// Load users when component becomes active
+watch(
+  () => props.active,
+  (isActive) => {
+    if (isActive && users.value.length === 0) {
+      refreshUsers()
+    }
+  },
+  { immediate: true },
+)
+</script>
+
 <template>
   <div class="space-y-6">
     <!-- Header with Actions -->
@@ -218,23 +298,6 @@
                       ></path>
                     </svg>
                   </button>
-
-                  <!-- Delete User Button -->
-                  <button
-                    v-if="user.id !== authStore.user?.id"
-                    @click="showDeleteConfirmation(user)"
-                    class="text-red-400 transition-colors hover:text-red-300"
-                    title="Delete User"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      ></path>
-                    </svg>
-                  </button>
                 </div>
               </td>
             </tr>
@@ -286,146 +349,5 @@
       :is-open="!!viewingUserSettings"
       @close="viewingUserSettings = null"
     />
-
-    <!-- Delete Confirmation Modal -->
-    <ConfirmationModal
-      :is-open="!!userToDelete"
-      :title="`Delete User: ${userToDelete?.username}`"
-      :message="`Are you sure you want to permanently delete <strong>${userToDelete?.username}</strong>? This action cannot be undone and will remove all their data including chats and settings.`"
-      confirm-text="Delete User"
-      cancel-text="Cancel"
-      type="danger"
-      :loading="deletingUser"
-      @confirm="confirmDeleteUser"
-      @cancel="userToDelete = null"
-    />
   </div>
 </template>
-
-<script setup>
-import ConfirmationModal from '@/components/ConfirmationModal.vue'
-import EditUserModal from '@/components/EditUserModal.vue'
-import UserSettingsModal from '@/components/UserSettingsModal.vue'
-import { useAdminStore } from '@/stores/admin'
-import { useAuthStore } from '@/stores/auth'
-import { useToastStore } from '@/stores/toast'
-import { computed, ref } from 'vue'
-
-const props = defineProps({
-  active: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const adminStore = useAdminStore()
-const authStore = useAuthStore()
-const toastStore = useToastStore()
-
-const editingUser = ref(null)
-const viewingUserSettings = ref(null)
-const showCreateUserModal = ref(false)
-const userToDelete = ref(null)
-const deletingUser = ref(false)
-
-const users = computed(() => adminStore.users)
-
-// Utility functions
-const getUserInitials = (user) => {
-  return (user.username.charAt(0) + (user.username.charAt(1) || '')).toUpperCase()
-}
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-// User management functions
-const refreshUsers = async () => {
-  try {
-    await adminStore.fetchUsers()
-    toastStore.success('Users refreshed successfully')
-  } catch (error) {
-    toastStore.error('Failed to refresh users: ' + error.message)
-  }
-}
-
-const editUser = (user) => {
-  editingUser.value = { ...user }
-}
-
-const deactivateUser = async (user) => {
-  if (user.id === authStore.user?.id) {
-    toastStore.error('You cannot deactivate your own account')
-    return
-  }
-
-  if (confirm(`Are you sure you want to deactivate ${user.username}?`)) {
-    try {
-      await adminStore.deactivateUser(user.id)
-      toastStore.success(`User ${user.username} deactivated successfully`)
-    } catch (error) {
-      toastStore.error('Failed to deactivate user: ' + error.message)
-    }
-  }
-}
-
-const activateUser = async (user) => {
-  try {
-    await adminStore.activateUser(user.id)
-    toastStore.success(`User ${user.username} activated successfully`)
-  } catch (error) {
-    toastStore.error('Failed to activate user: ' + error.message)
-  }
-}
-
-const viewUserSettings = (user) => {
-  viewingUserSettings.value = user
-}
-
-const showDeleteConfirmation = (user) => {
-  userToDelete.value = user
-}
-
-const confirmDeleteUser = async () => {
-  if (!userToDelete.value) return
-
-  deletingUser.value = true
-  try {
-    await adminStore.deleteUser(userToDelete.value.id)
-    toastStore.success(`User ${userToDelete.value.username} deleted successfully`)
-    userToDelete.value = null
-  } catch (error) {
-    toastStore.error('Failed to delete user: ' + error.message)
-  } finally {
-    deletingUser.value = false
-  }
-}
-
-const handleUserUpdated = () => {
-  editingUser.value = null
-  refreshUsers()
-}
-
-const handleUserCreated = () => {
-  showCreateUserModal.value = false
-  refreshUsers()
-}
-
-// Load users when component becomes active
-watch(
-  () => props.active,
-  (isActive) => {
-    if (isActive && users.value.length === 0) {
-      refreshUsers()
-    }
-  },
-  { immediate: true },
-)
-</script>

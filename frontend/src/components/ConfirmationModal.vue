@@ -1,71 +1,4 @@
-<template>
-  <teleport to="body">
-    <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto" @click="handleBackdropClick">
-      <!-- Backdrop -->
-      <div
-        class="fixed inset-0 transition-opacity duration-300 bg-black/60 backdrop-blur-sm"
-        :class="{ 'opacity-100': showContent, 'opacity-0': !showContent }"
-      ></div>
-
-      <!-- Modal Content -->
-      <div class="flex items-center justify-center min-h-full p-4">
-        <div
-          class="relative w-full max-w-md overflow-hidden transition-all duration-300 transform border shadow-2xl rounded-xl bg-zinc-800 border-zinc-700"
-          :class="{
-            'scale-100 opacity-100': showContent,
-            'scale-95 opacity-0': !showContent,
-          }"
-          @click.stop
-        >
-          <!-- Icon Section -->
-          <div class="px-6 pt-6 pb-4">
-            <div
-              class="flex items-center justify-center w-16 h-16 mx-auto rounded-full"
-              :class="iconColorClass"
-            >
-              <component :is="iconComponent" class="w-8 h-8" :class="iconTextClass" />
-            </div>
-          </div>
-
-          <!-- Content -->
-          <div class="px-6 pb-6">
-            <div class="text-center">
-              <h3 class="mb-2 text-lg font-semibold text-white" v-html="title"></h3>
-              <p class="mb-6 text-sm text-zinc-400" v-html="message"></p>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
-              <button
-                @click="handleCancel"
-                :disabled="loading"
-                class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-zinc-300 bg-zinc-700 border border-zinc-600 rounded-lg hover:bg-zinc-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {{ cancelText }}
-              </button>
-              <button
-                @click="handleConfirm"
-                :disabled="loading"
-                class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center min-h-[2.75rem]"
-                :class="confirmButtonClass"
-              >
-                <div
-                  v-if="loading"
-                  class="w-4 h-4 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin"
-                ></div>
-                {{ loading ? loadingText : confirmText }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </teleport>
-</template>
-
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
-
 const props = defineProps({
   isOpen: {
     type: Boolean,
@@ -242,13 +175,77 @@ if (typeof window !== 'undefined') {
 }
 
 // Clean up event listener when component unmounts
-import { onUnmounted } from 'vue'
 onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', handleKeydown)
   }
 })
 </script>
+
+<template>
+  <teleport to="body">
+    <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto" @click="handleBackdropClick">
+      <!-- Backdrop -->
+      <div
+        class="fixed inset-0 transition-opacity duration-300 bg-zinc-900/60 backdrop-blur-sm"
+        :class="{ 'opacity-100': showContent, 'opacity-0': !showContent }"
+      ></div>
+
+      <!-- Modal Content -->
+      <div class="flex items-center justify-center min-h-full p-4">
+        <div
+          class="relative w-full max-w-md overflow-hidden transition-all duration-300 transform border shadow-2xl rounded-xl bg-zinc-800 border-zinc-700"
+          :class="{
+            'scale-100 opacity-100': showContent,
+            'scale-95 opacity-0': !showContent,
+          }"
+          @click.stop
+        >
+          <!-- Icon Section -->
+          <div class="px-6 pt-6 pb-4">
+            <div
+              class="flex items-center justify-center w-16 h-16 mx-auto rounded-full"
+              :class="iconColorClass"
+            >
+              <component :is="iconComponent" class="w-8 h-8" :class="iconTextClass" />
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="px-6 pb-6">
+            <div class="text-center">
+              <h3 class="mb-2 text-lg font-semibold text-white" v-html="title"></h3>
+              <p class="mb-6 text-sm text-zinc-400" v-html="message"></p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
+              <button
+                @click="handleCancel"
+                :disabled="loading"
+                class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-zinc-300 bg-zinc-700 border border-zinc-600 rounded-lg hover:bg-zinc-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {{ cancelText }}
+              </button>
+              <button
+                @click="handleConfirm"
+                :disabled="loading"
+                class="w-full sm:w-auto px-4 py-2.5 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center min-h-[2.75rem]"
+                :class="confirmButtonClass"
+              >
+                <div
+                  v-if="loading"
+                  class="w-4 h-4 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin"
+                ></div>
+                {{ loading ? loadingText : confirmText }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </teleport>
+</template>
 
 <style scoped>
 /* Custom animations for smooth modal transitions */

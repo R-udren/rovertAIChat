@@ -1,3 +1,124 @@
+<script setup>
+import { api } from '@/services/api'
+import { useAdminStore } from '@/stores/admin'
+import { useToastStore } from '@/stores/toast'
+import { computed, ref, watch } from 'vue'
+
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const adminStore = useAdminStore()
+const toastStore = useToastStore()
+
+const loading = ref(false)
+const ollamaStatus = ref({ connected: false })
+
+// Watch for active prop changes
+watch(
+  () => props.active,
+  async (newActive) => {
+    if (newActive) {
+      await refreshAllData()
+      await checkSystemHealth()
+    }
+  },
+  { immediate: true },
+)
+
+// System configuration
+const systemConfig = ref({
+  environment: 'Development',
+  apiVersion: 'v1.0.0',
+  ollamaUrl: 'http://localhost:11434',
+})
+
+// Computed properties for system stats
+const systemStats = computed(() => {
+  const users = adminStore.users
+  const models = adminStore.models
+
+  return {
+    totalUsers: users.length,
+    activeUsers: users.filter((user) => user.is_active).length,
+    adminUsers: users.filter((user) => user.role === 'admin').length,
+    totalModels: models.length,
+  }
+})
+
+const recentUsers = computed(() => {
+  return adminStore.users
+    .filter((user) => user.last_login)
+    .sort((a, b) => new Date(b.last_login) - new Date(a.last_login))
+    .slice(0, 5)
+})
+
+// Utility functions
+const getUserInitials = (user) => {
+  return (user.username.charAt(0) + (user.username.charAt(1) || '')).toUpperCase()
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'Never'
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 1) return 'Today'
+  if (diffDays <= 7) return `${diffDays} days ago`
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+  })
+}
+
+// Admin actions
+const refreshAllData = async () => {
+  loading.value = true
+  try {
+    await Promise.all([adminStore.fetchUsers(), adminStore.fetchOllamaModels()])
+    // toastStore.success('All data refreshed successfully')
+  } catch (error) {
+    toastStore.error('Failed to refresh data: ' + error.message)
+  } finally {
+    loading.value = false
+  }
+}
+
+const checkSystemHealth = async () => {
+  try {
+    // Check backend health
+    await api.get('health')
+
+    // Check database health separately
+    try {
+      const response = await api.get('health/db')
+      console.log('Database health check:', response)
+    } catch (error) {
+      console.warn('Database health check failed:', error)
+    }
+
+    // Check Ollama status
+    try {
+      await adminStore.getOllamaVersion()
+      ollamaStatus.value.connected = true
+    } catch (error) {
+      ollamaStatus.value.connected = false
+    }
+
+    // toastStore.success('System health check completed')
+  } catch (error) {
+    toastStore.error('System health check failed: ' + error.message)
+  }
+}
+</script>
+
 <template>
   <div class="space-y-6">
     <!-- Header -->
@@ -269,123 +390,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { api } from '@/services/api'
-import { useAdminStore } from '@/stores/admin'
-import { useToastStore } from '@/stores/toast'
-import { computed, ref, watch } from 'vue'
-
-const props = defineProps({
-  active: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const adminStore = useAdminStore()
-const toastStore = useToastStore()
-
-const loading = ref(false)
-const ollamaStatus = ref({ connected: false })
-
-// Watch for active prop changes
-watch(
-  () => props.active,
-  async (newActive) => {
-    if (newActive) {
-      await refreshAllData()
-      await checkSystemHealth()
-    }
-  },
-  { immediate: true },
-)
-
-// System configuration
-const systemConfig = ref({
-  environment: 'Development',
-  apiVersion: 'v1.0.0',
-  ollamaUrl: 'http://localhost:11434',
-})
-
-// Computed properties for system stats
-const systemStats = computed(() => {
-  const users = adminStore.users
-  const models = adminStore.models
-
-  return {
-    totalUsers: users.length,
-    activeUsers: users.filter((user) => user.is_active).length,
-    adminUsers: users.filter((user) => user.role === 'admin').length,
-    totalModels: models.length,
-  }
-})
-
-const recentUsers = computed(() => {
-  return adminStore.users
-    .filter((user) => user.last_login)
-    .sort((a, b) => new Date(b.last_login) - new Date(a.last_login))
-    .slice(0, 5)
-})
-
-// Utility functions
-const getUserInitials = (user) => {
-  return (user.username.charAt(0) + (user.username.charAt(1) || '')).toUpperCase()
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'Never'
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffTime = Math.abs(now - date)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 1) return 'Today'
-  if (diffDays <= 7) return `${diffDays} days ago`
-
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-  })
-}
-
-// Admin actions
-const refreshAllData = async () => {
-  loading.value = true
-  try {
-    await Promise.all([adminStore.fetchUsers(), adminStore.fetchOllamaModels()])
-    toastStore.success('All data refreshed successfully')
-  } catch (error) {
-    toastStore.error('Failed to refresh data: ' + error.message)
-  } finally {
-    loading.value = false
-  }
-}
-
-const checkSystemHealth = async () => {
-  try {
-    // Check backend health
-    await api.get('health')
-
-    // Check database health separately
-    try {
-      await api.get('health/db')
-    } catch (error) {
-      console.warn('Database health check failed:', error)
-    }
-
-    // Check Ollama status
-    try {
-      await adminStore.getOllamaVersion()
-      ollamaStatus.value.connected = true
-    } catch (error) {
-      ollamaStatus.value.connected = false
-    }
-
-    toastStore.success('System health check completed')
-  } catch (error) {
-    toastStore.error('System health check failed: ' + error.message)
-  }
-}
-</script>

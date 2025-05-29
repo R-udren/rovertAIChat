@@ -1,3 +1,40 @@
+<script setup>
+import { useModelsStore } from '@/stores/models'
+
+const props = defineProps({
+  showRetry: {
+    type: Boolean,
+    default: true,
+  },
+  compact: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const modelsStore = useModelsStore()
+
+const statusClass = computed(() => {
+  const baseClass = props.compact ? 'text-xs' : 'text-sm'
+
+  switch (modelsStore.ollamaStatus) {
+    case 'loading':
+      return `${baseClass} bg-blue-900/20 border border-blue-500/30 text-blue-300`
+    case 'online':
+      return `${baseClass} bg-green-900/20 border border-green-500/30 text-green-300`
+    case 'offline':
+    case 'no-models':
+      return `${baseClass} bg-red-900/20 border border-red-500/30 text-red-300`
+    default:
+      return `${baseClass} bg-gray-900/20 border border-gray-500/30 text-gray-300`
+  }
+})
+
+const handleRetry = async () => {
+  await modelsStore.refreshModels()
+}
+</script>
+
 <template>
   <div
     :class="[
@@ -62,40 +99,3 @@
     </button>
   </div>
 </template>
-
-<script setup>
-import { useModelsStore } from '@/stores/models'
-
-const props = defineProps({
-  showRetry: {
-    type: Boolean,
-    default: true,
-  },
-  compact: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const modelsStore = useModelsStore()
-
-const statusClass = computed(() => {
-  const baseClass = props.compact ? 'text-xs' : 'text-sm'
-
-  switch (modelsStore.ollamaStatus) {
-    case 'loading':
-      return `${baseClass} bg-blue-900/20 border border-blue-500/30 text-blue-300`
-    case 'online':
-      return `${baseClass} bg-green-900/20 border border-green-500/30 text-green-300`
-    case 'offline':
-    case 'no-models':
-      return `${baseClass} bg-red-900/20 border border-red-500/30 text-red-300`
-    default:
-      return `${baseClass} bg-gray-900/20 border border-gray-500/30 text-gray-300`
-  }
-})
-
-const handleRetry = async () => {
-  await modelsStore.refreshModels()
-}
-</script>

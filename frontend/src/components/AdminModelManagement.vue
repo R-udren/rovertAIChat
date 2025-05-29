@@ -54,20 +54,32 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="flex items-center space-x-2">
-            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            <div
+              :class="[
+                'w-3 h-3 rounded-full',
+                adminStore.error ? 'bg-red-400' : 'bg-green-400 animate-pulse',
+              ]"
+            ></div>
             <span class="font-medium text-white">Ollama Status</span>
           </div>
-          <span class="text-zinc-400">Connected</span>
+          <span class="text-zinc-400">
+            {{ adminStore.error ? 'Disconnected' : 'Connected' }}
+          </span>
         </div>
         <button
           @click="checkOllamaVersion"
-          class="text-sm text-blue-400 transition-colors hover:text-blue-300"
+          :disabled="!!adminStore.error"
+          class="text-sm transition-colors disabled:text-zinc-500 disabled:cursor-not-allowed"
+          :class="adminStore.error ? 'text-zinc-500' : 'text-blue-400 hover:text-blue-300'"
         >
           Check Version
         </button>
       </div>
       <div v-if="ollamaVersion" class="mt-2 text-sm text-zinc-400">
         Version: {{ ollamaVersion.version || 'Unknown' }}
+      </div>
+      <div v-else-if="adminStore.error" class="mt-2 text-sm text-red-400">
+        Ollama service is unavailable
       </div>
     </div>
 
@@ -194,7 +206,7 @@
     <!-- Pull Model Modal -->
     <div
       v-if="showPullModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/70"
     >
       <div class="w-full max-w-md p-6 mx-4 rounded-lg bg-zinc-800">
         <div class="flex items-center justify-between mb-4">
@@ -225,7 +237,15 @@
               required
             />
             <p class="mt-1 text-xs text-zinc-400">
-              Enter the model name as it appears in the Ollama registry
+              Enter the model name as it appears in the
+              <a
+                href="https://ollama.com/search"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-blue-400 hover:underline"
+              >
+                Ollama registry
+              </a>
             </p>
           </div>
 
