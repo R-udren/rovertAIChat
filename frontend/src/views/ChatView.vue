@@ -34,6 +34,10 @@ const canUploadImages = computed(() => {
   return modelsStore.hasVisionCapability(selectedModel.value)
 })
 
+// Drag and drop state for entire chat area
+const isDragOverChat = ref(false)
+const isProcessingImages = ref(false)
+
 // Toggle sidebar
 const toggleSidebar = () => {
   showSidebar.value = !showSidebar.value
@@ -251,6 +255,106 @@ const handleImagesChanged = (images) => {
   currentImages.value = images
 }
 
+// Convert file to base64
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      // Remove the data:image/...;base64, prefix
+      const base64 = reader.result.split(',')[1]
+      resolve(base64)
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+
+// Process image files for drag-and-drop
+const processImageFiles = async (files) => {
+  if (!canUploadImages.value) {
+    toastStore.error('Selected model does not support image uploads')
+    return
+  }
+
+  if (files.length === 0) return
+
+  isProcessingImages.value = true
+
+  try {
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'))
+
+    if (imageFiles.length === 0) {
+      toastStore.error('Please select image files only')
+      return
+    }
+
+    if (imageFiles.length > 5) {
+      toastStore.error('Maximum 5 images allowed per message')
+      return
+    }
+
+    const totalSize = imageFiles.reduce((sum, file) => sum + file.size, 0)
+    const maxSize = 10 * 1024 * 1024 // 10MB total
+
+    if (totalSize > maxSize) {
+      toastStore.error('Total image size cannot exceed 10MB')
+      return
+    }
+
+    const base64Images = await Promise.all(
+      imageFiles.map(async (file) => {
+        try {
+          return await convertToBase64(file)
+        } catch (error) {
+          console.error('Error converting file to base64:', error)
+          throw new Error(`Failed to process ${file.name}`)
+        }
+      }),
+    )
+
+    currentImages.value = [...currentImages.value, ...base64Images]
+
+    // Update ChatInput component
+    if (chatInputRef.value) {
+      chatInputRef.value.addImages(base64Images)
+    }
+
+    toastStore.success(`${imageFiles.length} image(s) uploaded successfully`)
+  } catch (error) {
+    console.error('Error processing images:', error)
+    toastStore.error(error.message || 'Failed to process images')
+  } finally {
+    isProcessingImages.value = false
+  }
+}
+
+// Handle drag and drop events for entire chat area
+const handleChatDragOver = (event) => {
+  if (!canUploadImages.value) return
+  event.preventDefault()
+  event.dataTransfer.dropEffect = 'copy'
+  isDragOverChat.value = true
+}
+
+const handleChatDragLeave = (event) => {
+  if (!canUploadImages.value) return
+  // Only hide overlay if leaving the main container
+  if (!event.currentTarget.contains(event.relatedTarget)) {
+    isDragOverChat.value = false
+  }
+}
+
+const handleChatDrop = async (event) => {
+  if (!canUploadImages.value) return
+  event.preventDefault()
+  isDragOverChat.value = false
+
+  const files = Array.from(event.dataTransfer.files)
+  if (files.length > 0) {
+    await processImageFiles(files)
+  }
+}
+
 // Clear images when switching from vision to non-vision model
 const handleModelChange = (model) => {
   console.log('Model changed to:', model)
@@ -300,7 +404,35 @@ const handleModelChange = (model) => {
       />
 
       <!-- Chat Area -->
-      <div class="flex flex-col flex-1 w-full overflow-hidden">
+      <div
+        class="relative flex flex-col flex-1 w-full overflow-hidden"
+        @dragover="handleChatDragOver"
+        @dragleave="handleChatDragLeave"
+        @drop="handleChatDrop"
+      >
+        <!-- Drag overlay for entire chat area -->
+        <div
+          v-if="isDragOverChat && canUploadImages"
+          class="absolute inset-0 z-50 flex items-center justify-center border-2 border-blue-400 border-dashed rounded-lg pointer-events-none bg-blue-600/20 backdrop-blur-sm"
+        >
+          <div class="text-center">
+            <svg
+              class="w-16 h-16 mx-auto mb-4 text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              />
+            </svg>
+            <p class="mb-2 text-lg font-medium text-blue-400">Drop images here</p>
+            <p class="text-sm text-blue-300">Upload images to enhance your conversation</p>
+          </div>
+        </div>
         <!-- Desktop Header -->
         <ChatHeader
           :current-conversation="chatStore.currentConversation"

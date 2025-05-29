@@ -450,11 +450,11 @@ const isErrorMessage = computed(() => {
       <div v-if="hasImages" class="mt-4">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div v-for="(image, index) in message.images" :key="index" class="relative group">
-            <div class="relative overflow-hidden rounded-lg">
+            <div class="relative max-w-sm overflow-hidden rounded-lg">
               <img
                 :src="getImageDataUrl(image)"
                 :alt="`Message image ${index + 1}`"
-                class="w-full h-auto max-w-sm transition-all duration-200 border rounded-lg shadow-lg cursor-pointer border-zinc-600 hover:border-zinc-400"
+                class="w-full h-auto transition-all duration-200 border rounded-lg shadow-lg cursor-pointer border-zinc-600 hover:border-zinc-400"
                 @click="openImageModal(getImageDataUrl(image))"
               />
               <div

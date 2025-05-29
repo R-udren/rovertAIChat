@@ -16,7 +16,6 @@ const textareaRef = ref(null)
 const fileInputRef = ref(null)
 const expandedInput = ref(false)
 const uploadedImages = ref([])
-const isDragOver = ref(false)
 const isProcessingImages = ref(false)
 const uploadFeedback = ref('')
 
@@ -175,33 +174,6 @@ const handleKeyDown = (event) => {
   }
 }
 
-// Handle drag and drop events
-const handleDragOver = (event) => {
-  if (!props.canUploadImages) return
-  event.preventDefault()
-  event.dataTransfer.dropEffect = 'copy'
-  isDragOver.value = true
-}
-
-const handleDragLeave = (event) => {
-  if (!props.canUploadImages) return
-  // Only hide overlay if leaving the main container
-  if (!event.currentTarget.contains(event.relatedTarget)) {
-    isDragOver.value = false
-  }
-}
-
-const handleDrop = async (event) => {
-  if (!props.canUploadImages) return
-  event.preventDefault()
-  isDragOver.value = false
-
-  const files = Array.from(event.dataTransfer.files)
-  if (files.length > 0) {
-    await processImageFiles(files)
-  }
-}
-
 // Enhanced upload button states
 const uploadButtonClasses = computed(() => {
   const base = 'p-2 mr-2 transition-all duration-200 rounded-lg'
@@ -218,43 +190,35 @@ const uploadButtonClasses = computed(() => {
   return `${base} ${states.default}`
 })
 
+// Add images programmatically (for chat area drag-and-drop)
+const addImages = async (base64Images) => {
+  for (const base64 of base64Images) {
+    const imageId = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const imageUrl = `data:image/png;base64,${base64}`
+
+    uploadedImages.value.push({
+      id: imageId,
+      base64,
+      url: imageUrl,
+      type: 'image/png',
+    })
+  }
+
+  emit(
+    'images-changed',
+    uploadedImages.value.map((img) => img.base64),
+  )
+}
+
 defineExpose({
   resetTextareaHeight,
   clearImages,
+  addImages,
 })
 </script>
 
 <template>
-  <div
-    class="relative p-4 border-t border-zinc-700 bg-zinc-800"
-    @dragover="handleDragOver"
-    @dragleave="handleDragLeave"
-    @drop="handleDrop"
-  >
-    <!-- Drag overlay -->
-    <div
-      v-if="isDragOver && canUploadImages"
-      class="absolute inset-0 z-10 flex items-center justify-center border-2 border-blue-400 border-dashed rounded-lg bg-blue-600/20 backdrop-blur-sm"
-    >
-      <div class="text-center">
-        <svg
-          class="w-12 h-12 mx-auto mb-2 text-blue-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-          />
-        </svg>
-        <p class="text-lg font-medium text-blue-400">Drop images here</p>
-        <p class="text-sm text-blue-300">PNG, JPG, GIF up to 10MB</p>
-      </div>
-    </div>
-
+  <div class="relative p-4 border-t border-zinc-700 bg-zinc-800">
     <!-- Upload feedback -->
     <div v-if="uploadFeedback" class="mb-3">
       <div
@@ -332,7 +296,7 @@ defineExpose({
 
     <div
       class="flex items-start p-2 transition-all rounded-lg bg-zinc-700 focus-within:ring-2 focus-within:ring-zinc-500"
-      :class="{ 'items-center': !expandedInput, 'ring-2 ring-blue-500': isDragOver }"
+      :class="{ 'items-center': !expandedInput }"
     >
       <!-- Image upload button -->
       <button
@@ -345,7 +309,7 @@ defineExpose({
             ? 'Processing images...'
             : uploadedImages.length > 0
               ? `${uploadedImages.length} image(s) uploaded`
-              : 'Upload image (or paste with Ctrl+V)'
+              : 'Upload image or paste with Ctrl+V'
         "
       >
         <svg
