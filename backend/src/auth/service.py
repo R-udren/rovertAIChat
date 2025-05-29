@@ -50,7 +50,6 @@ def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
         return None
 
     try:
-        app_logger.debug(f"Looking up user by ID: {user_id}")
         # Convert string to UUID
         uuid_id = UUID(user_id)
         return db.query(User).filter(User.id == uuid_id).first()
@@ -92,7 +91,6 @@ def authenticate_user(
 
 def update_last_login(db: Session, user: User) -> None:
     """Update the user's last login timestamp."""
-    app_logger.debug(f"Updating last login for user: {user.username}")
     setattr(user, "last_login", datetime.now(timezone.utc))
     db.commit()
     app_logger.debug(f"Last login updated for user: {user.username}")
@@ -100,7 +98,6 @@ def update_last_login(db: Session, user: User) -> None:
 
 def increment_token_version(db: Session, user: User) -> None:
     """Increment the user's token version to invalidate existing tokens."""
-    app_logger.debug(f"Incrementing token version for user: {user.username}")
     setattr(user, "token_version", user.token_version + 1)
     db.commit()
     app_logger.debug(f"Token version incremented for user: {user.username}")
@@ -132,7 +129,6 @@ def get_current_user(
             app_logger.warning("Token missing 'sub' claim")
             raise credentials_exception
         token_data = TokenData(user_id=str(user_id))
-        app_logger.debug(f"Token validated for user_id: {user_id}")
     except JWTError as e:
         app_logger.error(f"JWT validation error: {str(e)}")
         raise credentials_exception
