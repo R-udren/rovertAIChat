@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
-from src.auth.service import get_current_active_user
+from src.auth.service import get_current_active_admin, get_current_active_user
 from src.core.logger import app_logger
 from src.core.rate_limiter import limiter
 from src.database import get_db
@@ -78,21 +78,16 @@ async def update_my_settings(
 @router.get("/{user_id}", response_model=UserSettingsResponse)
 async def get_user_settings_by_id(
     user_id: uuid.UUID,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Get a user's settings by user ID.
     Only admin users can access other users' settings.
     """
-    if current_user.get_role() != "admin" and str(current_user.id) != str(user_id):
-        app_logger.warning(
-            f"Unauthorized attempt to access settings for user {user_id} by user {current_user.id}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
-        )
+    app_logger.info(
+        f"Getting settings for user: {user_id} by user {current_user.username}"
+    )
 
     settings = get_user_settings(db, user_id)
     if not settings:
@@ -109,21 +104,16 @@ async def get_user_settings_by_id(
 async def update_user_settings_by_id(
     user_id: uuid.UUID,
     settings_update: UserSettingsUpdate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Update a user's settings by user ID.
     Only admin users can update other users' settings.
     """
-    if current_user.get_role() != "admin" and str(current_user.id) != str(user_id):
-        app_logger.warning(
-            f"Unauthorized attempt to update settings for user {user_id} by user {current_user.id}"
-        )
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions",
-        )
+    app_logger.info(
+        f"Updating settings for user: {user_id} by admin {current_user.username}"
+    )
 
     settings = update_user_settings(db, user_id, settings_update)
     if not settings:
@@ -141,14 +131,17 @@ async def update_user_settings_by_id(
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user_settings_by_id(
     user_id: uuid.UUID,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Delete a user's settings by user ID.
     Only admin users can delete settings.
     """
-    if current_user.get_role() != "admin":
+    app_logger.info(
+        f"Deleting settings for user: {user_id} by user {current_user.username}"
+    )
+    if not current_user.is_admin():
         app_logger.warning(
             f"Unauthorized attempt to delete settings for user {user_id} by user {current_user.id}"
         )
