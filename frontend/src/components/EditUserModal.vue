@@ -116,24 +116,15 @@ const closeModal = () => {
   emit('close')
 }
 
-// Watch for modal opening to reset form
+// Improved reactive form reset when modal opens or user changes
 watch(
-  () => props.isOpen,
-  (newValue) => {
-    if (newValue) {
+  () => [props.isOpen, props.user],
+  ([isOpen, user]) => {
+    if (isOpen) {
       resetForm()
     }
   },
-)
-
-// Watch for user changes to update form
-watch(
-  () => props.user,
-  () => {
-    if (props.isOpen) {
-      resetForm()
-    }
-  },
+  { immediate: true },
 )
 </script>
 
