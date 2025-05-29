@@ -157,6 +157,17 @@ class ModelDetails(BaseModel):
     quantization_level: str
 
 
+class OllamaShowResponse(BaseModel):
+    """Schema for Ollama show API response."""
+
+    modelfile: str
+    parameters: str
+    template: str
+    details: ModelDetails
+    model_info: Dict[str, Any]
+    capabilities: Optional[List[str]] = None
+
+
 class OllamaModel(BaseModel):
     """Schema for individual Ollama model in tags response."""
 
@@ -172,3 +183,9 @@ class OllamaTagsResponse(BaseModel):
     """Schema for Ollama tags API response."""
 
     models: List[OllamaModel]
+
+
+class ModelName(BaseModel):
+    """Schema for requesting a model by name."""
+
+    model: str = Field(..., description="Name of the model to request")

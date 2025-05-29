@@ -2,14 +2,19 @@ import os
 from datetime import datetime
 
 import aiohttp
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from src.auth.service import get_current_active_admin, get_current_active_user
 from src.core.logger import app_logger
 from src.database import get_db
 from src.models.chat_models import Chat, Message, Model
 from src.models.user import User
-from src.schemas.chat import OllamaChatRequest, OllamaTagsResponse
+from src.schemas.chat import (
+    ModelName,
+    OllamaChatRequest,
+    OllamaShowResponse,
+    OllamaTagsResponse,
+)
 
 # Router for Ollama API integration
 router = APIRouter(prefix="/ollama", tags=["ollama"])
@@ -57,9 +62,41 @@ async def get_ollama_tags(current_user: User = Depends(get_current_active_user))
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
+@router.post("/show", response_model=OllamaShowResponse)
+async def show_ollama_model(
+    model: ModelName, current_user: User = Depends(get_current_active_user)
+):
+    """
+    Show information about Ollama model.
+    """
+    app_logger.info(
+        f"User {current_user.id} requested Ollama model details for {model.model}"
+    )
+    payload = model.model_dump(mode="json")
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.post(
+                f"{OLLAMA_API_BASE_URL}/api/show", json=payload
+            ) as resp:
+                resp.raise_for_status()
+                return await resp.json()
+        except aiohttp.ClientError as e:
+            app_logger.error(
+                f"Error fetching Ollama model details: {str(e)}", exc_info=True
+            )
+            raise HTTPException(status_code=502, detail=str(e))
+        except Exception as e:
+            app_logger.error(
+                f"Unexpected error fetching Ollama models: {str(e)}", exc_info=True
+            )
+            raise HTTPException(
+                status_code=500, detail=f"Internal server error: {str(e)}"
+            )
+
+
 @router.post("/pull")
 async def pull_ollama_model(
-    request: Request, admin_user: User = Depends(get_current_active_admin)
+    model: ModelName, admin_user: User = Depends(get_current_active_admin)
 ):
     """
     Pull an Ollama model by name.
@@ -71,7 +108,7 @@ async def pull_ollama_model(
             status_code=403, detail="You do not have permission to perform this action."
         )
 
-    payload = await request.json()
+    payload = model.model_dump(mode="json")
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(
@@ -85,7 +122,7 @@ async def pull_ollama_model(
 
 @router.delete("/delete")
 async def delete_ollama_model(
-    request: Request,
+    model: ModelName,
     admin_user: User = Depends(get_current_active_admin),
 ):
     """
@@ -97,7 +134,7 @@ async def delete_ollama_model(
             status_code=403, detail="You do not have permission to perform this action."
         )
 
-    payload = await request.json()
+    payload = model.model_dump(mode="json")
     async with aiohttp.ClientSession() as session:
         try:
             async with session.delete(
@@ -111,7 +148,7 @@ async def delete_ollama_model(
 
 @router.post("/chat")
 async def chat_ollama(
-    request: OllamaChatRequest,
+    chat_request: OllamaChatRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -122,7 +159,7 @@ async def chat_ollama(
         # Verify chat belongs to the user
         chat = (
             db.query(Chat)
-            .filter(Chat.id == request.chatId, Chat.user_id == current_user.id)
+            .filter(Chat.id == chat_request.chatId, Chat.user_id == current_user.id)
             .first()
         )
 
@@ -131,19 +168,19 @@ async def chat_ollama(
 
         # Save the user message to the database
         latest_user_message = next(
-            (msg for msg in reversed(request.messages) if msg.role == "user"), None
+            (msg for msg in reversed(chat_request.messages) if msg.role == "user"), None
         )
 
         if latest_user_message:
             user_db_message = Message(
-                chat_id=request.chatId,
+                chat_id=chat_request.chatId,
                 role="user",
                 content=latest_user_message.content,
             )
             db.add(user_db_message)
             db.commit()
             db.refresh(user_db_message)  # Make request to Ollama
-        payload = request.model_dump(mode="json")
+        payload = chat_request.model_dump(mode="json")
         app_logger.info(f"Chat request: {payload}")
 
         # Use aiohttp session to make request to Ollama
@@ -171,11 +208,11 @@ async def chat_ollama(
             and response_data.get("message", {}).get("role") == "assistant"
         ):
             # Look up model from the database based on name
-            model = db.query(Model).filter(Model.name == request.model).first()
+            model = db.query(Model).filter(Model.name == chat_request.model).first()
             model_id = model.id if model else None
 
             assistant_db_message = Message(
-                chat_id=request.chatId,
+                chat_id=chat_request.chatId,
                 role="assistant",
                 content=response_data["message"]["content"],
                 model_id=model_id,
