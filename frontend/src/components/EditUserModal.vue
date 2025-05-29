@@ -1,151 +1,140 @@
-<script>
+<script setup>
 import { useAdminStore } from '@/stores/admin'
 import { useToastStore } from '@/stores/toast'
 
-export default {
-  name: 'EditUserModal',
-  props: {
-    isOpen: {
-      type: Boolean,
-      default: false,
-    },
-    user: {
-      type: Object,
-      default: null,
-    },
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['close', 'updated'],
-  setup(props, { emit }) {
-    const adminStore = useAdminStore()
-    const toastStore = useToastStore()
-
-    const loading = ref(false)
-    const errors = reactive({})
-
-    const editForm = reactive({
-      username: '',
-      email: '',
-      password: '',
-      role: 'user',
-      is_active: true,
-    })
-
-    const isCreating = computed(() => !props.user)
-
-    const resetForm = () => {
-      Object.assign(errors, {})
-      if (props.user) {
-        // Editing existing user - populate with current values
-        editForm.username = props.user.username || ''
-        editForm.email = props.user.email || ''
-        editForm.role = props.user.role || 'user'
-        editForm.is_active = props.user.is_active !== false
-        editForm.password = '' // Don't show password for existing users
-      } else {
-        // Creating new user - use empty defaults
-        editForm.username = ''
-        editForm.email = ''
-        editForm.password = ''
-        editForm.role = 'user'
-        editForm.is_active = true
-      }
-    }
-
-    const validateForm = () => {
-      Object.assign(errors, {})
-
-      if (!editForm.username.trim()) {
-        errors.username = 'Username is required'
-      } else if (editForm.username.length < 3) {
-        errors.username = 'Username must be at least 3 characters'
-      }
-
-      if (!editForm.email.trim()) {
-        errors.email = 'Email is required'
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
-        errors.email = 'Please enter a valid email address'
-      }
-
-      // Password validation only for new users
-      if (isCreating.value) {
-        if (!editForm.password.trim()) {
-          errors.password = 'Password is required'
-        } else if (editForm.password.length < 6) {
-          errors.password = 'Password must be at least 6 characters'
-        }
-      }
-
-      return Object.keys(errors).length === 0
-    }
-
-    const submitForm = async () => {
-      if (!validateForm()) return
-
-      loading.value = true
-      try {
-        if (isCreating.value) {
-          // Creating new user
-          await adminStore.createUser({
-            username: editForm.username,
-            email: editForm.email,
-            password: editForm.password,
-            role: editForm.role,
-            is_active: editForm.is_active,
-          })
-          toastStore.addToast('User created successfully', 'success')
-        } else {
-          // Updating existing user
-          await adminStore.updateUser(props.user.id, {
-            username: editForm.username,
-            email: editForm.email,
-            role: editForm.role,
-            is_active: editForm.is_active,
-          })
-          toastStore.addToast('User updated successfully', 'success')
-        }
-
-        emit('updated')
-        closeModal()
-      } catch (error) {
-        toastStore.addToast(error.message || 'Failed to save user', 'error')
-      } finally {
-        loading.value = false
-      }
-    }
-
-    const closeModal = () => {
-      emit('close')
-    }
-
-    watch(
-      () => props.isOpen,
-      (newValue) => {
-        if (newValue) {
-          resetForm()
-        }
-      },
-    )
-
-    watch(
-      () => props.user,
-      () => {
-        if (props.isOpen) {
-          resetForm()
-        }
-      },
-    )
-
-    return {
-      loading,
-      errors,
-      editForm,
-      isCreating,
-      submitForm,
-      closeModal,
-      props,
-    }
+  user: {
+    type: Object,
+    default: null,
   },
+})
+
+const emit = defineEmits(['close', 'updated'])
+
+const adminStore = useAdminStore()
+const toastStore = useToastStore()
+
+const loading = ref(false)
+const errors = reactive({})
+
+const editForm = reactive({
+  username: '',
+  email: '',
+  password: '',
+  role: 'user',
+  is_active: true,
+})
+
+const isCreating = computed(() => !props.user)
+
+const resetForm = () => {
+  Object.assign(errors, {})
+  if (props.user) {
+    // Editing existing user - populate with current values
+    editForm.username = props.user.username || ''
+    editForm.email = props.user.email || ''
+    editForm.role = props.user.role || 'user'
+    editForm.is_active = props.user.is_active !== false
+    editForm.password = '' // Don't show password for existing users
+  } else {
+    // Creating new user - use empty defaults
+    editForm.username = ''
+    editForm.email = ''
+    editForm.password = ''
+    editForm.role = 'user'
+    editForm.is_active = true
+  }
 }
+
+const validateForm = () => {
+  Object.assign(errors, {})
+
+  if (!editForm.username.trim()) {
+    errors.username = 'Username is required'
+  } else if (editForm.username.length < 3) {
+    errors.username = 'Username must be at least 3 characters'
+  }
+
+  if (!editForm.email.trim()) {
+    errors.email = 'Email is required'
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
+    errors.email = 'Please enter a valid email address'
+  }
+
+  // Password validation only for new users
+  if (isCreating.value) {
+    if (!editForm.password.trim()) {
+      errors.password = 'Password is required'
+    } else if (editForm.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters'
+    }
+  }
+
+  return Object.keys(errors).length === 0
+}
+
+const submitForm = async () => {
+  if (!validateForm()) return
+
+  loading.value = true
+  try {
+    if (isCreating.value) {
+      // Creating new user
+      await adminStore.createUser({
+        username: editForm.username,
+        email: editForm.email,
+        password: editForm.password,
+        role: editForm.role,
+        is_active: editForm.is_active,
+      })
+      toastStore.addToast('User created successfully', 'success')
+    } else {
+      // Updating existing user
+      await adminStore.updateUser(props.user.id, {
+        username: editForm.username,
+        email: editForm.email,
+        role: editForm.role,
+        is_active: editForm.is_active,
+      })
+      toastStore.addToast('User updated successfully', 'success')
+    }
+
+    emit('updated')
+    closeModal()
+  } catch (error) {
+    toastStore.addToast(error.message || 'Failed to save user', 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+const closeModal = () => {
+  emit('close')
+}
+
+// Watch for modal opening to reset form
+watch(
+  () => props.isOpen,
+  (newValue) => {
+    if (newValue) {
+      resetForm()
+    }
+  },
+)
+
+// Watch for user changes to update form
+watch(
+  () => props.user,
+  () => {
+    if (props.isOpen) {
+      resetForm()
+    }
+  },
+)
 </script>
 
 <template>
@@ -216,15 +205,36 @@ export default {
 
         <div>
           <label for="role" class="block mb-1 text-sm font-medium text-zinc-300">Role</label>
-          <select
-            id="role"
-            v-model="editForm.role"
-            class="w-full px-3 py-2 text-white border rounded-md cursor-pointer bg-zinc-700 border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :class="{ 'border-red-500': errors.role }"
-          >
-            <option value="user" class="text-white bg-zinc-700">User</option>
-            <option value="admin" class="text-white bg-zinc-700">Admin</option>
-          </select>
+          <div class="relative">
+            <select
+              id="role"
+              v-model="editForm.role"
+              class="w-full px-3 py-2 text-white border rounded-md appearance-none cursor-pointer bg-zinc-700 border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              :class="{ 'border-red-500': errors.role }"
+            >
+              <option value="user" class="text-white bg-zinc-700">User</option>
+              <option value="admin" class="text-white bg-zinc-700">Admin</option>
+            </select>
+            <!-- Custom dropdown arrow -->
+            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+              <svg
+                class="w-4 h-4 text-zinc-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <p v-if="!isCreating" class="mt-1 text-xs text-zinc-400">
+            Current role: {{ user?.role || 'N/A' }}
+          </p>
         </div>
 
         <div class="flex items-center space-x-3">
@@ -237,6 +247,9 @@ export default {
             />
           </div>
           <label for="is_active" class="text-sm cursor-pointer text-zinc-300">Active User</label>
+          <span v-if="!isCreating" class="text-xs text-zinc-400">
+            (Currently: {{ user?.is_active ? 'Active' : 'Inactive' }})
+          </span>
         </div>
 
         <div class="flex justify-end pt-4 space-x-3">
