@@ -165,7 +165,6 @@ async def chat_ollama(
 
         if not chat:
             raise HTTPException(status_code=404, detail="Chat not found")
-
         # Save the user message to the database
         latest_user_message = next(
             (msg for msg in reversed(chat_request.messages) if msg.role == "user"), None
@@ -176,6 +175,7 @@ async def chat_ollama(
                 chat_id=chat_request.chatId,
                 role="user",
                 content=latest_user_message.content,
+                images=latest_user_message.images,  # Store base64 images
             )
             db.add(user_db_message)
             db.commit()
