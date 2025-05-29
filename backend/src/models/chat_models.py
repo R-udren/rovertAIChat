@@ -75,6 +75,9 @@ class Message(Base):
     chat_id = Column(UUID(as_uuid=True), ForeignKey("chats.id"))
     role = Column(String(50), nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
+    images = Column(
+        JSON, nullable=True
+    )  # Store base64 encoded images for multimodal models
     model_id = Column(
         UUID(as_uuid=True), ForeignKey("models.id"), nullable=True
     )  # Only for assistant messages

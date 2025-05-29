@@ -274,3 +274,41 @@ async def chat_ollama(
     except Exception as e:
         app_logger.error(f"Unexpected error in chat_ollama: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/model/{model_name}/capabilities")
+async def get_model_capabilities(
+    model_name: str, current_user: User = Depends(get_current_active_user)
+):
+    """
+    Get model capabilities to check if it supports vision/multimodal features.
+    """
+    app_logger.info(
+        f"User {current_user.id} requested capabilities for model {model_name}"
+    )
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{OLLAMA_API_BASE_URL}/api/show", json={"name": model_name}
+            ) as resp:
+                resp.raise_for_status()
+                model_info = await resp.json()
+
+                # Extract capabilities from model info
+                capabilities = model_info.get("capabilities", [])
+                has_vision = "vision" in capabilities
+
+                return {
+                    "model": model_name,
+                    "capabilities": capabilities,
+                    "has_vision": has_vision,
+                }
+    except aiohttp.ClientError as e:
+        app_logger.error(f"Error fetching model capabilities: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=502, detail=str(e))
+    except Exception as e:
+        app_logger.error(
+            f"Unexpected error fetching model capabilities: {str(e)}", exc_info=True
+        )
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

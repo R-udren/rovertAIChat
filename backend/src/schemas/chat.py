@@ -10,6 +10,7 @@ class MessageSchema(BaseModel):
     chat_id: UUID
     role: str
     content: str
+    images: Optional[List[str]] = None  # List of base64 encoded images
     model_id: Optional[UUID] = None
     created_at: datetime
     tokens_used: int = 0
@@ -67,6 +68,9 @@ class MessageCreateSchema(BaseModel):
         ..., description="Role of the message sender (e.g., 'user', 'assistant')"
     )
     content: str = Field(..., description="Content of the message")
+    images: Optional[List[str]] = Field(
+        None, description="List of base64 encoded images"
+    )
     model_id: Optional[UUID] = None
     tokens_used: int = Field(0, description="Number of tokens used for this message")
     extended_metadata: Optional[Dict[str, Any]] = None
@@ -79,6 +83,7 @@ class MessageResponse(BaseModel):
     chat_id: UUID
     role: str
     content: str
+    images: Optional[List[str]] = None  # List of base64 encoded images
     model_id: Optional[UUID] = None
     created_at: datetime
     tokens_used: int = 0
@@ -132,6 +137,9 @@ class ChatMessage(BaseModel):
         ..., description="Role of the message sender (e.g., 'user', 'assistant')"
     )
     content: str = Field(..., description="Content of the message")
+    images: Optional[List[str]] = Field(
+        None, description="List of base64 encoded images for multimodal models"
+    )
 
 
 class OllamaChatRequest(BaseModel):
