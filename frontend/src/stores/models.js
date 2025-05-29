@@ -5,6 +5,7 @@ import { computed, readonly, ref } from 'vue'
 
 export const useModelsStore = defineStore('models', () => {
   const models = ref([])
+  const modelCapabilities = ref({}) // Store capabilities for each model
   const loading = ref(false)
   const error = ref(null)
   const lastFetch = ref(null)
@@ -61,6 +62,44 @@ export const useModelsStore = defineStore('models', () => {
     }
   }
 
+  // Fetch capabilities for a specific model
+  const getModelCapabilities = async (modelName) => {
+    if (!modelName) return null
+
+    // Return cached capabilities if available
+    if (modelCapabilities.value[modelName]) {
+      return modelCapabilities.value[modelName]
+    }
+
+    try {
+      const response = await api.get(`/ollama/model/${modelName}/capabilities`)
+      modelCapabilities.value[modelName] = response
+      return response
+    } catch (err) {
+      console.error(`Error fetching capabilities for model ${modelName}:`, err)
+      return null
+    }
+  }
+
+  // Check if a model has vision capabilities
+  const hasVisionCapability = (modelName) => {
+    const capabilities = modelCapabilities.value[modelName]
+    return capabilities?.has_vision || false
+  }
+
+  // Get model with capabilities
+  const getModelWithCapabilities = async (modelName) => {
+    const model = getModelByName(modelName)
+    if (!model) return null
+
+    const capabilities = await getModelCapabilities(modelName)
+    return {
+      ...model,
+      capabilities: capabilities?.capabilities || [],
+      has_vision: capabilities?.has_vision || false,
+    }
+  }
+
   const refreshModels = () => {
     return fetchModels(true)
   }
@@ -105,5 +144,9 @@ export const useModelsStore = defineStore('models', () => {
     fetchModels,
     refreshModels,
     getModelByName,
+    getModelCapabilities,
+    hasVisionCapability,
+    getModelWithCapabilities,
+    modelCapabilities: readonly(modelCapabilities),
   }
 })

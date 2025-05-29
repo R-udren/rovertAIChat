@@ -4,6 +4,8 @@ import { useChatStore } from '@/stores/chat'
 import { useModelsStore } from '@/stores/models'
 import { useToastStore } from '@/stores/toast'
 import { useUserSettingsStore } from '@/stores/userSettings'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const chatStore = useChatStore()
 const toastStore = useToastStore()
@@ -24,6 +26,13 @@ const showSidebar = ref(
 )
 const isSubmitting = computed(() => chatStore.sending || chatStore.streaming)
 const isMobileSidebarOpen = ref(false)
+
+// Image support
+const currentImages = ref([])
+const canUploadImages = computed(() => {
+  if (!selectedModel.value) return false
+  return modelsStore.hasVisionCapability(selectedModel.value)
+})
 
 // Toggle sidebar
 const toggleSidebar = () => {
@@ -58,7 +67,9 @@ const sendMessage = async () => {
   }
 
   const message = messageInput.value
+  const images = [...currentImages.value] // Copy current images
   messageInput.value = ''
+  currentImages.value = [] // Clear images after sending
 
   // Reset textarea height through the ChatInput component
   if (chatInputRef.value) {
@@ -71,9 +82,9 @@ const sendMessage = async () => {
   const useStreaming = userSettingsStore.settings?.preferences?.streamingEnabled ?? false
 
   if (useStreaming) {
-    await chatStore.streamChatResponse(message, model)
+    await chatStore.streamChatResponse(message, model, images)
   } else {
-    await chatStore.sendMessage(message, model)
+    await chatStore.sendMessage(message, model, images)
   }
 
   // If a new conversation was created, navigate to it
@@ -235,11 +246,26 @@ watch(
   },
 )
 
+// Handle images changed from ChatInput
+const handleImagesChanged = (images) => {
+  currentImages.value = images
+}
+
+// Clear images when switching from vision to non-vision model
 const handleModelChange = (model) => {
   console.log('Model changed to:', model)
   selectedModel.value = model
   if (chatStore.currentConversation) {
     chatStore.currentConversation.model = model
+  }
+
+  // Clear images if new model doesn't support vision
+  if (!modelsStore.hasVisionCapability(model) && currentImages.value.length > 0) {
+    currentImages.value = []
+    if (chatInputRef.value) {
+      chatInputRef.value.clearImages()
+    }
+    toastStore.info('Images cleared - selected model does not support vision')
   }
 }
 </script>
@@ -309,7 +335,9 @@ const handleModelChange = (model) => {
           ref="chatInputRef"
           v-model:message-input="messageInput"
           :is-submitting="isSubmitting"
+          :can-upload-images="canUploadImages"
           @send-message="sendMessage"
+          @images-changed="handleImagesChanged"
         />
       </div>
     </div>

@@ -25,6 +25,22 @@ const isExpanded = ref(false)
 const isRendered = ref(false)
 const contentRef = ref(null)
 const copySuccess = ref({}) // To track copy success state for each code block
+const imageModalOpen = ref(false)
+const selectedImageUrl = ref('')
+
+// ...existing code...
+
+// Open image in modal
+const openImageModal = (imageUrl) => {
+  selectedImageUrl.value = imageUrl
+  imageModalOpen.value = true
+}
+
+// Close image modal
+const closeImageModal = () => {
+  imageModalOpen.value = false
+  selectedImageUrl.value = ''
+}
 
 // User display name and initial for avatar
 const displayName = computed(() => {
@@ -45,6 +61,21 @@ const hasAvatar = computed(() => {
 const avatarUrl = computed(() => {
   return userSettingsStore.settings?.avatar_url || ''
 })
+
+// Check if message has images
+const hasImages = computed(() => {
+  return props.message.images && props.message.images.length > 0
+})
+
+// Convert base64 to data URL for display
+const getImageDataUrl = (base64) => {
+  // Check if it already has the data URL prefix
+  if (base64.startsWith('data:')) {
+    return base64
+  }
+  // Assume PNG if no prefix (most common format for uploads)
+  return `data:image/png;base64,${base64}`
+}
 
 // Configure marked with code highlighting
 marked.setOptions({
@@ -415,6 +446,40 @@ const isErrorMessage = computed(() => {
         v-html="renderedContent"
       ></div>
 
+      <!-- Images -->
+      <div v-if="hasImages" class="mt-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div v-for="(image, index) in message.images" :key="index" class="relative group">
+            <div class="relative overflow-hidden rounded-lg">
+              <img
+                :src="getImageDataUrl(image)"
+                :alt="`Message image ${index + 1}`"
+                class="w-full h-auto max-w-sm transition-all duration-200 border rounded-lg shadow-lg cursor-pointer border-zinc-600 hover:border-zinc-400"
+                @click="openImageModal(getImageDataUrl(image))"
+              />
+              <div
+                class="absolute inset-0 flex items-center justify-center transition-all duration-200 rounded-lg opacity-0 pointer-events-none bg-black/50 group-hover:opacity-100"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-8 h-8 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Expand/collapse button -->
       <button
         v-if="isTruncatable"
@@ -430,6 +495,41 @@ const isErrorMessage = computed(() => {
         <span style="animation-delay: 0.2s"></span>
         <span style="animation-delay: 0.4s"></span>
       </div>
+    </div>
+  </div>
+
+  <!-- Image Modal -->
+  <div
+    v-if="imageModalOpen"
+    class="fixed inset-0 z-50 flex items-center justify-center h-full p-4 bg-black/75"
+    @click="closeImageModal"
+  >
+    <div class="relative max-w-4xl max-h-full">
+      <img
+        :src="selectedImageUrl"
+        alt="Full size image"
+        class="max-w-full max-h-full rounded-lg shadow-2xl"
+        @click.stop
+      />
+      <button
+        @click="closeImageModal"
+        class="absolute flex items-center justify-center w-10 h-10 text-white transition-all duration-200 rounded-full bg-black/50 top-4 right-4 hover:bg-black/75"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-6 h-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
     </div>
   </div>
 </template>
