@@ -225,11 +225,11 @@ watch(
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   :class="{
-                    'bg-red-100 text-red-800': user.role === 'admin',
-                    'bg-blue-100 text-blue-800': user.role === 'user',
+                    'bg-yellow-400/10 text-yellow-400': user.role === 'admin',
+                    'bg-blue-400/10 text-blue-400': user.role === 'user',
                     'bg-gray-100 text-gray-800': user.role === 'guest',
                   }"
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                  class="inline-flex px-2 py-1 text-xs font-semibold border rounded-full"
                 >
                   {{ user.role.charAt(0).toUpperCase() + user.role.slice(1) }}
                 </span>
@@ -239,10 +239,10 @@ watch(
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   :class="{
-                    'bg-green-100 text-green-800': user.is_active,
-                    'bg-red-100 text-red-800': !user.is_active,
+                    'bg-green-400/10 text-green-400': user.is_active,
+                    'bg-red-400/10 text-red-400': !user.is_active,
                   }"
-                  class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                  class="inline-flex px-2 py-1 text-xs font-semibold border rounded-full"
                 >
                   {{ user.is_active ? 'Active' : 'Inactive' }}
                 </span>
