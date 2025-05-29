@@ -1,12 +1,9 @@
 import os
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from src.core.logger import app_logger
-
-load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password")

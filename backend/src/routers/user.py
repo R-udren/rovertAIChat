@@ -1,9 +1,10 @@
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
-from src.auth.service import get_current_active_user
+from src.auth.service import get_current_active_admin, get_current_active_user
+from src.core.logger import app_logger
 from src.core.rate_limiter import limiter
 from src.database import get_db
 from src.models.user import User
@@ -44,17 +45,14 @@ async def update_user_me(
 async def read_users(
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Get a list of users.
     Only admin users can access this endpoint.
     """
-    if current_user.get_role() != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
+    app_logger.info(f"Admin {current_user.username} is accessing user list")
 
     users = get_users(db, skip=skip, limit=limit)
     return users
@@ -63,18 +61,14 @@ async def read_users(
 @router.get("/{user_id}", response_model=UserResponse)
 async def read_user(
     user_id: uuid.UUID,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Get a user by ID.
     Users can only access their own user info, admins can access any.
     """
-    if current_user.get_role() != "admin" and str(current_user.id) != str(user_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
-
+    app_logger.info(f"Admin {current_user.username} is accessing user {user_id}")
     return get_user(db, user_id)
 
 
@@ -82,19 +76,13 @@ async def read_user(
 async def update_user_admin(
     user_id: uuid.UUID,
     user_update: UserUpdate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Update a user's information.
     Only admin users can update other users.
     """
-    if current_user.get_role().__str__ != "admin" and str(current_user.id) != str(
-        user_id
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
 
     return update_user(db, user_id, user_update)
 
@@ -102,34 +90,26 @@ async def update_user_admin(
 @router.delete("/{user_id}", response_model=UserResponse)
 async def deactivate_user_endpoint(
     user_id: uuid.UUID,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Deactivate a user (soft delete).
     Only admin users can deactivate users.
     """
-    if current_user.get_role() != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
-
+    app_logger.info(f"Admin {current_user.username} is deactivating user {user_id}")
     return deactivate_user(db, user_id)
 
 
 @router.post("/{user_id}/activate", response_model=UserResponse)
 async def activate_user_endpoint(
     user_id: uuid.UUID,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_active_admin),
     db: Session = Depends(get_db),
 ):
     """
     Activate a deactivated user.
     Only admin users can activate users.
     """
-    if current_user.get_role() != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions"
-        )
-
+    app_logger.info(f"Admin {current_user.username} is activating user {user_id}")
     return activate_user(db, user_id)

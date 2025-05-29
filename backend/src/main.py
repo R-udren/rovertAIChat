@@ -1,6 +1,7 @@
 import os
 import time
 
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -14,6 +15,8 @@ from src.routers.chats import router as chat_router
 from src.routers.ollama import router as ollama_router
 from src.routers.user import router as user_router
 from src.routers.user_settings import router as user_settings_router
+
+load_dotenv(".env.dev")
 
 # Initialize database tables
 app_logger.info("Creating database tables")
@@ -53,7 +56,7 @@ app.include_router(ollama_router, prefix="/api/v1")
 app.include_router(chat_router, prefix="/api/v1")
 
 
-@app.get("/health")
+@app.get("/api/v1/health")
 async def health_check():
     """
     Health check endpoint to verify if the service is running.
@@ -61,7 +64,7 @@ async def health_check():
     return {"status": "healthy"}
 
 
-@app.get("/health/db")
+@app.get("/api/v1/health/db")
 async def health_db(db: Session = Depends(get_db)):
     """
     Health check endpoint to verify if the database is reachable.

@@ -8,13 +8,18 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AdminModelManagement: typeof import('./src/components/AdminModelManagement.vue')['default']
+    AdminSystemInfo: typeof import('./src/components/AdminSystemInfo.vue')['default']
+    AdminUserManagement: typeof import('./src/components/AdminUserManagement.vue')['default']
     AppHeader: typeof import('./src/components/AppHeader.vue')['default']
     ChatContainer: typeof import('./src/components/ChatContainer.vue')['default']
     ChatHeader: typeof import('./src/components/ChatHeader.vue')['default']
     ChatInput: typeof import('./src/components/ChatInput.vue')['default']
     ChatMessage: typeof import('./src/components/ChatMessage.vue')['default']
     ChatSidebar: typeof import('./src/components/ChatSidebar.vue')['default']
+    ConfirmationModal: typeof import('./src/components/ConfirmationModal.vue')['default']
     EditableTitle: typeof import('./src/components/EditableTitle.vue')['default']
+    EditUserModal: typeof import('./src/components/EditUserModal.vue')['default']
     ErrorMessage: typeof import('./src/components/ErrorMessage.vue')['default']
     LoadingSpinner: typeof import('./src/components/LoadingSpinner.vue')['default']
     ModelSelector: typeof import('./src/components/ModelSelector.vue')['default']
@@ -23,5 +28,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     ToastContainer: typeof import('./src/components/ToastContainer.vue')['default']
     ToastNotification: typeof import('./src/components/ToastNotification.vue')['default']
+    UserSettingsModal: typeof import('./src/components/UserSettingsModal.vue')['default']
   }
 }

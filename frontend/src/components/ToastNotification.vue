@@ -1,6 +1,4 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-
 const props = defineProps({
   message: {
     type: String,
