@@ -9,7 +9,7 @@ from src.core.logger import app_logger
 from src.database import get_db
 from src.models.chat_models import Chat, Message, Model
 from src.models.user import User
-from src.schemas.chat import OllamaChatRequest
+from src.schemas.chat import OllamaChatRequest, OllamaTagsResponse
 
 # Router for Ollama API integration
 router = APIRouter(prefix="/ollama", tags=["ollama"])
@@ -23,6 +23,7 @@ app_logger.info(f"Using Ollama API base URL: {OLLAMA_API_BASE_URL}")
 async def get_ollama_version():
     """
     Retrieve the version of the Ollama API.
+    Returns: {"version": "0.8.0"}
     """
     async with aiohttp.ClientSession() as session:
         try:
@@ -33,7 +34,7 @@ async def get_ollama_version():
             raise HTTPException(status_code=502, detail=str(e))
 
 
-@router.get("/tags")
+@router.get("/tags", response_model=OllamaTagsResponse)
 async def get_ollama_tags(current_user: User = Depends(get_current_active_user)):
     """
     Retrieve available Ollama model tags.
@@ -90,9 +91,6 @@ async def delete_ollama_model(
     """
     Delete an Ollama model by name.
     Expects JSON body: { "model": "model_name" }
-
-    Returns a success message if the model is deleted.
-    { "message": "Model deleted successfully" }
     """
     if not admin_user.is_admin():
         raise HTTPException(

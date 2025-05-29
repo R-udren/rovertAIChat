@@ -126,6 +126,7 @@ class ModelListResponse(BaseModel):
     models: List[ModelResponse]
     providers: List[ModelProviderResponse]
 
+
 class ChatMessage(BaseModel):
     role: str = Field(
         ..., description="Role of the message sender (e.g., 'user', 'assistant')"
@@ -143,3 +144,31 @@ class OllamaChatRequest(BaseModel):
         None, description="Additional model options"
     )
     chatId: UUID = Field(..., description="ID of the chat this message belongs to")
+
+
+class ModelDetails(BaseModel):
+    """Schema for model details within a tag response."""
+
+    parent_model: str
+    format: str
+    family: str
+    families: List[str]
+    parameter_size: str
+    quantization_level: str
+
+
+class OllamaModel(BaseModel):
+    """Schema for individual Ollama model in tags response."""
+
+    name: str
+    model: str
+    modified_at: datetime
+    size: int
+    digest: str
+    details: ModelDetails
+
+
+class OllamaTagsResponse(BaseModel):
+    """Schema for Ollama tags API response."""
+
+    models: List[OllamaModel]
