@@ -42,8 +42,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    ports:
-      - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:${DATABASE_PASSWORD}@postgres:5432/postgres
       OLLAMA_API_BASE_URL: http://host.docker.internal:11434 # If ollama is running on the host machine
