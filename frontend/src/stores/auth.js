@@ -35,7 +35,12 @@ export const useAuthStore = defineStore('auth', () => {
       // The server will set the cookies in the response
       const data = await api.postForm('auth/login', credentials, {}, false)
       isAuthenticated.value = true
-      await fetchUserProfile()
+
+      // Fetch user profile in background - don't block login
+      fetchUserProfile().catch((err) => {
+        console.error('Background profile fetch failed:', err)
+      })
+
       return data
     } catch (err) {
       error.value = err.message

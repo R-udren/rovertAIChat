@@ -1,10 +1,7 @@
-import HomeView from '@/views/HomeView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Import the auth store (without using useAuthStore to avoid circular dependency)
 // We'll use it inside beforeEach guard
-import { useAuthStore } from '@/stores/auth'
-import { storeToRefs } from 'pinia'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,7 +9,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
     },
     {
       path: '/about',
@@ -69,29 +66,63 @@ const router = createRouter({
   ],
 })
 
-// Navigation guards
+// Fast auth check cache to avoid store reactivity overhead
+let cachedAuthState = {
+  isAuthenticated: localStorage.getItem('user') ? true : false,
+  user: null,
+  lastCheck: 0,
+}
+
+// Update cache from localStorage
+const updateAuthCache = () => {
+  const now = Date.now()
+  // Only update cache every 200ms to avoid excessive checks
+  if (now - cachedAuthState.lastCheck < 200) return
+
+  try {
+    const userData = localStorage.getItem('user')
+    cachedAuthState.isAuthenticated = !!userData
+    cachedAuthState.user = userData ? JSON.parse(userData) : null
+    cachedAuthState.lastCheck = now
+  } catch (err) {
+    cachedAuthState.isAuthenticated = false
+    cachedAuthState.user = null
+    cachedAuthState.lastCheck = now
+  }
+}
+
+// Navigation guards - optimized for speed
 router.beforeEach((to, _from, next) => {
-  // Get auth store and isAuthenticated state
-  const authStore = useAuthStore()
-  const { isAuthenticated, user } = storeToRefs(authStore)
+  // Fast auth check using cached state
+  updateAuthCache()
 
   // Check for protected routes
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
+  if (to.meta.requiresAuth && !cachedAuthState.isAuthenticated) {
     return next({ name: 'login', query: { redirect: to.fullPath } })
   }
 
   // Check for admin-only routes
-  if (to.meta.requiresAdmin && (!isAuthenticated.value || user.value?.role !== 'admin')) {
+  if (
+    to.meta.requiresAdmin &&
+    (!cachedAuthState.isAuthenticated || cachedAuthState.user?.role !== 'admin')
+  ) {
     return next({ name: 'home' })
   }
 
   // Check for guest-only routes (like login, register)
-  if (to.meta.requiresGuest && isAuthenticated.value) {
+  if (to.meta.requiresGuest && cachedAuthState.isAuthenticated) {
     return next({ name: 'home' })
   }
 
-  // Otherwise proceed normally
+  // Otherwise proceed normally - no blocking operations
   next()
+})
+
+// Listen for auth state changes to update cache
+window.addEventListener('storage', (e) => {
+  if (e.key === 'user') {
+    updateAuthCache()
+  }
 })
 
 export default router
