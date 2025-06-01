@@ -1,6 +1,6 @@
 <script setup>
 import { useToastStore } from '@/stores/toast'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../../stores/auth'
 
 const authStore = useAuthStore()
 const toastStore = useToastStore()

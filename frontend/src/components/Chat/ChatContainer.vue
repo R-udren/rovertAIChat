@@ -1,5 +1,5 @@
 <script setup>
-import ChatMessage from '@/components/ChatMessage.vue'
+import ChatMessage from '@/components/Chat/ChatMessage.vue'
 import { ref } from 'vue'
 
 defineProps({

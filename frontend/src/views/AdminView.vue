@@ -71,9 +71,9 @@
 </template>
 
 <script setup>
-import AdminModelManagement from '@/components/AdminModelManagement.vue'
-import AdminSystemInfo from '@/components/AdminSystemInfo.vue'
-import AdminUserManagement from '@/components/AdminUserManagement.vue'
+import AdminModelManagement from '@/components/Admin/AdminModelManagement.vue'
+import AdminSystemInfo from '@/components/Admin/AdminSystemInfo.vue'
+import AdminUserManagement from '@/components/Admin/AdminUserManagement.vue'
 import { useAdminStore } from '@/stores/admin'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'

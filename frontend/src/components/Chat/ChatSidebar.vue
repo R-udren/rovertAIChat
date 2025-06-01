@@ -1,5 +1,5 @@
 <script setup>
-import EditableTitle from '@/components/EditableTitle.vue'
+import EditableTitle from '@/components/Chat/EditableTitle.vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps({
