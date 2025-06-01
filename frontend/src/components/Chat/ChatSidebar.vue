@@ -160,12 +160,12 @@ function selectChat(chat) {
             @click="selectChat(chat)"
           >
             <div class="w-full mr-2 overflow-hidden truncate max-w-[180px]">
-              <!-- Mobile: Regular title (not editable) -->
-              <div class="font-medium truncate">
+              <!-- Regular title (not editable) -->
+              <div class="font-medium truncate pointer-events-none">
                 {{ chat.title }}
               </div>
               <!-- Date -->
-              <div class="text-xs text-gray-400">
+              <div class="text-xs text-gray-400 pointer-events-none">
                 {{ new Date(chat.updated_at).toLocaleDateString() }}
               </div>
             </div>
