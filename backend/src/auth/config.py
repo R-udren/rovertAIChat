@@ -8,7 +8,7 @@ from src.core.logger import app_logger
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "mysupersecretkey")
 REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY", "myrefreshsecretkey")
 COOKIE_DOMAIN = os.getenv("DOMAIN", "localhost")
-COOKIE_SECURE = False  # os.getenv("ENVIRONMENT", "development") == "production"
+COOKIE_SECURE = os.getenv("ENVIRONMENT", "production") == "production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7

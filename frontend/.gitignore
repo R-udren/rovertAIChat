@@ -33,3 +33,5 @@ coverage
 .env
 .env.production
 .env.development
+
+certs/

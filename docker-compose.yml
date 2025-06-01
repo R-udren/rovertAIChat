@@ -13,7 +13,7 @@ services:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 3s
       timeout: 5s
       retries: 5
     networks:
@@ -53,7 +53,6 @@ services:
       - "host.docker.internal:host-gateway" # For accessing host services (for ollama)
     networks:
       - rovertchat-net
-
   frontend:
     build:
       context: ./frontend
@@ -68,6 +67,7 @@ services:
       - rovertchat-net
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+      DOMAIN: ${DOMAIN}
 
 volumes:
   postgres_data:
