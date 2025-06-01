@@ -1,7 +1,4 @@
 <script setup>
-import EditableTitle from '@/components/Chat/EditableTitle.vue'
-import { onMounted, onUnmounted, ref } from 'vue'
-
 const props = defineProps({
   showSidebar: Boolean,
   isMobileSidebarOpen: Boolean,
@@ -162,17 +159,10 @@ function selectChat(chat) {
             ]"
             @click="selectChat(chat)"
           >
-            <div class="w-full mr-2 overflow-hidden">
+            <div class="w-full mr-2 overflow-hidden truncate max-w-[180px]">
               <!-- Mobile: Regular title (not editable) -->
-              <div v-if="isMobile" class="font-medium truncate">
+              <div class="font-medium truncate">
                 {{ chat.title }}
-              </div>
-              <!-- Desktop: Editable title (with click.stop to prevent event bubbling) -->
-              <div v-else class="cursor-pointer truncate max-w-[180px]" @click.stop>
-                <EditableTitle
-                  :title="chat.title"
-                  @update-title="(newTitle) => $emit('update-chat-title', chat.id, newTitle)"
-                />
               </div>
               <!-- Date -->
               <div class="text-xs text-gray-400">
@@ -209,7 +199,7 @@ function selectChat(chat) {
     <div v-if="conversations.length > 0" class="mb-4 text-center">
       <button
         @click="$emit('delete-chats')"
-        class="px-4 py-2 text-sm text-red-500 transition-colors border border-red-500 hover:bg-red-500 hover:text-white rounded-xl"
+        class="px-4 py-2 text-sm text-red-500 transition-colors border border-red-500 rounded-md hover:bg-red-500 hover:text-white"
       >
         Clear All Chats
       </button>

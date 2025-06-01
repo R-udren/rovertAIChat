@@ -86,6 +86,10 @@
     scroll-behavior: smooth;
   }
 
+  button {
+    cursor: pointer;
+  }
+
   body {
     @apply overflow-x-hidden text-white bg-zinc-900;
   }

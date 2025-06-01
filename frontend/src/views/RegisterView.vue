@@ -216,7 +216,7 @@ const handleRegister = async () => {
             v-model="form.username"
             type="text"
             :class="[
-              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2',
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 autofill:bg-zinc-800',
               formErrors.username
                 ? 'border-red-500 bg-red-500/10'
                 : form.username
@@ -246,7 +246,7 @@ const handleRegister = async () => {
             v-model="form.email"
             type="email"
             :class="[
-              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 ',
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 autofill:bg-zinc-800',
               formErrors.email
                 ? 'border-red-500 bg-red-500/10'
                 : form.email
@@ -278,7 +278,7 @@ const handleRegister = async () => {
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               :class="[
-                'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 pr-10',
+                'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 pr-10 autofill:bg-zinc-800',
                 formErrors.password
                   ? 'border-red-500 bg-red-500/10'
                   : form.password
@@ -324,7 +324,7 @@ const handleRegister = async () => {
               v-model="form.confirmPassword"
               :type="showPassword ? 'text' : 'password'"
               :class="[
-                'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 pr-10',
+                'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 pr-10 autofill:bg-zinc-800',
                 formErrors.confirmPassword
                   ? 'border-red-500 bg-red-500/10'
                   : form.confirmPassword
@@ -357,15 +357,18 @@ const handleRegister = async () => {
           </p>
         </div>
 
-        <div class="flex items-center">
+        <div class="flex items-center p-2 my-2 transition-colors rounded-md hover:bg-zinc-700/30">
           <input
             id="rememberUsername"
             v-model="rememberUsername"
             type="checkbox"
-            class="w-4 h-4 rounded accent-primary-600 bg-zinc-900 border-zinc-700 focus:ring-primary-500"
+            class="w-5 h-5 rounded-md cursor-pointer accent-primary-600 bg-zinc-900 border-zinc-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 focus:ring-offset-zinc-800"
             aria-describedby="remember-username-hint"
           />
-          <label for="rememberUsername" class="ml-2 text-sm text-gray-300">
+          <label
+            for="rememberUsername"
+            class="flex-1 ml-2 text-sm text-gray-300 cursor-pointer select-none"
+          >
             Remember username
           </label>
           <span id="remember-username-hint" class="sr-only">

@@ -295,14 +295,14 @@ defineExpose({
     </div>
 
     <div
-      class="flex items-start p-2 transition-all rounded-lg bg-zinc-700 focus-within:ring-2 focus-within:ring-zinc-500"
-      :class="{ 'items-center': !expandedInput }"
+      class="flex items-center justify-center px-2 transition-all rounded-lg bg-zinc-700 focus-within:ring-2 focus-within:ring-zinc-500"
     >
       <!-- Image upload button -->
       <button
         v-if="canUploadImages"
         @click="triggerImageUpload"
         :class="uploadButtonClasses"
+        class="size-10"
         :disabled="isSubmitting"
         :title="
           isProcessingImages
@@ -314,7 +314,7 @@ defineExpose({
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5"
+          class="size-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -335,7 +335,7 @@ defineExpose({
         @keydown="handleKeyDown"
         @paste="handlePaste"
         placeholder="Type your message here..."
-        class="flex-1 min-h-[40px] mr-2 bg-transparent resize-none text-white focus:outline-none"
+        class="flex-1 min-h-[40px] mr-2 bg-transparent resize-none text-white focus:outline-none mt-2"
         :disabled="isSubmitting"
       ></textarea>
 
@@ -343,26 +343,24 @@ defineExpose({
         @click="handleSendMessage"
         class="p-2 text-white transition-colors rounded-lg hover:bg-zinc-600"
         :disabled="!messageInput.trim() || isSubmitting"
-        :class="{ 'opacity-50 cursor-not-allowed': !messageInput.trim() || isSubmitting }"
+        :class="{ 'opacity-20 cursor-not-allowed': !messageInput.trim() || isSubmitting }"
       >
         <svg
           v-if="!isSubmitting"
           xmlns="http://www.w3.org/2000/svg"
-          class="w-6 h-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+          class="size-6"
+          viewBox="0 0 16 16"
         >
+          <!-- Icon from Fluent UI System Icons by Microsoft Corporation - https://github.com/microsoft/fluentui-system-icons/blob/main/LICENSE -->
+
           <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+            fill="currentColor"
+            d="M1.177 1.119a.5.5 0 0 1 .547-.066l13 6.5a.5.5 0 0 1 0 .894l-13 6.5a.5.5 0 0 1-.702-.594L2.977 8L1.022 1.647a.5.5 0 0 1 .155-.528M3.869 8.5l-1.547 5.03L13.382 8L2.322 2.47L3.869 7.5H9.5a.5.5 0 0 1 0 1z"
           />
         </svg>
         <svg
           v-else
-          class="w-6 h-6 animate-spin"
+          class="size-6 animate-spin"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

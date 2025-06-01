@@ -161,7 +161,7 @@ const handleLogin = async () => {
             v-model="form.username"
             type="text"
             :class="[
-              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2',
+              'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 autofill:bg-zinc-800',
               formErrors.username
                 ? 'border-red-500 bg-red-500/10'
                 : form.username
@@ -193,7 +193,7 @@ const handleLogin = async () => {
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               :class="[
-                'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 pr-10',
+                'w-full px-3 py-2 text-white border rounded-md focus:outline-none focus:ring-2 pr-10 autofill:bg-zinc-800',
                 formErrors.password
                   ? 'border-red-500 bg-red-500/10'
                   : form.password
