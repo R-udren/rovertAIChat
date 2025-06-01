@@ -1,11 +1,11 @@
 <script setup>
+import { useToastStore } from '@/stores/toast'
 import { useUserSettingsStore } from '@/stores/userSettings'
 import { userSettingsSchema, validateForm } from '@/utils/validation'
-import { onMounted, ref } from 'vue'
 
 const userSettingsStore = useUserSettingsStore()
+const toastStore = useToastStore()
 
-const updateStatus = ref('')
 const isSubmitting = ref(false)
 const formValid = ref(false)
 
@@ -58,12 +58,11 @@ const saveSettings = async () => {
   if (!validation.valid) {
     // Show the first error message
     const firstErrorField = Object.keys(validation.errors)[0]
-    updateStatus.value = `Error: ${validation.errors[firstErrorField]}`
+    toastStore.error(`Error: ${validation.errors[firstErrorField]}`, { duration: 10000 })
     return
   }
 
   isSubmitting.value = true
-  updateStatus.value = ''
 
   try {
     await userSettingsStore.updateSettings({
@@ -71,9 +70,9 @@ const saveSettings = async () => {
       preferences: formData.value.preferences || null,
     })
 
-    updateStatus.value = 'Settings updated successfully'
+    toastStore.success('Settings updated successfully')
   } catch (error) {
-    updateStatus.value = 'Failed to update settings: ' + (userSettingsStore.error || error.message)
+    toastStore.error('Failed to update settings: ' + (userSettingsStore.error || error.message))
   } finally {
     isSubmitting.value = false
   }
@@ -84,18 +83,6 @@ const saveSettings = async () => {
   <div class="container max-w-2xl px-4 py-8 mx-auto">
     <div class="p-6 rounded-lg shadow-lg bg-zinc-800">
       <h1 class="mb-6 text-2xl font-bold text-white">Settings</h1>
-
-      <div
-        v-if="updateStatus"
-        class="p-3 mb-4 rounded-md"
-        :class="
-          updateStatus.includes('success')
-            ? 'bg-green-500 bg-opacity-20 text-green-100'
-            : 'bg-red-500 bg-opacity-20 text-red-100'
-        "
-      >
-        {{ updateStatus }}
-      </div>
 
       <div v-if="userSettingsStore.loading" class="py-8 text-center">
         <div

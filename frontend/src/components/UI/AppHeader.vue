@@ -8,12 +8,22 @@ const router = useRouter()
 const isMobileMenuOpen = ref(false)
 const lastScrollPosition = ref(0)
 const showHeader = ref(true)
+const showLogoutModal = ref(false)
 
 const handleLogout = async () => {
+  showLogoutModal.value = true
+}
+
+const confirmLogout = async () => {
+  showLogoutModal.value = false
   isMobileMenuOpen.value = false
   await authStore.logout()
   router.push('/login')
   toastStore.info('Logged out successfully')
+}
+
+const cancelLogout = () => {
+  showLogoutModal.value = false
 }
 
 const toggleMobileMenu = () => {
@@ -304,4 +314,17 @@ onUnmounted(() => {
   </header>
   <!-- Spacer to compensate for fixed header -->
   <div class="h-16"></div>
+
+  <!-- Logout Confirmation Modal -->
+  <ConfirmationModal
+    :isOpen="showLogoutModal"
+    type="warning"
+    title="Confirm Logout"
+    message="Are you sure you want to log out? You will need to sign in again to access your account."
+    confirmText="Logout"
+    cancelText="Stay Logged In"
+    @confirm="confirmLogout"
+    @cancel="cancelLogout"
+    @close="cancelLogout"
+  />
 </template>

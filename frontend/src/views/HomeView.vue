@@ -28,7 +28,7 @@ const goToChat = () => {
         <div class="mb-12">
           <button
             @click="goToChat"
-            class="px-8 py-3 font-medium text-white transition-transform duration-200 rounded-md shadow-lg bg-gradient-3 hover:-translate-y-1"
+            class="px-8 py-3 font-semibold text-white transition-transform duration-200 rounded-md shadow-lg bg-gradient-3 hover:-translate-y-1"
           >
             {{ authStore.isAuthenticated ? 'Go to Chat' : 'Get Started' }}
           </button>

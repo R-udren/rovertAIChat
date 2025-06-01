@@ -1,15 +1,15 @@
 <script setup>
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toast'
 import { useUserSettingsStore } from '@/stores/userSettings'
 import { profileSchema, validateField, validateForm } from '@/utils/validation'
-import { onMounted, ref, watch } from 'vue'
 
 const authStore = useAuthStore()
 const userSettingsStore = useUserSettingsStore()
+const toastStore = useToastStore()
 
 const isEditing = ref(false)
-const updateStatus = ref('')
 const isSubmitting = ref(false)
 
 const formData = ref({
@@ -105,7 +105,6 @@ const startEditing = () => {
   formData.value.email = authStore.user?.email || ''
   formData.value.display_name = userSettingsStore.settings?.display_name || ''
   formData.value.avatar_url = userSettingsStore.settings?.avatar_url || ''
-  updateStatus.value = ''
 
   // Reset image load status for the avatar preview
   if (formData.value.avatar_url) {
@@ -115,18 +114,16 @@ const startEditing = () => {
 
 const cancelEditing = () => {
   isEditing.value = false
-  updateStatus.value = ''
 }
 
 const saveProfile = async () => {
   // Validate form before submission
   if (!validateProfileForm()) {
-    updateStatus.value = 'Please fix the form errors'
+    toastStore.error('Please fix the form errors')
     return
   }
 
   isSubmitting.value = true
-  updateStatus.value = ''
 
   try {
     // Get user data to update
@@ -160,10 +157,10 @@ const saveProfile = async () => {
       await userSettingsStore.updateSettings(settingsData)
     }
 
-    updateStatus.value = 'Profile updated successfully'
+    toastStore.success('Profile updated successfully')
     isEditing.value = false
   } catch (error) {
-    updateStatus.value = 'Failed to update profile: ' + error.message
+    toastStore.error('Failed to update profile: ' + error.message)
   } finally {
     isSubmitting.value = false
   }
@@ -182,18 +179,6 @@ const saveProfile = async () => {
         >
           Edit Profile
         </button>
-      </div>
-
-      <div
-        v-if="updateStatus"
-        class="p-3 mb-4 rounded-md"
-        :class="
-          updateStatus.includes('success')
-            ? 'bg-green-500 bg-opacity-20 text-green-100'
-            : 'bg-red-500 bg-opacity-20 text-red-100'
-        "
-      >
-        {{ updateStatus }}
       </div>
 
       <div v-if="authStore.loading" class="py-8 text-center">
