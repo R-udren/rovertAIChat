@@ -1,3 +1,116 @@
+<script setup>
+import { useAdminStore } from '@/stores/admin'
+import { useToastStore } from '@/stores/toast'
+
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const adminStore = useAdminStore()
+const toastStore = useToastStore()
+
+const showPullModal = ref(false)
+const showDeleteModal = ref(false)
+const modelToDelete = ref(null)
+const newModelName = ref('')
+const pullingModel = ref(false)
+const ollamaVersion = ref(null)
+
+const models = computed(() => adminStore.models)
+
+// Watch for active prop changes
+watch(
+  () => props.active,
+  async (newActive) => {
+    if (newActive) {
+      await refreshModels()
+      await checkOllamaVersion()
+    }
+  },
+  { immediate: true },
+)
+
+// Utility functions
+const formatSize = (bytes) => {
+  if (!bytes) return 'Unknown'
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  if (bytes === 0) return '0 B'
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i]
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'Unknown'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+// Model management functions
+const refreshModels = async () => {
+  try {
+    await adminStore.fetchOllamaModels()
+  } catch (error) {
+    toastStore.error('Failed to refresh models: ' + error.message)
+  }
+}
+
+const pullModel = async () => {
+  if (!newModelName.value.trim()) return
+
+  pullingModel.value = true
+  try {
+    await adminStore.pullOllamaModel(newModelName.value.trim())
+    toastStore.success(`Model "${newModelName.value}" pulled successfully`)
+    newModelName.value = ''
+    showPullModal.value = false
+  } catch (error) {
+    toastStore.error('Failed to pull model: ' + error.message)
+  } finally {
+    pullingModel.value = false
+  }
+}
+
+const deleteModel = async (model) => {
+  modelToDelete.value = model
+  showDeleteModal.value = true
+}
+
+const confirmDeleteModel = async () => {
+  if (!modelToDelete.value) return
+
+  try {
+    await adminStore.deleteOllamaModel(modelToDelete.value.name)
+    toastStore.success(`Model "${modelToDelete.value.name}" deleted successfully`)
+  } catch (error) {
+    toastStore.error('Failed to delete model: ' + error.message)
+  } finally {
+    cancelDeleteModel()
+  }
+}
+
+const cancelDeleteModel = () => {
+  showDeleteModal.value = false
+  modelToDelete.value = null
+}
+
+const checkOllamaVersion = async () => {
+  try {
+    ollamaVersion.value = await adminStore.getOllamaVersion()
+  } catch (error) {
+    toastStore.error('Failed to fetch Ollama version: ' + error.message)
+  }
+}
+</script>
+
 <template>
   <div class="space-y-6">
     <!-- Header with Actions -->
@@ -297,118 +410,3 @@
     />
   </div>
 </template>
-
-<script setup>
-import ConfirmationModal from '@/components/ConfirmationModal.vue'
-import { useAdminStore } from '@/stores/admin'
-import { useToastStore } from '@/stores/toast'
-import { computed, ref, watch } from 'vue'
-
-const props = defineProps({
-  active: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const adminStore = useAdminStore()
-const toastStore = useToastStore()
-
-const showPullModal = ref(false)
-const showDeleteModal = ref(false)
-const modelToDelete = ref(null)
-const newModelName = ref('')
-const pullingModel = ref(false)
-const ollamaVersion = ref(null)
-
-const models = computed(() => adminStore.models)
-
-// Watch for active prop changes
-watch(
-  () => props.active,
-  async (newActive) => {
-    if (newActive) {
-      await refreshModels()
-      await checkOllamaVersion()
-    }
-  },
-  { immediate: true },
-)
-
-// Utility functions
-const formatSize = (bytes) => {
-  if (!bytes) return 'Unknown'
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  if (bytes === 0) return '0 B'
-  const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + ' ' + sizes[i]
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'Unknown'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-// Model management functions
-const refreshModels = async () => {
-  try {
-    await adminStore.fetchOllamaModels()
-  } catch (error) {
-    toastStore.error('Failed to refresh models: ' + error.message)
-  }
-}
-
-const pullModel = async () => {
-  if (!newModelName.value.trim()) return
-
-  pullingModel.value = true
-  try {
-    await adminStore.pullOllamaModel(newModelName.value.trim())
-    toastStore.success(`Model "${newModelName.value}" pulled successfully`)
-    newModelName.value = ''
-    showPullModal.value = false
-  } catch (error) {
-    toastStore.error('Failed to pull model: ' + error.message)
-  } finally {
-    pullingModel.value = false
-  }
-}
-
-const deleteModel = async (model) => {
-  modelToDelete.value = model
-  showDeleteModal.value = true
-}
-
-const confirmDeleteModel = async () => {
-  if (!modelToDelete.value) return
-
-  try {
-    await adminStore.deleteOllamaModel(modelToDelete.value.name)
-    toastStore.success(`Model "${modelToDelete.value.name}" deleted successfully`)
-  } catch (error) {
-    toastStore.error('Failed to delete model: ' + error.message)
-  } finally {
-    cancelDeleteModel()
-  }
-}
-
-const cancelDeleteModel = () => {
-  showDeleteModal.value = false
-  modelToDelete.value = null
-}
-
-const checkOllamaVersion = async () => {
-  try {
-    ollamaVersion.value = await adminStore.getOllamaVersion()
-  } catch (error) {
-    toastStore.error('Failed to fetch Ollama version: ' + error.message)
-  }
-}
-</script>
