@@ -199,7 +199,7 @@ watch(
 
     <div
       v-if="isDropdownOpen"
-      class="absolute right-0 z-10 w-64 mt-2 overflow-hidden rounded-md shadow-lg bg-zinc-800"
+      class="absolute right-0 z-10 w-64 mt-2 overflow-hidden border rounded-md shadow-lg bg-zinc-800 border-zinc-700"
     >
       <div class="py-1 overflow-y-auto max-h-60">
         <div v-if="modelsStore.loading" class="flex justify-center py-4">
