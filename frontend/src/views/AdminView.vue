@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pt-20 bg-zinc-900">
+  <div class="min-h-screen pt-8 bg-zinc-900">
     <div class="container px-4 py-8 mx-auto">
       <!-- Header -->
       <div class="mb-8">

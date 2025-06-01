@@ -8,7 +8,8 @@ export const useAdminStore = defineStore('admin', () => {
   const users = ref([])
   const models = ref([])
   const loading = ref(false)
-  const error = ref(null)
+  const usersError = ref(null)
+  const ollamaError = ref(null)
 
   const authStore = useAuthStore()
 
@@ -24,14 +25,14 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    usersError.value = null
 
     try {
       const data = await api.get('users')
       users.value = data
       return data
     } catch (err) {
-      error.value = err.message
+      usersError.value = err.message
       console.error('Error fetching users:', err)
       throw err
     } finally {
@@ -44,7 +45,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    usersError.value = null
 
     try {
       const newUser = await api.post('auth/register', userData)
@@ -54,7 +55,7 @@ export const useAdminStore = defineStore('admin', () => {
 
       return newUser
     } catch (err) {
-      error.value = err.message
+      usersError.value = err.message
       console.error('Error creating user:', err)
       throw err
     } finally {
@@ -68,7 +69,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    usersError.value = null
 
     try {
       const updatedUser = await api.put(`users/${userId}`, userData)
@@ -81,7 +82,7 @@ export const useAdminStore = defineStore('admin', () => {
 
       return updatedUser
     } catch (err) {
-      error.value = err.message
+      usersError.value = err.message
       console.error('Error updating user:', err)
       throw err
     } finally {
@@ -95,7 +96,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    usersError.value = null
 
     try {
       const updatedUser = await api.delete(`users/${userId}`)
@@ -108,7 +109,7 @@ export const useAdminStore = defineStore('admin', () => {
 
       return updatedUser
     } catch (err) {
-      error.value = err.message
+      usersError.value = err.message
       console.error('Error deactivating user:', err)
       throw err
     } finally {
@@ -122,7 +123,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    usersError.value = null
 
     try {
       const updatedUser = await api.post(`users/${userId}/activate`)
@@ -135,7 +136,7 @@ export const useAdminStore = defineStore('admin', () => {
 
       return updatedUser
     } catch (err) {
-      error.value = err.message
+      usersError.value = err.message
       console.error('Error activating user:', err)
       throw err
     } finally {
@@ -150,14 +151,14 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    ollamaError.value = null
 
     try {
       const data = await api.get('ollama/tags')
       models.value = data.models || []
       return data
     } catch (err) {
-      error.value = err.message
+      ollamaError.value = err.message
       console.error('Error fetching Ollama models:', err)
       throw err
     } finally {
@@ -171,7 +172,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    ollamaError.value = null
 
     try {
       const response = await api.post('ollama/pull', { model: modelName })
@@ -179,7 +180,7 @@ export const useAdminStore = defineStore('admin', () => {
       await fetchOllamaModels()
       return response
     } catch (err) {
-      error.value = err.message
+      ollamaError.value = err.message
       console.error('Error pulling Ollama model:', err)
       throw err
     } finally {
@@ -193,7 +194,7 @@ export const useAdminStore = defineStore('admin', () => {
     }
 
     loading.value = true
-    error.value = null
+    ollamaError.value = null
 
     try {
       const response = await api.delete('ollama/delete', {
@@ -206,7 +207,7 @@ export const useAdminStore = defineStore('admin', () => {
       await fetchOllamaModels()
       return response
     } catch (err) {
-      error.value = err.message
+      ollamaError.value = err.message
       console.error('Error deleting Ollama model:', err)
       throw err
     } finally {
@@ -275,14 +276,16 @@ export const useAdminStore = defineStore('admin', () => {
   function reset() {
     users.value = []
     models.value = []
-    error.value = null
+    usersError.value = null
+    ollamaError.value = null
     loading.value = false
   }
   return {
     users,
     models,
     loading,
-    error,
+    usersError,
+    ollamaError,
     isAdmin,
     fetchUsers,
     createUser,

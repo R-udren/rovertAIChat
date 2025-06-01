@@ -1,6 +1,5 @@
 <script setup>
 import { useAdminStore } from '@/stores/admin'
-import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
 
 const props = defineProps({
@@ -11,14 +10,11 @@ const props = defineProps({
 })
 
 const adminStore = useAdminStore()
-const authStore = useAuthStore()
 const toastStore = useToastStore()
 
 const editingUser = ref(null)
 const viewingUserSettings = ref(null)
 const showCreateUserModal = ref(false)
-const userToDelete = ref(null)
-const deletingUser = ref(false)
 
 const users = computed(() => adminStore.users)
 
@@ -140,7 +136,10 @@ watch(
     </div>
 
     <!-- Error State -->
-    <div v-else-if="adminStore.error" class="p-4 border border-red-500 rounded-lg bg-red-900/20">
+    <div
+      v-else-if="adminStore.usersError"
+      class="p-4 border border-red-500 rounded-lg bg-red-900/20"
+    >
       <div class="flex items-center space-x-3">
         <svg
           class="flex-shrink-0 w-5 h-5 text-red-400"
@@ -157,7 +156,7 @@ watch(
         </svg>
         <div>
           <h3 class="font-medium text-red-400">Error loading users</h3>
-          <p class="text-sm text-red-300">{{ adminStore.error }}</p>
+          <p class="text-sm text-red-300">{{ adminStore.usersError }}</p>
         </div>
       </div>
     </div>

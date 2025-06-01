@@ -57,20 +57,20 @@
             <div
               :class="[
                 'w-3 h-3 rounded-full',
-                adminStore.error ? 'bg-red-400' : 'bg-green-400 animate-pulse',
+                adminStore.ollamaError ? 'bg-red-400' : 'bg-green-400 animate-pulse',
               ]"
             ></div>
             <span class="font-medium text-white">Ollama Status</span>
           </div>
           <span class="text-zinc-400">
-            {{ adminStore.error ? 'Disconnected' : 'Connected' }}
+            {{ adminStore.ollamaError ? 'Disconnected' : 'Connected' }}
           </span>
         </div>
         <button
           @click="checkOllamaVersion"
-          :disabled="!!adminStore.error"
+          :disabled="!!adminStore.ollamaError"
           class="text-sm transition-colors disabled:text-zinc-500 disabled:cursor-not-allowed"
-          :class="adminStore.error ? 'text-zinc-500' : 'text-blue-400 hover:text-blue-300'"
+          :class="adminStore.ollamaError ? 'text-zinc-500' : 'text-blue-400 hover:text-blue-300'"
         >
           Check Version
         </button>
@@ -78,7 +78,7 @@
       <div v-if="ollamaVersion" class="mt-2 text-sm text-zinc-400">
         Version: {{ ollamaVersion.version || 'Unknown' }}
       </div>
-      <div v-else-if="adminStore.error" class="mt-2 text-sm text-red-400">
+      <div v-else-if="adminStore.ollamaError" class="mt-2 text-sm text-red-400">
         Ollama service is unavailable
       </div>
     </div>
@@ -94,7 +94,10 @@
     </div>
 
     <!-- Error State -->
-    <div v-else-if="adminStore.error" class="p-4 border border-red-500 rounded-lg bg-red-900/20">
+    <div
+      v-else-if="adminStore.ollamaError"
+      class="p-4 border border-red-500 rounded-lg bg-red-900/20"
+    >
       <div class="flex items-center space-x-3">
         <svg
           class="flex-shrink-0 w-5 h-5 text-red-400"
@@ -111,7 +114,7 @@
         </svg>
         <div>
           <h3 class="font-medium text-red-400">Error loading models</h3>
-          <p class="text-sm text-red-300">{{ adminStore.error }}</p>
+          <p class="text-sm text-red-300">{{ adminStore.ollamaError }}</p>
         </div>
       </div>
     </div>

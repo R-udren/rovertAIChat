@@ -2,7 +2,6 @@
 import { api } from '@/services/api'
 import { useAdminStore } from '@/stores/admin'
 import { useToastStore } from '@/stores/toast'
-import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
   active: {
