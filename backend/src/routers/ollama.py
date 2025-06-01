@@ -181,7 +181,6 @@ async def chat_ollama(
             db.commit()
             db.refresh(user_db_message)  # Make request to Ollama
         payload = chat_request.model_dump(mode="json")
-        app_logger.info(f"Chat request: {payload}")
 
         # Use aiohttp session to make request to Ollama
         async with aiohttp.ClientSession() as session:
@@ -200,7 +199,7 @@ async def chat_ollama(
                     }
 
                 response_data = await response.json()
-        app_logger.info(f"Chat response: {response_data}")
+        app_logger.info(f"Chat response: {response_data}")  # Snitching ai responses :)
 
         # Save the assistant message to the database
         if (
