@@ -220,7 +220,7 @@ onUnmounted(() => {
     >
       <!-- Mobile Navigation Menu -->
       <div
-        class="fixed right-0 overflow-y-auto transition-transform duration-300 rounded-lg rounded-b-lg shadow-lg top-12 md:hidden bg-zinc-900/70 backdrop-blur-lg"
+        class="fixed right-0 overflow-y-auto transition-transform duration-300 rounded-lg rounded-b-lg shadow-lg top-12 md:hidden bg-zinc-900/80 backdrop-blur-xl"
         :class="isMobileMenuOpen ? 'translate-y-0 animate-slide-up' : 'translate-y-full'"
       >
         <nav class="flex flex-col px-6 py-8 space-y-6">
