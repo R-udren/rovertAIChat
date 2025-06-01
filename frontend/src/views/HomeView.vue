@@ -35,8 +35,8 @@ const goToChat = () => {
       <!-- Hero Section -->
       <div class="max-w-4xl mx-auto text-center animate-fade-in">
         <div class="mb-6">
-          <h1 class="mb-4 text-4xl font-bold text-white md:text-7xl lg:text-8xl">
-            Welcome to <span class="text-gradient">rovertChat</span>
+          <h1 class="mb-4 text-4xl font-bold text-white md:text-7xl lg:text-8xl xl:text-9xl">
+            Welcome to <span class="text-gradient-3">rovertChat</span>
           </h1>
         </div>
 
