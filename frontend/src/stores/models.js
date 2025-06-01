@@ -70,9 +70,9 @@ export const useModelsStore = defineStore('models', () => {
     if (modelCapabilities.value[modelName]) {
       return modelCapabilities.value[modelName]
     }
-
+    const modelNameSafe = modelName.replace('/', '|') // TODO: Think about smarter solution but it works for now
     try {
-      const response = await api.get(`/ollama/model/${modelName}/capabilities`)
+      const response = await api.get(`/ollama/model/${modelNameSafe}/capabilities`)
       modelCapabilities.value[modelName] = response
       return response
     } catch (err) {

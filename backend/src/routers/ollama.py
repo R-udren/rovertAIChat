@@ -286,7 +286,7 @@ async def get_model_capabilities(
     app_logger.info(
         f"User {current_user.id} requested capabilities for model {model_name}"
     )
-
+    model_name = model_name.replace("|", "/")  # Bit hacky but its okay
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(
