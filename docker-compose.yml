@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:17.5-alpine
+    image: postgres:17-alpine
     container_name: postgresql
     restart: always
     environment:
@@ -19,19 +19,19 @@ services:
     networks:
       - rovertchat-net
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "8080:80"
-    depends_on:
-      - postgres
-    networks:
-      - rovertchat-net
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pgadmin
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - postgres
+  #   networks:
+  #     - rovertchat-net
 
   backend:
     build:
@@ -46,7 +46,7 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:${DATABASE_PASSWORD}@postgres:5432/postgres
-      OLLAMA_API_BASE_URL: http://host.docker.internal:11434
+      OLLAMA_API_BASE_URL: http://host.docker.internal:11434 # If ollama is running on the host machine
       DOMAIN: ${DOMAIN}
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
@@ -63,6 +63,7 @@ services:
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend
     networks:
@@ -70,22 +71,8 @@ services:
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
 
-  # ollama:
-  #   volumes:
-  #     - ollama:/root/.ollama
-  #   container_name: ollama
-  #   pull_policy: always
-  #   tty: true
-  #   restart: unless-stopped
-  #   image: ollama/ollama:lastest
-  #   ports:
-  #     - "11434:11434"
-  #   networks:
-  #     - rovertchat-net
-
 volumes:
   postgres_data:
-  ollama:
 
 networks:
   rovertchat-net:
