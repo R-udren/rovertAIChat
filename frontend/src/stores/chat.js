@@ -246,6 +246,19 @@ export const useChatStore = defineStore('chat', () => {
         messages.value.splice(loadingIndex, 1)
       }
 
+      // Update chat title if it was auto-generated from the first message
+      if (response.chat && response.chat.title && currentConversation.value) {
+        currentConversation.value.title = response.chat.title
+
+        // Update the title in the conversations list as well
+        const conversationIndex = conversations.value.findIndex(
+          (c) => c.id === currentConversation.value.id,
+        )
+        if (conversationIndex !== -1) {
+          conversations.value[conversationIndex].title = response.chat.title
+        }
+      }
+
       // Create the assistant message using the ID returned from the backend
       const assistantMessage = {
         id: response.id, // This ID comes from the database now
