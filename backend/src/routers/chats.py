@@ -13,7 +13,7 @@ from src.schemas import chat as chat_schemas
 router = APIRouter(prefix="/chats", tags=["chats"])
 
 
-@router.get("/", response_model=chat_schemas.ChatListResponse)
+@router.get("/my", response_model=chat_schemas.ChatListResponse)
 async def get_user_chats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -91,7 +91,9 @@ async def get_chat(
 
 
 @router.post(
-    "/", response_model=chat_schemas.ChatResponse, status_code=status.HTTP_201_CREATED
+    "/my",
+    response_model=chat_schemas.ChatResponse,
+    status_code=status.HTTP_201_CREATED,
 )
 async def create_chat(
     chat_data: chat_schemas.ChatCreateSchema = Body(default=None),
@@ -215,7 +217,7 @@ async def delete_chat(
     return {"success": True, "message": "Chat and all messages deleted"}
 
 
-@router.delete("/", status_code=status.HTTP_200_OK)
+@router.delete("/my", status_code=status.HTTP_200_OK)
 async def delete_all_chats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),

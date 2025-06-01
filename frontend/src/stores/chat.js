@@ -42,7 +42,7 @@ export const useChatStore = defineStore('chat', () => {
       loading.value = true
       error.value = null
 
-      const response = await api.get('/chats')
+      const response = await api.get('/chats/my')
 
       conversations.value = response.chats || []
 
@@ -91,7 +91,7 @@ export const useChatStore = defineStore('chat', () => {
       loading.value = true
       error.value = null
 
-      const response = await api.post('/chats')
+      const response = await api.post('/chats/my')
 
       currentConversation.value = response
       messages.value = []
@@ -157,7 +157,7 @@ export const useChatStore = defineStore('chat', () => {
 
   async function deleteChats() {
     try {
-      await api.delete('/chats')
+      await api.delete('/chats/my')
       conversations.value = []
       currentConversation.value = null
       messages.value = []
