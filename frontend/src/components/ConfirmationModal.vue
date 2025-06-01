@@ -1,4 +1,6 @@
 <script setup>
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
+
 const props = defineProps({
   isOpen: {
     type: Boolean,
@@ -39,53 +41,7 @@ const emit = defineEmits(['confirm', 'cancel', 'close'])
 
 const showContent = ref(false)
 
-// Icon components
-const WarningIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 19.5c-.77.833.192 2.5 1.732 2.5z" />
-    </svg>
-  `,
-}
-
-const DangerIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-  `,
-}
-
-const InfoIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  `,
-}
-
-const SuccessIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  `,
-}
-
-const iconComponent = computed(() => {
-  switch (props.type) {
-    case 'warning':
-      return WarningIcon
-    case 'danger':
-      return DangerIcon
-    case 'info':
-      return InfoIcon
-    case 'success':
-      return SuccessIcon
-    default:
-      return WarningIcon
-  }
-})
+// Simplified computed properties for styling
 
 const iconColorClass = computed(() => {
   switch (props.type) {
@@ -207,7 +163,72 @@ onUnmounted(() => {
               class="flex items-center justify-center w-16 h-16 mx-auto rounded-full"
               :class="iconColorClass"
             >
-              <component :is="iconComponent" class="w-8 h-8" :class="iconTextClass" />
+              <!-- Danger Icon -->
+              <svg
+                v-if="type === 'danger'"
+                class="w-8 h-8"
+                :class="iconTextClass"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+
+              <!-- Info Icon -->
+              <svg
+                v-else-if="type === 'info'"
+                class="w-8 h-8"
+                :class="iconTextClass"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+
+              <!-- Success Icon -->
+              <svg
+                v-else-if="type === 'success'"
+                class="w-8 h-8"
+                :class="iconTextClass"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+
+              <!-- Default Warning Icon -->
+              <svg
+                v-else
+                :class="iconTextClass"
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 12 12"
+              >
+                <!-- Icon from Fluent UI System Icons by Microsoft Corporation - https://github.com/microsoft/fluentui-system-icons/blob/main/LICENSE -->
+                <path
+                  fill="currentColor"
+                  d="M5.5 4.5a.5.5 0 0 1 1 0v1a.5.5 0 0 1-1 0zM6 6.75a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5m-.786-5.291a.903.903 0 0 1 1.572 0l4.092 7.169c.348.61-.089 1.372-.787 1.372H1.91c-.698 0-1.135-.762-.787-1.372zm.786.66L2.083 8.983h7.834z"
+                />
+              </svg>
             </div>
           </div>
 
@@ -215,7 +236,7 @@ onUnmounted(() => {
           <div class="px-6 pb-6">
             <div class="text-center">
               <h3 class="mb-2 text-lg font-semibold text-white" v-html="title"></h3>
-              <p class="mb-6 text-sm text-zinc-400" v-html="message"></p>
+              <p class="mb-6 text-sm break-words text-zinc-400]" v-html="message"></p>
             </div>
 
             <!-- Actions -->
