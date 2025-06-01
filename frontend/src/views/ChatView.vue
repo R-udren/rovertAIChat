@@ -38,6 +38,11 @@ const canUploadImages = computed(() => {
 const isDragOverChat = ref(false)
 const isProcessingImages = ref(false)
 
+// Delete modal state
+const showDeleteModal = ref(false)
+const deleteModalType = ref('single') // 'single' or 'multiple'
+const chatToDelete = ref(null)
+
 // Toggle sidebar
 const toggleSidebar = () => {
   showSidebar.value = !showSidebar.value
@@ -135,26 +140,42 @@ const selectChat = async (conversation) => {
 
 // Delete chat
 const deleteChat = async (chatId) => {
-  if (confirm('Are you sure you want to delete this conversation?')) {
-    const success = await chatStore.deleteChat(chatId)
-
-    if (success && chatId === chatStore.currentConversation?.id) {
-      router.push('/chat')
-    }
-  }
+  chatToDelete.value = chatId
+  deleteModalType.value = 'single'
+  showDeleteModal.value = true
 }
 
-const deleteChats = async (chatIds) => {
-  if (confirm('Are you sure you want to delete these conversations?')) {
-    const success = await chatStore.deleteChats(chatIds)
+const deleteChats = async () => {
+  deleteModalType.value = 'multiple'
+  showDeleteModal.value = true
+}
 
-    if (
-      success &&
-      chatStore.currentConversation &&
-      chatIds.includes(chatStore.currentConversation.id)
-    ) {
-      router.push('/chat')
+// Modal confirmation handlers
+const confirmDeleteModel = async () => {
+  try {
+    let success = false
+
+    if (deleteModalType.value === 'single' && chatToDelete.value) {
+      success = await chatStore.deleteChat(chatToDelete.value)
+
+      if (success && chatToDelete.value === chatStore.currentConversation?.id) {
+        router.push('/chat')
+      }
+    } else if (deleteModalType.value === 'multiple') {
+      success = await chatStore.deleteChats()
+
+      // Always redirect to chat home when all chats are deleted
+      if (success) {
+        router.push('/chat')
+      }
     }
+  } catch (error) {
+    console.error('Error during delete operation:', error)
+  } finally {
+    // Reset modal state
+    showDeleteModal.value = false
+    chatToDelete.value = null
+    deleteModalType.value = 'single'
   }
 }
 
@@ -473,5 +494,20 @@ const handleModelChange = (model) => {
         />
       </div>
     </div>
+    <ConfirmationModal
+      :is-open="showDeleteModal"
+      type="warning"
+      :title="deleteModalType === 'single' ? 'Delete Chat' : 'Delete All Chats'"
+      :message="
+        deleteModalType === 'single'
+          ? 'Are you sure you want to delete this chat? This action cannot be undone.'
+          : `Are you sure you want to delete all ${chatStore.conversations.length} chat${chatStore.conversations.length > 1 ? 's' : ''}? This action cannot be undone.`
+      "
+      :confirm-text="deleteModalType === 'single' ? 'Delete Chat' : 'Delete All Chats'"
+      cancel-text="Cancel"
+      @confirm="confirmDeleteModel"
+      @cancel="showDeleteModal = false"
+      @close="showDeleteModal = false"
+    />
   </div>
 </template>
