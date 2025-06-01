@@ -31,7 +31,7 @@ export default defineConfig({
         name: 'rovertAIChat',
         short_name: 'rovertAIChat',
         description: 'A chat application.',
-        theme_color: '#ffffff',
+        theme_color: '#000000',
         icons: [
           {
             src: 'robot_128x128.png',
