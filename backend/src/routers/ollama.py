@@ -15,6 +15,7 @@ from src.schemas.chat import (
     OllamaModelsWithCapabilitiesResponse,
     OllamaShowResponse,
 )
+from src.services.chat_models import OllamaService
 
 # Router for Ollama API integration
 router = APIRouter(prefix="/ollama", tags=["ollama"])
@@ -30,13 +31,10 @@ async def get_ollama_version():
     Retrieve the version of the Ollama API.
     Returns: {"version": "0.8.0"}
     """
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(f"{OLLAMA_API_BASE_URL}/api/version") as resp:
-                resp.raise_for_status()
-                return await resp.json()
-        except aiohttp.ClientError as e:
-            raise HTTPException(status_code=502, detail=str(e))
+    try:
+        return await OllamaService.get_version()
+    except aiohttp.ClientError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
 
 @router.get("/tags", response_model=OllamaModelsWithCapabilitiesResponse)
@@ -48,63 +46,7 @@ async def get_ollama_tags_with_capabilities(
     """
     app_logger.info(f"User {current_user.id} requested Ollama tags with capabilities")
     try:
-        async with aiohttp.ClientSession() as session:
-            app_logger.info(
-                f"Fetching Ollama tags from API: {OLLAMA_API_BASE_URL}/api/tags"
-            )
-
-            # First, get the tags/models list
-            async with session.get(f"{OLLAMA_API_BASE_URL}/api/tags") as resp:
-                resp.raise_for_status()
-                tags_data = await resp.json()
-
-            # Now fetch capabilities for each model
-            models_with_capabilities = []
-            for model in tags_data.get("models", []):
-                model_name = model["name"]
-                app_logger.info(f"Fetching capabilities for model: {model_name}")
-
-                try:
-                    # Get model show info to extract capabilities
-                    async with session.post(
-                        f"{OLLAMA_API_BASE_URL}/api/show", json={"name": model_name}
-                    ) as show_resp:
-                        show_resp.raise_for_status()
-                        show_data = await show_resp.json()
-
-                        # Extract capabilities
-                        capabilities = show_data.get("capabilities", [])
-
-                        # Create enhanced model object
-                        enhanced_model = {
-                            "name": model["name"],
-                            "model": model["model"],
-                            "modified_at": model["modified_at"],
-                            "size": model["size"],
-                            "digest": model["digest"],
-                            "details": model["details"],
-                            "capabilities": capabilities,
-                        }
-                        models_with_capabilities.append(enhanced_model)
-
-                except Exception as model_error:
-                    app_logger.warning(
-                        f"Failed to fetch capabilities for model {model_name}: {str(model_error)}"
-                    )
-                    # Add model without capabilities if show fails
-                    enhanced_model = {
-                        "name": model["name"],
-                        "model": model["model"],
-                        "modified_at": model["modified_at"],
-                        "size": model["size"],
-                        "digest": model["digest"],
-                        "details": model["details"],
-                        "capabilities": [],
-                    }
-                    models_with_capabilities.append(enhanced_model)
-
-            return {"models": models_with_capabilities}
-
+        return await OllamaService.get_models_with_capabilities()
     except aiohttp.ClientError as e:
         raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
@@ -125,26 +67,18 @@ async def show_ollama_model(
     app_logger.info(
         f"User {current_user.id} requested Ollama model details for {model.model}"
     )
-    payload = model.model_dump(mode="json")
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.post(
-                f"{OLLAMA_API_BASE_URL}/api/show", json=payload
-            ) as resp:
-                resp.raise_for_status()
-                return await resp.json()
-        except aiohttp.ClientError as e:
-            app_logger.error(
-                f"Error fetching Ollama model details: {str(e)}", exc_info=True
-            )
-            raise HTTPException(status_code=502, detail=str(e))
-        except Exception as e:
-            app_logger.error(
-                f"Unexpected error fetching Ollama models: {str(e)}", exc_info=True
-            )
-            raise HTTPException(
-                status_code=500, detail=f"Internal server error: {str(e)}"
-            )
+    try:
+        return await OllamaService.get_model_details(model.model)
+    except aiohttp.ClientError as e:
+        app_logger.error(
+            f"Error fetching Ollama model details: {str(e)}", exc_info=True
+        )
+        raise HTTPException(status_code=502, detail=str(e))
+    except Exception as e:
+        app_logger.error(
+            f"Unexpected error fetching Ollama models: {str(e)}", exc_info=True
+        )
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.post("/pull")
@@ -155,22 +89,15 @@ async def pull_ollama_model(
     Pull an Ollama model by name.
     Expects JSON body: { "model": "model_name" }
     """
-
     if not admin_user.is_admin():
         raise HTTPException(
             status_code=403, detail="You do not have permission to perform this action."
         )
 
-    payload = model.model_dump(mode="json")
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.post(
-                f"{OLLAMA_API_BASE_URL}/api/pull", json=payload
-            ) as resp:
-                resp.raise_for_status()
-                return await resp.text()
-        except aiohttp.ClientError as e:
-            raise HTTPException(status_code=502, detail=str(e))
+    try:
+        return await OllamaService.pull_model(model.model)
+    except aiohttp.ClientError as e:
+        raise HTTPException(status_code=502, detail=str(e))
 
 
 @router.delete("/delete")
@@ -187,16 +114,31 @@ async def delete_ollama_model(
             status_code=403, detail="You do not have permission to perform this action."
         )
 
-    payload = model.model_dump(mode="json")
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.delete(
-                f"{OLLAMA_API_BASE_URL}/api/delete", json=payload
-            ) as resp:
-                resp.raise_for_status()
-                return {"message": "Model deleted successfully"}
-        except aiohttp.ClientError as e:
-            raise HTTPException(status_code=502, detail=str(e))
+    try:
+        return await OllamaService.delete_model(model.model)
+    except aiohttp.ClientError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+
+@router.post("/cache/clear")
+async def clear_model_cache(
+    admin_user: User = Depends(get_current_active_admin),
+):
+    """
+    Clear the model cache. Admin only.
+    """
+    if not admin_user.is_admin():
+        raise HTTPException(
+            status_code=403, detail="You do not have permission to perform this action."
+        )
+
+    try:
+        OllamaService.clear_cache()
+        app_logger.info(f"Admin user {admin_user.id} cleared model cache")
+        return {"message": "Model cache cleared successfully"}
+    except Exception as e:
+        app_logger.error(f"Error clearing cache: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.post("/chat")
@@ -218,6 +160,7 @@ async def chat_ollama(
 
         if not chat:
             raise HTTPException(status_code=404, detail="Chat not found")
+
         # Save the user message to the database
         latest_user_message = next(
             (msg for msg in reversed(chat_request.messages) if msg.role == "user"), None
@@ -232,26 +175,16 @@ async def chat_ollama(
             )
             db.add(user_db_message)
             db.commit()
-            db.refresh(user_db_message)  # Make request to Ollama
+            db.refresh(user_db_message)
+
+        # Make request to Ollama using service
         payload = chat_request.model_dump(mode="json")
+        response_data = await OllamaService.chat_with_model(payload)
 
-        # Use aiohttp session to make request to Ollama
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{OLLAMA_API_BASE_URL}/api/chat",
-                json=payload,
-            ) as response:
-                if response.status >= 400:
-                    response_text = await response.text()
-                    app_logger.error(
-                        f"Ollama API error: {response.status}, {response_text}"
-                    )
-                    return {
-                        "error": f"Ollama API error: {response.status}",
-                        "details": response_text,
-                    }
+        # Check for errors from Ollama
+        if "error" in response_data:
+            return response_data
 
-                response_data = await response.json()
         app_logger.info(f"Chat response: {response_data}")  # Snitching ai responses :)
 
         # Save the assistant message to the database
