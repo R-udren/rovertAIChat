@@ -12,8 +12,8 @@ from src.models.user import User
 from src.schemas.chat import (
     ModelName,
     OllamaChatRequest,
+    OllamaModelsWithCapabilitiesResponse,
     OllamaShowResponse,
-    OllamaTagsResponse,
 )
 
 # Router for Ollama API integration
@@ -39,25 +39,78 @@ async def get_ollama_version():
             raise HTTPException(status_code=502, detail=str(e))
 
 
-@router.get("/tags", response_model=OllamaTagsResponse)
-async def get_ollama_tags(current_user: User = Depends(get_current_active_user)):
+@router.get("/tags", response_model=OllamaModelsWithCapabilitiesResponse)
+async def get_ollama_tags_with_capabilities(
+    current_user: User = Depends(get_current_active_user),
+):
     """
-    Retrieve available Ollama model tags.
+    Retrieve available Ollama model tags with their capabilities.
     """
-    app_logger.info(f"User {current_user.id} requested Ollama tags")
+    app_logger.info(f"User {current_user.id} requested Ollama tags with capabilities")
     try:
         async with aiohttp.ClientSession() as session:
             app_logger.info(
                 f"Fetching Ollama tags from API: {OLLAMA_API_BASE_URL}/api/tags"
             )
+
+            # First, get the tags/models list
             async with session.get(f"{OLLAMA_API_BASE_URL}/api/tags") as resp:
                 resp.raise_for_status()
-                return await resp.json()
+                tags_data = await resp.json()
+
+            # Now fetch capabilities for each model
+            models_with_capabilities = []
+            for model in tags_data.get("models", []):
+                model_name = model["name"]
+                app_logger.info(f"Fetching capabilities for model: {model_name}")
+
+                try:
+                    # Get model show info to extract capabilities
+                    async with session.post(
+                        f"{OLLAMA_API_BASE_URL}/api/show", json={"name": model_name}
+                    ) as show_resp:
+                        show_resp.raise_for_status()
+                        show_data = await show_resp.json()
+
+                        # Extract capabilities
+                        capabilities = show_data.get("capabilities", [])
+
+                        # Create enhanced model object
+                        enhanced_model = {
+                            "name": model["name"],
+                            "model": model["model"],
+                            "modified_at": model["modified_at"],
+                            "size": model["size"],
+                            "digest": model["digest"],
+                            "details": model["details"],
+                            "capabilities": capabilities,
+                        }
+                        models_with_capabilities.append(enhanced_model)
+
+                except Exception as model_error:
+                    app_logger.warning(
+                        f"Failed to fetch capabilities for model {model_name}: {str(model_error)}"
+                    )
+                    # Add model without capabilities if show fails
+                    enhanced_model = {
+                        "name": model["name"],
+                        "model": model["model"],
+                        "modified_at": model["modified_at"],
+                        "size": model["size"],
+                        "digest": model["digest"],
+                        "details": model["details"],
+                        "capabilities": [],
+                    }
+                    models_with_capabilities.append(enhanced_model)
+
+            return {"models": models_with_capabilities}
+
     except aiohttp.ClientError as e:
         raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
         app_logger.error(
-            f"Unexpected error fetching Ollama tags: {str(e)}", exc_info=True
+            f"Unexpected error fetching Ollama tags with capabilities: {str(e)}",
+            exc_info=True,
         )
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
@@ -272,42 +325,4 @@ async def chat_ollama(
         )
     except Exception as e:
         app_logger.error(f"Unexpected error in chat_ollama: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
-
-@router.get("/model/{model_name}/capabilities")
-async def get_model_capabilities(
-    model_name: str, current_user: User = Depends(get_current_active_user)
-):
-    """
-    Get model capabilities to check if it supports vision/multimodal features.
-    """
-    app_logger.info(
-        f"User {current_user.id} requested capabilities for model {model_name}"
-    )
-    model_name = model_name.replace("|", "/")  # Bit hacky but its okay
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                f"{OLLAMA_API_BASE_URL}/api/show", json={"name": model_name}
-            ) as resp:
-                resp.raise_for_status()
-                model_info = await resp.json()
-
-                # Extract capabilities from model info
-                capabilities = model_info.get("capabilities", [])
-                has_vision = "vision" in capabilities
-
-                return {
-                    "model": model_name,
-                    "capabilities": capabilities,
-                    "has_vision": has_vision,
-                }
-    except aiohttp.ClientError as e:
-        app_logger.error(f"Error fetching model capabilities: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=502, detail=str(e))
-    except Exception as e:
-        app_logger.error(
-            f"Unexpected error fetching model capabilities: {str(e)}", exc_info=True
-        )
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

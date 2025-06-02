@@ -176,24 +176,33 @@ class OllamaShowResponse(BaseModel):
     capabilities: Optional[List[str]] = None
 
 
-class OllamaModel(BaseModel):
+class ModelName(BaseModel):
+    """Schema for requesting a model by name."""
+
+    model: str = Field(
+        ...,
+        description="Name of the model to request",
+        examples=["gemma3:4b", "qwen3:8b"],
+    )
+
+
+class OllamaModel(ModelName):
     """Schema for individual Ollama model in tags response."""
 
     name: str
-    model: str
     modified_at: datetime
     size: int
     digest: str
     details: ModelDetails
 
 
-class OllamaTagsResponse(BaseModel):
-    """Schema for Ollama tags API response."""
+class OllamaModelWithCapabilities(OllamaModel):
+    """Schema for Ollama model with capabilities information."""
 
-    models: List[OllamaModel]
+    capabilities: Optional[List[str]] = None
 
 
-class ModelName(BaseModel):
-    """Schema for requesting a model by name."""
+class OllamaModelsWithCapabilitiesResponse(BaseModel):
+    """Schema for combined Ollama models with capabilities response."""
 
-    model: str = Field(..., description="Name of the model to request")
+    models: List[OllamaModelWithCapabilities]
