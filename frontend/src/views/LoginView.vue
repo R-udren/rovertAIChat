@@ -1,109 +1,42 @@
 <script setup>
+import { useFormValidation } from '@/composables/useFormValidation'
+import { useSavedUsername } from '@/composables/useSavedUsername'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
-import { loginSchema, validateField, validateForm } from '@/utils/validation'
+import { loginSchema } from '@/utils/validation'
 
 const authStore = useAuthStore()
 const toastStore = useToastStore()
 const route = useRoute()
 const router = useRouter()
 
-const form = ref({
-  username: '',
-  password: '',
-})
+// Form handling
+const { form, errors, isSubmitting, validate, clearErrors } = useFormValidation(loginSchema)
+const { rememberUsername, savedUsername, saveUsername } = useSavedUsername()
 
-const formErrors = ref({
-  username: '',
-  password: '',
-})
-
-const formValid = ref(false)
-const isSubmitting = ref(false)
+// UI state
 const showPassword = ref(false)
-const rememberUsername = ref(localStorage.getItem('remember_username_preference') === 'true')
+const formError = ref('')
 
-// Add watchers for real-time validation
-watch(
-  () => form.value.username,
-  (newValue) => {
-    const result = validateField(loginSchema, 'username', newValue, form.value)
-    formErrors.value.username = result.valid ? '' : result.message
-    validateFormData()
-  },
-)
-
-watch(
-  () => form.value.password,
-  (newValue) => {
-    const result = validateField(loginSchema, 'password', newValue, form.value)
-    formErrors.value.password = result.valid ? '' : result.message
-    validateFormData()
-  },
-)
-
-// Watch for remember username preference changes
-watch(
-  () => rememberUsername.value,
-  (newValue) => {
-    localStorage.setItem('remember_username_preference', newValue)
-
-    // If turning off, clear the saved username
-    if (!newValue) {
-      localStorage.removeItem('remembered_username')
-    } else if (form.value.username) {
-      // If turning on and we have a username, save it
-      localStorage.setItem('remembered_username', form.value.username)
-    }
-  },
-)
-
-// Validate the entire form
-const validateFormData = () => {
-  const result = validateForm(loginSchema, form.value)
-  formValid.value = result.valid
-  return result
+// Initialize form
+form.value = {
+  username: route.query.username || savedUsername.value || '',
+  password: '',
 }
 
+// Check for registration success message
 onMounted(() => {
-  // Check if user was redirected after registration
   if (route.query.registered === 'success') {
     toastStore.success('Registration successful! Please login to continue.')
   }
-
-  // Set username from query parameters if provided
-  if (route.query.username) {
-    form.value.username = route.query.username
-    // If user wants to remember username
-    if (rememberUsername.value) {
-      localStorage.setItem('remembered_username', form.value.username)
-    }
-    validateField(loginSchema, 'username', form.value.username, form.value)
-  }
-  // If no username in query params and user preference is to remember, try to load from localStorage
-  else if (rememberUsername.value && localStorage.getItem('remembered_username')) {
-    form.value.username = localStorage.getItem('remembered_username')
-    validateField(loginSchema, 'username', form.value.username, form.value)
-  }
 })
 
-const formError = ref('')
-
 const handleLogin = async () => {
-  // Validate the form using Zod
-  const validation = validateFormData()
+  clearErrors()
 
-  if (!validation.valid) {
-    // Show the first error message
-    const firstErrorField = Object.keys(validation.errors)[0]
-    formError.value = validation.errors[firstErrorField]
-
-    // Focus on the first field with an error
-    setTimeout(() => {
-      const errorElement = document.getElementById(firstErrorField)
-      if (errorElement) errorElement.focus()
-    }, 100)
-
+  if (!validate()) {
+    const firstError = Object.values(errors.value)[0]
+    formError.value = firstError
     return
   }
 
@@ -112,25 +45,17 @@ const handleLogin = async () => {
 
   try {
     await authStore.login(form.value)
+    const redirectPath = route.query.redirect || '/chat'
+    router.push(redirectPath)
 
-    // Save username to localStorage if user wants to remember
-    if (rememberUsername.value) {
-      localStorage.setItem('remembered_username', form.value.username)
-    }
+    // Save username if user wants to remember
+    saveUsername(form.value.username)
 
     toastStore.success('Login successful! Welcome back.')
 
-    // Redirect to the intended page or home
-    const redirectPath = route.query.redirect || '/chat'
-    router.push(redirectPath)
+    // Redirect to intended page
   } catch (error) {
     formError.value = authStore.error || 'Login failed. Please check your credentials.'
-
-    // Focus on the error message for screen readers
-    setTimeout(() => {
-      const errorElement = document.querySelector('[role="alert"]')
-      if (errorElement) errorElement.focus()
-    }, 100)
   } finally {
     isSubmitting.value = false
   }
@@ -228,7 +153,7 @@ const handleLogin = async () => {
                   type="text"
                   :class="[
                     'w-full pl-10 pr-4 py-3 text-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 autofill:bg-zinc-800 bg-zinc-900/50 backdrop-blur-sm',
-                    formErrors.username
+                    errors.username
                       ? 'border-red-500/50 bg-red-500/10 focus:ring-red-500/50'
                       : form.username
                         ? 'border-green-500/50 bg-green-500/10 focus:ring-green-500/50'
@@ -236,18 +161,18 @@ const handleLogin = async () => {
                   ]"
                   placeholder="Enter your username"
                   autocomplete="username"
-                  :aria-invalid="!!formErrors.username"
-                  :aria-describedby="formErrors.username ? 'username-error' : ''"
+                  :aria-invalid="!!errors.username"
+                  :aria-describedby="errors.username ? 'username-error' : ''"
                   required
                 />
               </div>
               <p
-                v-if="formErrors.username"
+                v-if="errors.username"
                 id="username-error"
                 class="mt-2 text-sm text-red-400 animate-slide-up"
                 aria-live="polite"
               >
-                {{ formErrors.username }}
+                {{ errors.username }}
               </p>
             </div>
 
@@ -277,7 +202,7 @@ const handleLogin = async () => {
                   :type="showPassword ? 'text' : 'password'"
                   :class="[
                     'w-full pl-10 pr-12 py-3 text-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 autofill:bg-zinc-800 bg-zinc-900/50 backdrop-blur-sm',
-                    formErrors.password
+                    errors.password
                       ? 'border-red-500/50 bg-red-500/10 focus:ring-red-500/50'
                       : form.password
                         ? 'border-green-500/50 bg-green-500/10 focus:ring-green-500/50'
@@ -315,8 +240,8 @@ const handleLogin = async () => {
                   </svg>
                 </button>
               </div>
-              <p v-if="formErrors.password" class="mt-2 text-sm text-red-400 animate-slide-up">
-                {{ formErrors.password }}
+              <p v-if="errors.password" class="mt-2 text-sm text-red-400 animate-slide-up">
+                {{ errors.password }}
               </p>
             </div>
           </div>
@@ -348,7 +273,7 @@ const handleLogin = async () => {
             <button
               type="submit"
               class="w-full px-6 py-3 font-semibold text-white transition-all duration-300 shadow-xl rounded-xl bg-gradient-3 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/25 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2 focus:ring-offset-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none group"
-              :disabled="isSubmitting || !formValid"
+              :disabled="isSubmitting"
               aria-busy="isSubmitting"
               aria-live="polite"
             >

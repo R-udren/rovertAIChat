@@ -1,139 +1,37 @@
 <script setup>
+import { useFormValidation } from '@/composables/useFormValidation'
+import { useSavedUsername } from '@/composables/useSavedUsername'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toast'
-import { registerSchema, validateField, validateForm } from '@/utils/validation'
+import { registerSchema } from '@/utils/validation'
 
 const authStore = useAuthStore()
 const toastStore = useToastStore()
 const route = useRoute()
 const router = useRouter()
 
-const form = ref({
-  username: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-})
+// Form handling
+const { form, errors, isSubmitting, validate, clearErrors } = useFormValidation(registerSchema)
+const { rememberUsername, savedUsername, saveUsername } = useSavedUsername()
 
-const formErrors = ref({
-  username: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-})
-
-const formValid = ref(false)
-const formError = ref('')
-const isSubmitting = ref(false)
+// UI state
 const showPassword = ref(false)
-const rememberUsername = ref(localStorage.getItem('remember_username_preference') === 'true')
+const formError = ref('')
 
-// Add watchers for real-time validation
-watch(
-  () => form.value.username,
-  (newValue) => {
-    const result = validateField(registerSchema, 'username', newValue, form.value)
-    formErrors.value.username = result.valid ? '' : result.message
-    validateFormData()
-  },
-)
-
-watch(
-  () => form.value.email,
-  (newValue) => {
-    const result = validateField(registerSchema, 'email', newValue, form.value)
-    formErrors.value.email = result.valid ? '' : result.message
-    validateFormData()
-  },
-)
-
-watch(
-  () => form.value.password,
-  (newValue) => {
-    const result = validateField(registerSchema, 'password', newValue, form.value)
-    formErrors.value.password = result.valid ? '' : result.message
-
-    // Also validate confirmPassword when password changes
-    if (form.value.confirmPassword) {
-      const confirmResult = validateField(
-        registerSchema,
-        'confirmPassword',
-        form.value.confirmPassword,
-        form.value,
-      )
-      formErrors.value.confirmPassword = confirmResult.valid ? '' : confirmResult.message
-    }
-
-    validateFormData()
-  },
-)
-
-watch(
-  () => form.value.confirmPassword,
-  (newValue) => {
-    // For confirmPassword, validate with the full form data
-    const result = validateField(registerSchema, 'confirmPassword', newValue, form.value)
-    formErrors.value.confirmPassword = result.valid ? '' : result.message
-    validateFormData()
-  },
-)
-
-// Watch for remember username preference changes
-watch(
-  () => rememberUsername.value,
-  (newValue) => {
-    localStorage.setItem('remember_username_preference', newValue)
-
-    // If turning off, clear the saved username
-    if (!newValue) {
-      localStorage.removeItem('remembered_username')
-    } else if (form.value.username) {
-      // If turning on and we have a username, save it
-      localStorage.setItem('remembered_username', form.value.username)
-    }
-  },
-)
-
-// Validate the entire form
-const validateFormData = () => {
-  const result = validateForm(registerSchema, form.value)
-  formValid.value = result.valid
-  return result
+// Initialize form
+form.value = {
+  username: route.query.username || savedUsername.value || '',
+  email: '',
+  password: '',
+  confirmPassword: '',
 }
 
-// Check for username in query params on mount
-onMounted(() => {
-  // Set username from query parameters if provided
-  if (route.query.username) {
-    form.value.username = route.query.username
-    // If user wants to remember username
-    if (rememberUsername.value) {
-      localStorage.setItem('remembered_username', form.value.username)
-    }
-    validateField(registerSchema, 'username', form.value.username, form.value)
-  }
-  // If no username in query params and user preference is to remember, try to load from localStorage
-  else if (rememberUsername.value && localStorage.getItem('remembered_username')) {
-    form.value.username = localStorage.getItem('remembered_username')
-    validateField(registerSchema, 'username', form.value.username, form.value)
-  }
-})
-
 const handleRegister = async () => {
-  // Validate the form using Zod
-  const validation = validateFormData()
+  clearErrors()
 
-  if (!validation.valid) {
-    // Show the first error message
-    const firstErrorField = Object.keys(validation.errors)[0]
-    formError.value = validation.errors[firstErrorField]
-
-    // Focus on the first field with an error
-    setTimeout(() => {
-      const errorElement = document.getElementById(firstErrorField)
-      if (errorElement) errorElement.focus()
-    }, 100)
-
+  if (!validate()) {
+    const firstError = Object.values(errors.value)[0]
+    formError.value = firstError
     return
   }
 
@@ -141,44 +39,22 @@ const handleRegister = async () => {
   isSubmitting.value = true
 
   try {
-    // Submit registration data
     await authStore.register({
       username: form.value.username,
       email: form.value.email,
       password: form.value.password,
     })
 
-    // Save username to localStorage if user wants to remember
-    if (rememberUsername.value) {
-      localStorage.setItem('remembered_username', form.value.username)
-    }
+    // Save username if user wants to remember
+    saveUsername(form.value.username)
 
     toastStore.success('Registration successful!')
 
-    // Announce success for screen readers
-    const successAnnouncement = document.createElement('div')
-    successAnnouncement.setAttribute('aria-live', 'assertive')
-    successAnnouncement.setAttribute('class', 'sr-only')
-    successAnnouncement.textContent = 'Registration successful! Redirecting you now.'
-    document.body.appendChild(successAnnouncement)
-
-    // Clean up after 3 seconds
-    setTimeout(() => {
-      document.body.removeChild(successAnnouncement)
-    }, 3000)
-
-    // Redirect to profile page with success message
+    // Redirect to intended page
     const redirectPath = route.query.redirect || '/chat'
     router.push(redirectPath)
   } catch (error) {
     formError.value = authStore.error || 'Registration failed. Please try again.'
-    toastStore.error('Registration failed. Please check your input and try again.')
-
-    // Focus on the error message for screen readers
-    setTimeout(() => {
-      const errorElement = document.querySelector('[role="alert"]')
-      if (errorElement) errorElement.focus()
-    }, 100)
   } finally {
     isSubmitting.value = false
   }
@@ -288,7 +164,7 @@ const handleRegister = async () => {
                   type="text"
                   :class="[
                     'w-full pl-10 pr-4 py-3 text-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 autofill:bg-zinc-800 bg-zinc-900/50 backdrop-blur-sm',
-                    formErrors.username
+                    errors.username
                       ? 'border-red-500/50 bg-red-500/10 focus:ring-red-500/50'
                       : form.username
                         ? 'border-green-500/50 bg-green-500/10 focus:ring-green-500/50'
@@ -296,18 +172,18 @@ const handleRegister = async () => {
                   ]"
                   placeholder="Choose a username"
                   autocomplete="username"
-                  :aria-invalid="!!formErrors.username"
-                  :aria-describedby="formErrors.username ? 'username-error' : 'username-hint'"
+                  :aria-invalid="!!errors.username"
+                  :aria-describedby="errors.username ? 'username-error' : 'username-hint'"
                   required
                 />
               </div>
               <p
-                v-if="formErrors.username"
+                v-if="errors.username"
                 id="username-error"
                 class="mt-2 text-sm text-red-400 animate-slide-up"
                 aria-live="polite"
               >
-                {{ formErrors.username }}
+                {{ errors.username }}
               </p>
               <p v-else id="username-hint" class="mt-2 text-xs text-gray-500">
                 4-64 characters long
@@ -340,7 +216,7 @@ const handleRegister = async () => {
                   type="email"
                   :class="[
                     'w-full pl-10 pr-4 py-3 text-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 autofill:bg-zinc-800 bg-zinc-900/50 backdrop-blur-sm',
-                    formErrors.email
+                    errors.email
                       ? 'border-red-500/50 bg-red-500/10 focus:ring-red-500/50'
                       : form.email
                         ? 'border-green-500/50 bg-green-500/10 focus:ring-green-500/50'
@@ -348,18 +224,18 @@ const handleRegister = async () => {
                   ]"
                   placeholder="Enter your email"
                   autocomplete="email"
-                  :aria-invalid="!!formErrors.email"
-                  :aria-describedby="formErrors.email ? 'email-error' : ''"
+                  :aria-invalid="!!errors.email"
+                  :aria-describedby="errors.email ? 'email-error' : ''"
                   required
                 />
               </div>
               <p
-                v-if="formErrors.email"
+                v-if="errors.email"
                 id="email-error"
                 class="mt-2 text-sm text-red-400 animate-slide-up"
                 aria-live="polite"
               >
-                {{ formErrors.email }}
+                {{ errors.email }}
               </p>
             </div>
           </div>
@@ -390,7 +266,7 @@ const handleRegister = async () => {
                 :type="showPassword ? 'text' : 'password'"
                 :class="[
                   'w-full pl-10 pr-12 py-3 text-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 autofill:bg-zinc-800 bg-zinc-900/50 backdrop-blur-sm',
-                  formErrors.password
+                  errors.password
                     ? 'border-red-500/50 bg-red-500/10 focus:ring-red-500/50'
                     : form.password
                       ? 'border-green-500/50 bg-green-500/10 focus:ring-green-500/50'
@@ -398,8 +274,8 @@ const handleRegister = async () => {
                 ]"
                 placeholder="Create a password"
                 autocomplete="new-password"
-                :aria-invalid="!!formErrors.password"
-                :aria-describedby="formErrors.password ? 'password-error' : 'password-hint'"
+                :aria-invalid="!!errors.password"
+                :aria-describedby="errors.password ? 'password-error' : 'password-hint'"
                 required
               />
               <button
@@ -411,41 +287,32 @@ const handleRegister = async () => {
               >
                 <svg
                   v-if="!showPassword"
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-5"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
+                  <g fill="none">
+                    <path
+                      d="M12 9.005a4 4 0 1 1 0 8a4 4 0 0 1 0-8zm0 1.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 0 0 0-5zM12 5.5c4.613 0 8.596 3.15 9.701 7.564a.75.75 0 1 1-1.455.365a8.503 8.503 0 0 0-16.493.004a.75.75 0 0 1-1.455-.363A10.003 10.003 0 0 1 12 5.5z"
+                      fill="currentColor"
+                    />
+                  </g>
                 </svg>
-                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 24 24">
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                    fill="currentColor"
+                    d="M2.22 2.22a.75.75 0 0 0-.073.976l.073.084l4.034 4.035a10 10 0 0 0-3.955 5.75a.75.75 0 0 0 1.455.364a8.5 8.5 0 0 1 3.58-5.034l1.81 1.81A4 4 0 0 0 14.8 15.86l5.919 5.92a.75.75 0 0 0 1.133-.977l-.073-.084l-6.113-6.114l.001-.002l-1.2-1.198l-2.87-2.87h.002l-2.88-2.877l.001-.002l-1.133-1.13L3.28 2.22a.75.75 0 0 0-1.06 0m7.984 9.045l3.535 3.536a2.5 2.5 0 0 1-3.535-3.535M12 5.5c-1 0-1.97.148-2.889.425l1.237 1.236a8.503 8.503 0 0 1 9.899 6.272a.75.75 0 0 0 1.455-.363A10 10 0 0 0 12 5.5m.195 3.51l3.801 3.8a4.003 4.003 0 0 0-3.801-3.8"
                   />
                 </svg>
               </button>
             </div>
             <p
-              v-if="formErrors.password"
+              v-if="errors.password"
               id="password-error"
               class="mt-2 text-sm text-red-400 animate-slide-up"
               aria-live="polite"
             >
-              {{ formErrors.password }}
+              {{ errors.password }}
             </p>
             <p v-else id="password-hint" class="mt-2 text-xs text-gray-500">
               At least 8 characters long
@@ -478,7 +345,7 @@ const handleRegister = async () => {
                 :type="showPassword ? 'text' : 'password'"
                 :class="[
                   'w-full pl-10 pr-12 py-3 text-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-200 autofill:bg-zinc-800 bg-zinc-900/50 backdrop-blur-sm',
-                  formErrors.confirmPassword
+                  errors.confirmPassword
                     ? 'border-red-500/50 bg-red-500/10 focus:ring-red-500/50'
                     : form.confirmPassword
                       ? 'border-green-500/50 bg-green-500/10 focus:ring-green-500/50'
@@ -486,8 +353,8 @@ const handleRegister = async () => {
                 ]"
                 placeholder="Confirm your password"
                 autocomplete="new-password"
-                :aria-invalid="!!formErrors.confirmPassword"
-                :aria-describedby="formErrors.confirmPassword ? 'confirmPassword-error' : ''"
+                :aria-invalid="!!errors.confirmPassword"
+                :aria-describedby="errors.confirmPassword ? 'confirmPassword-error' : ''"
                 required
               />
               <button
@@ -499,41 +366,32 @@ const handleRegister = async () => {
               >
                 <svg
                   v-if="!showPassword"
-                  class="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-5"
                   viewBox="0 0 24 24"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
+                  <g fill="none">
+                    <path
+                      d="M12 9.005a4 4 0 1 1 0 8a4 4 0 0 1 0-8zm0 1.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 0 0 0-5zM12 5.5c4.613 0 8.596 3.15 9.701 7.564a.75.75 0 1 1-1.455.365a8.503 8.503 0 0 0-16.493.004a.75.75 0 0 1-1.455-.363A10.003 10.003 0 0 1 12 5.5z"
+                      fill="currentColor"
+                    />
+                  </g>
                 </svg>
-                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="size-5" viewBox="0 0 24 24">
                   <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                    fill="currentColor"
+                    d="M2.22 2.22a.75.75 0 0 0-.073.976l.073.084l4.034 4.035a10 10 0 0 0-3.955 5.75a.75.75 0 0 0 1.455.364a8.5 8.5 0 0 1 3.58-5.034l1.81 1.81A4 4 0 0 0 14.8 15.86l5.919 5.92a.75.75 0 0 0 1.133-.977l-.073-.084l-6.113-6.114l.001-.002l-1.2-1.198l-2.87-2.87h.002l-2.88-2.877l.001-.002l-1.133-1.13L3.28 2.22a.75.75 0 0 0-1.06 0m7.984 9.045l3.535 3.536a2.5 2.5 0 0 1-3.535-3.535M12 5.5c-1 0-1.97.148-2.889.425l1.237 1.236a8.503 8.503 0 0 1 9.899 6.272a.75.75 0 0 0 1.455-.363A10 10 0 0 0 12 5.5m.195 3.51l3.801 3.8a4.003 4.003 0 0 0-3.801-3.8"
                   />
                 </svg>
               </button>
             </div>
             <p
-              v-if="formErrors.confirmPassword"
+              v-if="errors.confirmPassword"
               id="confirmPassword-error"
               class="mt-2 text-sm text-red-400 animate-slide-up"
               aria-live="polite"
             >
-              {{ formErrors.confirmPassword }}
+              {{ errors.confirmPassword }}
             </p>
           </div>
 
@@ -564,7 +422,7 @@ const handleRegister = async () => {
             <button
               type="submit"
               class="w-full px-6 py-3 font-semibold text-white transition-all duration-300 shadow-xl rounded-xl bg-gradient-2 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-500/25 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:ring-offset-2 focus:ring-offset-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none group"
-              :disabled="isSubmitting || !formValid"
+              :disabled="isSubmitting"
               aria-busy="isSubmitting"
               aria-live="polite"
             >
