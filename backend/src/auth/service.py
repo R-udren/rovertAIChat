@@ -144,8 +144,6 @@ def get_current_user(
     if token_version is None or str(token_version) != str(user.token_version):
         app_logger.warning(f"Token version mismatch for user: {user.id}")
         raise credentials_exception
-
-    app_logger.debug(f"User authenticated via token: {user.username}")
     return user
 
 
