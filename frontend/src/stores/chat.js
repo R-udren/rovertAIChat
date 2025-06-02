@@ -62,7 +62,7 @@ export const useChatStore = defineStore('chat', () => {
       loading.value = true
       error.value = null
 
-      const response = await api.get(`/chats/${chatId}`)
+      const response = await api.get(`/chats/chat/${chatId}`)
 
       currentConversation.value = response.chat
       messages.value = response.messages.map((msg) => ({
@@ -112,7 +112,7 @@ export const useChatStore = defineStore('chat', () => {
   // Update chat (title, archived status)
   async function updateChat(chatId, updates) {
     try {
-      const response = await api.patch(`/chats/${chatId}`, updates)
+      const response = await api.patch(`/chats/chat/${chatId}`, updates)
 
       // Update in conversations list
       const index = conversations.value.findIndex((c) => c.id === chatId)
@@ -135,7 +135,7 @@ export const useChatStore = defineStore('chat', () => {
   // Delete chat
   async function deleteChat(chatId) {
     try {
-      await api.delete(`/chats/${chatId}`)
+      await api.delete(`/chats/chat/${chatId}`)
 
       // Remove from conversations list
       conversations.value = conversations.value.filter((c) => c.id !== chatId)

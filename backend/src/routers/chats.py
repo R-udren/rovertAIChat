@@ -48,7 +48,62 @@ async def get_user_chats(
     return {"total": total, "chats": chats, "skip": skip, "limit": limit}
 
 
-@router.get("/{chat_id}", response_model=chat_schemas.ChatMessagesResponse)
+@router.post(
+    "/my",
+    response_model=chat_schemas.ChatResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_chat(
+    chat_data: chat_schemas.ChatCreateSchema = Body(default=None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Create a new empty chat.
+
+    Args:
+        chat_data: Optional data for creating the chat
+
+    Returns:
+        The created chat object
+    """
+    title = "New Chat"
+    if chat_data and chat_data.title:
+        title = chat_data.title
+
+    app_logger.info(
+        f"Creating new chat with title '{title}' for user {current_user.id}"
+    )
+    chat = Chat(user_id=current_user.id, title=title)
+    db.add(chat)
+    db.commit()
+    db.refresh(chat)
+    app_logger.debug(f"Created chat with ID: {chat.id}")
+
+    return chat
+
+
+@router.delete("/my", status_code=status.HTTP_200_OK)
+async def delete_all_chats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    Delete all chats for the current user.
+
+    Returns:
+        Success confirmation
+    """
+    app_logger.info(f"Deleting all chats for user {current_user.id}")
+    db.query(Message).filter(Message.chat.has(user_id=current_user.id)).delete()
+    db.query(Chat).filter(Chat.user_id == current_user.id).delete()
+    db.commit()
+    app_logger.info(f"Deleted all chats for user {current_user.id}")
+
+    return {"success": True, "message": "All chats deleted"}
+
+
+@router.get("/chat/{chat_id}", response_model=chat_schemas.ChatMessagesResponse)
 async def get_chat(
     chat_id: UUID,
     db: Session = Depends(get_db),
@@ -90,42 +145,7 @@ async def get_chat(
     return {"chat": chat, "messages": messages}
 
 
-@router.post(
-    "/my",
-    response_model=chat_schemas.ChatResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_chat(
-    chat_data: chat_schemas.ChatCreateSchema = Body(default=None),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    """
-    Create a new empty chat.
-
-    Args:
-        chat_data: Optional data for creating the chat
-
-    Returns:
-        The created chat object
-    """
-    title = "New Chat"
-    if chat_data and chat_data.title:
-        title = chat_data.title
-
-    app_logger.info(
-        f"Creating new chat with title '{title}' for user {current_user.id}"
-    )
-    chat = Chat(user_id=current_user.id, title=title)
-    db.add(chat)
-    db.commit()
-    db.refresh(chat)
-    app_logger.debug(f"Created chat with ID: {chat.id}")
-
-    return chat
-
-
-@router.patch("/{chat_id}", response_model=chat_schemas.ChatResponse)
+@router.patch("/chat/{chat_id}", response_model=chat_schemas.ChatResponse)
 async def update_chat(
     chat_id: UUID,
     chat_update: chat_schemas.ChatUpdateSchema,
@@ -175,7 +195,7 @@ async def update_chat(
     return chat
 
 
-@router.delete("/{chat_id}", status_code=status.HTTP_200_OK)
+@router.delete("/chat/{chat_id}", status_code=status.HTTP_200_OK)
 async def delete_chat(
     chat_id: UUID,
     db: Session = Depends(get_db),
@@ -215,26 +235,6 @@ async def delete_chat(
     app_logger.info(f"Deleted chat {chat_id} with {message_count} messages")
 
     return {"success": True, "message": "Chat and all messages deleted"}
-
-
-@router.delete("/my", status_code=status.HTTP_200_OK)
-async def delete_all_chats(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    """
-    Delete all chats for the current user.
-
-    Returns:
-        Success confirmation
-    """
-    app_logger.info(f"Deleting all chats for user {current_user.id}")
-    db.query(Message).filter(Message.chat.has(user_id=current_user.id)).delete()
-    db.query(Chat).filter(Chat.user_id == current_user.id).delete()
-    db.commit()
-    app_logger.info(f"Deleted all chats for user {current_user.id}")
-
-    return {"success": True, "message": "All chats deleted"}
 
 
 @router.get("/models", response_model=chat_schemas.ModelListResponse)
