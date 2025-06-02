@@ -23,13 +23,17 @@ RUN bun run build
 
 # Production stage - using nginx to serve static files
 FROM nginx:alpine AS release
-# Copy nginx configuration
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx configuration template
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf.template
+# Copy startup script
+COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 # Copy SSL certificates
 COPY ./certs /etc/nginx/ssl
 # Copy built static files from build stage
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
-# Configure manifest.webmanifest mime type 
-RUN echo "include /etc/nginx/mime.types; types { application/manifest+json webmanifest; }" > /etc/nginx/conf.d/mime.types.conf
 
 EXPOSE 80 443
+
+# Use custom entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]
