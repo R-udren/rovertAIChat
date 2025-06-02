@@ -9,7 +9,7 @@ from src.core.logger import app_logger
 from src.database import get_db
 from src.models.chat_models import Chat, Message, Model
 from src.models.user import User
-from src.schemas.chat import (
+from src.schemas.ollama import (
     ModelName,
     OllamaChatRequest,
     OllamaModelsWithCapabilitiesResponse,
