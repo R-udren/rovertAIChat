@@ -331,7 +331,7 @@ const checkOllamaVersion = async () => {
     <!-- Pull Model Modal -->
     <div
       v-if="showPullModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/70"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur"
     >
       <div class="w-full max-w-md p-6 mx-4 rounded-lg bg-zinc-800">
         <div class="flex items-center justify-between mb-4">
