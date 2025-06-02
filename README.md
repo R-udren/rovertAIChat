@@ -217,7 +217,7 @@ docker-compose down -v && docker-compose up -d
 
 rovertChat implements three user roles:
 
-- **Guest**: Can interact with AI models in a very limited session
+- **Guest**: Can do nothing except discovering fancy home page
 - **User**: Has persistent chat history and personalized settings
 - **Admin**: Can upload and manage LLM models, configure system settings, and manage users
 
