@@ -175,7 +175,7 @@ const saveProfile = async () => {
         <button
           v-if="!isEditing"
           @click="startEditing"
-          class="px-4 py-2 font-medium text-white transition-colors duration-200 rounded-md bg-primary-600 hover:bg-primary-700"
+          class="px-4 py-2 font-medium text-white transition-colors duration-200 bg-indigo-600 rounded-md hover:bg-indigo-700"
         >
           Edit Profile
         </button>
@@ -183,7 +183,7 @@ const saveProfile = async () => {
 
       <div v-if="authStore.loading" class="py-8 text-center">
         <div
-          class="w-12 h-12 mx-auto border-t-2 border-solid rounded-full border-primary-500 animate-spin"
+          class="w-12 h-12 mx-auto border-t-2 border-indigo-500 border-solid rounded-full animate-spin"
         ></div>
         <p class="mt-2 text-gray-400">Loading profile...</p>
       </div>
@@ -288,7 +288,7 @@ const saveProfile = async () => {
                   ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
                   : formData.username
                     ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500'
-                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-indigo-500',
               ]"
               required
               minlength="4"
@@ -320,7 +320,7 @@ const saveProfile = async () => {
                   ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
                   : formData.email
                     ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500'
-                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-indigo-500',
               ]"
               required
             />
@@ -352,7 +352,7 @@ const saveProfile = async () => {
                   ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
                   : formData.display_name
                     ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500'
-                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-indigo-500',
               ]"
               maxlength="100"
             />
@@ -386,7 +386,7 @@ const saveProfile = async () => {
                   ? 'border-red-500 bg-red-500/10 focus:ring-red-500'
                   : formData.avatar_url
                     ? 'border-green-500/50 bg-green-500/5 focus:ring-green-500/50'
-                    : 'border-zinc-700 bg-zinc-900 focus:ring-primary-500',
+                    : 'border-zinc-700 bg-zinc-900 focus:ring-indigo-500',
               ]"
             />
             <transition
@@ -437,7 +437,7 @@ const saveProfile = async () => {
           <div class="flex pt-2 space-x-4">
             <button
               type="submit"
-              class="px-4 py-2 font-medium text-white transition-colors duration-200 rounded-md bg-primary-600 hover:bg-primary-700"
+              class="px-4 py-2 font-medium text-white transition-colors duration-200 bg-indigo-600 rounded-md hover:bg-indigo-700"
               :disabled="isSubmitting"
             >
               {{ isSubmitting ? 'Saving...' : 'Save Changes' }}

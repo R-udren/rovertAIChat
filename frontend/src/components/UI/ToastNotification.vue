@@ -47,8 +47,8 @@ const typeConfig = {
     icon: 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z',
   },
   info: {
-    bg: 'from-primary-500/80 to-primary-600/80',
-    border: 'border-primary-400/30',
+    bg: 'from-indigo-500/80 to-indigo-600/80',
+    border: 'border-indigo-400/30',
     icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
   },
   warning: {

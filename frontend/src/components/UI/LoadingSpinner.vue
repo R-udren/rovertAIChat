@@ -11,7 +11,7 @@ defineProps({
   },
   color: {
     type: String,
-    default: 'primary',
+    default: 'indigo',
   },
 })
 
@@ -31,8 +31,7 @@ const sizeClasses = {
 }
 
 const colorClasses = {
-  primary:
-    'border-t-primary-500 border-r-primary-500/30 border-b-primary-500/10 border-l-primary-500/0',
+  indigo: 'border-t-indigo-500 border-r-indigo-500/30 border-b-indigo-500/10 border-l-indigo-500/0',
   white: 'border-t-white border-r-white/30 border-b-white/10 border-l-white/0',
   blue: 'border-t-blue-500 border-r-blue-500/30 border-b-blue-500/10 border-l-blue-500/0',
 }

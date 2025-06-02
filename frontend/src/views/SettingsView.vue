@@ -86,7 +86,7 @@ const saveSettings = async () => {
 
       <div v-if="userSettingsStore.loading" class="py-8 text-center">
         <div
-          class="w-12 h-12 mx-auto border-t-2 border-solid rounded-full border-primary-500 animate-spin"
+          class="w-12 h-12 mx-auto border-t-2 border-indigo-500 border-solid rounded-full animate-spin"
         ></div>
         <p class="mt-2 text-gray-400">Loading settings...</p>
       </div>
@@ -102,7 +102,7 @@ const saveSettings = async () => {
             <select
               id="default_model"
               v-model="formData.default_model_id"
-              class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">Select a default model</option>
             </select>
@@ -123,7 +123,7 @@ const saveSettings = async () => {
               <select
                 id="theme"
                 v-model="formData.preferences.theme"
-                class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 disabled
               >
                 <option value="dark">Dark</option>
@@ -140,7 +140,7 @@ const saveSettings = async () => {
               <select
                 id="fontSize"
                 v-model="formData.preferences.fontSize"
-                class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 disabled
               >
                 <option value="small">Small</option>
@@ -157,7 +157,7 @@ const saveSettings = async () => {
               <select
                 id="chatBubbleStyle"
                 v-model="formData.preferences.chatBubbleStyle"
-                class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                class="w-full px-3 py-2 text-white border rounded-md border-zinc-700 bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="rounded">Rounded</option>
                 <option value="square">Square</option>
@@ -171,7 +171,7 @@ const saveSettings = async () => {
                 id="messageSound"
                 v-model="formData.preferences.messageSound"
                 type="checkbox"
-                class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-zinc-600 bg-zinc-900"
+                class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-zinc-600 bg-zinc-900"
               />
               <label for="messageSound" class="block ml-2 text-sm text-gray-300">
                 Play sound on message
@@ -185,7 +185,7 @@ const saveSettings = async () => {
                 id="notifications"
                 v-model="formData.preferences.notifications"
                 type="checkbox"
-                class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-zinc-600 bg-zinc-900"
+                class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-zinc-600 bg-zinc-900"
               />
               <label for="notifications" class="block ml-2 text-sm text-gray-300">
                 Enable browser notifications
@@ -199,7 +199,7 @@ const saveSettings = async () => {
                 id="streamingEnabled"
                 v-model="formData.preferences.streamingEnabled"
                 type="checkbox"
-                class="w-4 h-4 rounded text-primary-600 focus:ring-primary-500 border-zinc-600 bg-zinc-900"
+                class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-zinc-600 bg-zinc-900"
               />
               <label for="streamingEnabled" class="block ml-2 text-sm text-gray-300">
                 Enable streaming responses
@@ -212,7 +212,7 @@ const saveSettings = async () => {
         <div>
           <button
             type="submit"
-            class="px-4 py-2 font-medium text-white transition-colors duration-200 rounded-md bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 font-medium text-white transition-colors duration-200 bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="isSubmitting || !formValid"
           >
             {{ isSubmitting ? 'Saving...' : 'Save Settings' }}

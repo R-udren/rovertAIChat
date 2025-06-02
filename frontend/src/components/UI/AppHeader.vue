@@ -124,14 +124,14 @@ onUnmounted(() => {
             "
             :to="link.path"
             class="relative px-1 py-1 text-gray-300 transition-all duration-200 hover:text-white group"
-            active-class="text-primary-400"
+            active-class="text-indigo-400"
           >
             {{ link.name }}
             <span
-              class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full"
+              class="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-500 transition-all duration-300 group-hover:w-full"
             ></span>
             <span
-              class="absolute bottom-0 left-0 w-full h-0.5 bg-primary-500 opacity-0 transition-opacity duration-300"
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 opacity-0 transition-opacity duration-300"
               :class="{ 'opacity-100': $route.path === link.path }"
             ></span>
           </router-link>
@@ -144,7 +144,7 @@ onUnmounted(() => {
           >
             Logout
             <span
-              class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full"
+              class="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-500 transition-all duration-300 group-hover:w-full"
             ></span>
           </button>
         </template>
@@ -153,20 +153,20 @@ onUnmounted(() => {
           <router-link
             to="/login"
             class="relative px-1 py-1 text-gray-300 transition-all duration-200 hover:text-white group"
-            active-class="text-primary-400"
+            active-class="text-indigo-400"
           >
             Login
             <span
-              class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 transition-all duration-300 group-hover:w-full"
+              class="absolute bottom-0 left-0 w-0 h-0.5 bg-indigo-500 transition-all duration-300 group-hover:w-full"
             ></span>
             <span
-              class="absolute bottom-0 left-0 w-full h-0.5 bg-primary-500 opacity-0 transition-opacity duration-300"
+              class="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 opacity-0 transition-opacity duration-300"
               :class="{ 'opacity-100': $route.path === '/login' }"
             ></span>
           </router-link>
           <router-link
             to="/register"
-            class="px-4 py-2 text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 active:scale-95"
+            class="px-4 py-2 text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 active:scale-95"
           >
             Register
           </router-link>
@@ -253,7 +253,7 @@ onUnmounted(() => {
               class="flex items-center justify-between py-3 text-lg font-medium text-left transition-colors duration-200"
               :class="
                 $route.path === link.path
-                  ? 'text-primary-400 hover:text-primary-600'
+                  ? 'text-indigo-400 hover:text-indigo-600'
                   : 'text-gray-300 hover:text-white'
               "
             >
@@ -261,7 +261,7 @@ onUnmounted(() => {
               <svg
                 v-if="$route.path === link.path"
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-primary-500"
+                class="w-6 h-6 text-indigo-500"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -296,13 +296,13 @@ onUnmounted(() => {
             <button
               @click="handleNavigation('/login')"
               class="flex items-center justify-between py-3 text-lg font-medium text-left transition-colors duration-200"
-              :class="$route.path === '/login' ? 'text-primary-400' : 'text-gray-300'"
+              :class="$route.path === '/login' ? 'text-indigo-400' : 'text-gray-300'"
             >
               Login
               <svg
                 v-if="$route.path === '/login'"
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-primary-500"
+                class="w-5 h-5 text-indigo-500"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -316,7 +316,7 @@ onUnmounted(() => {
 
             <button
               @click="handleNavigation('/register')"
-              class="w-full py-3 text-lg font-medium text-center text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800"
+              class="w-full py-3 text-lg font-medium text-center text-white transition-all duration-200 rounded-lg shadow-md bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800"
             >
               Register
             </button>
