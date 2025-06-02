@@ -176,9 +176,7 @@ function selectChat(chat) {
                 'group-hover:shadow-lg',
                 isMobile ? 'backdrop-blur-sm' : '',
                 chat.id === currentConversation?.id
-                  ? isMobile
-                    ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 border border-indigo-500/30 text-white shadow-lg shadow-indigo-500/10'
-                    : 'bg-gradient-to-r from-zinc-700 to-zinc-600 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 border border-indigo-500/30 text-white shadow-lg shadow-indigo-500/10'
                   : 'text-gray-300 hover:text-white',
               ]"
               @click="selectChat(chat)"
