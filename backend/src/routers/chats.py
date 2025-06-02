@@ -32,9 +32,6 @@ async def get_user_chats(
     Returns:
         A paginated list of user chats
     """
-    app_logger.debug(
-        f"Getting chats for user: {current_user.id}, include_archived: {include_archived}"
-    )
     query = db.query(Chat).filter(Chat.user_id == current_user.id)
 
     if not include_archived:
