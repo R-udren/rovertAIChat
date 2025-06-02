@@ -279,9 +279,18 @@ const checkOllamaVersion = async () => {
             <span class="text-zinc-400">Family:</span>
             <span class="text-white">{{ model.details?.family || 'Unknown' }}</span>
           </div>
-          <div class="flex justify-between text-sm">
-            <span class="text-zinc-400">Format:</span>
-            <span class="text-white">{{ model.details?.format || 'Unknown' }}</span>
+          <!-- Capabilities (if available) -->
+          <div v-if="model.capabilities && model.capabilities.length > 0" class="text-sm">
+            <span class="text-zinc-400">Capabilities:</span>
+            <div class="flex flex-wrap gap-1 mt-1">
+              <span
+                v-for="capability in model.capabilities"
+                :key="capability"
+                class="px-2 py-1 text-xs text-gray-200 border border-purple-700 rounded-full bg-purple-600/10"
+              >
+                {{ capability }}
+              </span>
+            </div>
           </div>
         </div>
 

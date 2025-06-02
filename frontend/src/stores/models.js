@@ -5,7 +5,6 @@ import { computed, readonly, ref } from 'vue'
 
 export const useModelsStore = defineStore('models', () => {
   const models = ref([])
-  const modelCapabilities = ref({}) // Store capabilities for each model
   const loading = ref(false)
   const error = ref(null)
   const lastFetch = ref(null)
@@ -41,6 +40,7 @@ export const useModelsStore = defineStore('models', () => {
       error.value = null
 
       const response = await api.get('/ollama/tags')
+      // Models now include capabilities directly from the backend
       models.value = response.models || []
       lastFetch.value = Date.now()
 
@@ -62,41 +62,28 @@ export const useModelsStore = defineStore('models', () => {
     }
   }
 
-  // Fetch capabilities for a specific model
-  const getModelCapabilities = async (modelName) => {
+  // Get capabilities for a specific model (now from cached model data)
+  const getModelCapabilities = (modelName) => {
     if (!modelName) return null
 
-    // Return cached capabilities if available
-    if (modelCapabilities.value[modelName]) {
-      return modelCapabilities.value[modelName]
-    }
-    const modelNameSafe = modelName.replace('/', '|') // TODO: Think about smarter solution but it works for now
-    try {
-      const response = await api.get(`/ollama/model/${modelNameSafe}/capabilities`)
-      modelCapabilities.value[modelName] = response
-      return response
-    } catch (err) {
-      console.error(`Error fetching capabilities for model ${modelName}:`, err)
-      return null
-    }
+    const model = getModelByName(modelName)
+    return model?.capabilities || []
   }
 
   // Check if a model has vision capabilities
   const hasVisionCapability = (modelName) => {
-    const capabilities = modelCapabilities.value[modelName]
-    return capabilities?.has_vision || false
+    const capabilities = getModelCapabilities(modelName)
+    return capabilities.includes('vision') || capabilities.includes('multimodal')
   }
 
-  // Get model with capabilities
-  const getModelWithCapabilities = async (modelName) => {
+  // Get model with capabilities (now synchronous since capabilities are included)
+  const getModelWithCapabilities = (modelName) => {
     const model = getModelByName(modelName)
     if (!model) return null
 
-    const capabilities = await getModelCapabilities(modelName)
     return {
       ...model,
-      capabilities: capabilities?.capabilities || [],
-      has_vision: capabilities?.has_vision || false,
+      has_vision: hasVisionCapability(modelName),
     }
   }
 
@@ -133,7 +120,6 @@ export const useModelsStore = defineStore('models', () => {
         return 'Unknown status'
     }
   })
-
   return {
     models: readonly(models),
     loading: readonly(loading),
@@ -147,6 +133,5 @@ export const useModelsStore = defineStore('models', () => {
     getModelCapabilities,
     hasVisionCapability,
     getModelWithCapabilities,
-    modelCapabilities: readonly(modelCapabilities),
   }
 })

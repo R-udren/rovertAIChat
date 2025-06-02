@@ -13,7 +13,6 @@ const emit = defineEmits(['update:modelId', 'modelChanged'])
 const modelsStore = useModelsStore()
 const selectedModel = ref('')
 const isDropdownOpen = ref(false)
-const modelCapabilitiesCache = ref({})
 
 onMounted(async () => {
   const storedModel = localStorage.getItem('preferredModel')
@@ -26,11 +25,6 @@ onMounted(async () => {
   if (!selectedModel.value && modelsStore.models.length > 0) {
     selectedModel.value = modelsStore.models[0].name
     saveModelPreference(selectedModel.value)
-  }
-
-  // Fetch capabilities for all models to show vision badges
-  for (const model of modelsStore.models) {
-    await fetchModelCapabilities(model.name)
   }
 
   document.addEventListener('click', closeDropdown)
@@ -60,29 +54,16 @@ const saveModelPreference = (modelName) => {
   localStorage.setItem('preferredModel', modelName)
 }
 
-// Fetch capabilities for a model when needed
-const fetchModelCapabilities = async (modelName) => {
-  if (!modelName || modelCapabilitiesCache.value[modelName]) return
-
-  const capabilities = await modelsStore.getModelCapabilities(modelName)
-  if (capabilities) {
-    modelCapabilitiesCache.value[modelName] = capabilities
-  }
-}
-
-// Check if model has vision support
+// Check if model has vision support (now synchronous)
 const modelHasVision = (modelName) => {
-  return modelCapabilitiesCache.value[modelName]?.has_vision || false
+  return modelsStore.hasVisionCapability(modelName)
 }
 
-// Handle model selection with capability loading
-const selectModel = async (model) => {
+// Handle model selection (simplified)
+const selectModel = (model) => {
   selectedModel.value = model.name
   isDropdownOpen.value = false
   saveModelPreference(model.name)
-
-  // Fetch capabilities for the selected model
-  await fetchModelCapabilities(model.name)
 
   // Emit events will be handled by the watch above
 }
