@@ -218,7 +218,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="relative p-4 border-t border-zinc-700 bg-zinc-800">
+  <div class="relative p-4 border-t border-zinc-800 bg-zinc-900">
     <!-- Upload feedback -->
     <div v-if="uploadFeedback" class="mb-3">
       <div
@@ -295,7 +295,7 @@ defineExpose({
     </div>
 
     <div
-      class="flex items-center justify-center px-2 transition-all rounded-lg bg-zinc-700 focus-within:ring-2 focus-within:ring-zinc-500"
+      class="flex items-center justify-center px-2 transition-all rounded-lg bg-zinc-800 focus-within:ring-2 focus-within:ring-zinc-500"
     >
       <!-- Image upload button -->
       <button

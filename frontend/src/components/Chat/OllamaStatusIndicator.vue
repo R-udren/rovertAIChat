@@ -87,6 +87,18 @@ const handleRetry = async () => {
 
     <!-- Status text -->
     <span class="font-medium">{{ modelsStore.statusMessage }}</span>
+    <span
+      v-if="modelsStore.ollamaStatus === 'offline'"
+      class="flex items-center gap-1 text-gray-400"
+    >
+      Is Ollama running? You can download it from
+      <a
+        href="https://ollama.com/"
+        target="_blank"
+        class="underline transition-colors hover:text-red-400"
+        >ollama.com</a
+      >
+    </span>
 
     <!-- Retry button for offline state -->
     <button

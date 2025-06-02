@@ -103,14 +103,7 @@ const sendMessage = async () => {
 
   const model = localStorage.getItem('preferredModel') || selectedModel.value
 
-  // Check if streaming is enabled in user settings
-  const useStreaming = userSettingsStore.settings?.preferences?.streamingEnabled ?? false
-
-  if (useStreaming) {
-    await chatStore.streamChatResponse(message, model, images)
-  } else {
-    await chatStore.sendMessage(message, model, images)
-  }
+  await chatStore.sendMessage(message, model, images)
 
   // If a new conversation was created, navigate to it
   if (chatStore.currentConversation && route.path === '/chat') {

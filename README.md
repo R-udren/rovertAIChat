@@ -1,6 +1,11 @@
 # rovertChat ( ͡° ͜ʖ ͡°)
 
-**rovertChat** is a feature-poor, self-hosted AI platform that prioritizes privacy and user experience. It seamlessly integrates with LLM runners like Ollama and supports OpenAI-compatible APIs, giving you complete control over your AI interactions.
+[![GitHub Repository](https://img.shields.io/badge/GitHub-rovertAIChat-blue?style=for-the-badge&logo=github)](https://github.com/R-udren/rovertAIChat)
+[![Stars](https://img.shields.io/github/stars/R-udren/rovertAIChat?style=for-the-badge)](https://github.com/R-udren/rovertAIChat/stargazers)
+[![License](https://img.shields.io/github/license/R-udren/rovertAIChat?style=for-the-badge)](https://github.com/R-udren/rovertAIChat/blob/main/LICENSE)
+[![Issues](https://img.shields.io/github/issues/R-udren/rovertAIChat?style=for-the-badge)](https://github.com/R-udren/rovertAIChat/issues)
+
+**rovertChat** is a powerful, self-hosted AI platform that prioritizes privacy and user experience. It seamlessly integrates with LLM runners like Ollama and supports OpenAI-compatible APIs, giving you complete control over your AI interactions.
 
 ## 🚀 Key Features
 
@@ -35,8 +40,8 @@ Before getting started, ensure you have the following installed:
 1. **Clone the repository**
 
    ```bash
-   git clone <your-repo-url>
-   cd rovertchat
+   git clone https://github.com/R-udren/rovertAIChat.git
+   cd rovertAIChat
    ```
 
 2. **Set up environment variables**
@@ -269,14 +274,14 @@ bun test
 
 We welcome contributions! Please follow these steps:
 
-1. Fork the repository
+1. Fork the [repository](https://github.com/R-udren/rovertAIChat)
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Add tests for new functionality
 5. Ensure all tests pass
 6. Commit your changes (`git commit -m 'Add amazing feature'`)
 7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
+8. Open a Pull Request on [GitHub](https://github.com/R-udren/rovertAIChat/pulls)
 
 ## 📝 Development Guidelines
 
@@ -287,9 +292,10 @@ We welcome contributions! Please follow these steps:
 
 ## 🆘 Support
 
+- **GitHub Repository**: [R-udren/rovertAIChat](https://github.com/R-udren/rovertAIChat)
 - **Documentation**: Check this README and API docs
-- **Issues**: Report bugs and request features via GitHub Issues
-- **Discussions**: Join community discussions in GitHub Discussions
+- **Issues**: [Report bugs and request features](https://github.com/R-udren/rovertAIChat/issues)
+- **Discussions**: [Join community discussions](https://github.com/R-udren/rovertAIChat/discussions)
 
 ## 🙏 Acknowledgments
 
