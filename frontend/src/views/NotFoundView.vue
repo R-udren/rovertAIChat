@@ -11,5 +11,19 @@
         Return Home
       </router-link>
     </div>
+    <!-- Animated background elements -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div
+        class="absolute rounded-full -top-40 -right-40 w-80 h-80 bg-purple-500/10 blur-3xl animate-pulse-subtle"
+      ></div>
+      <div
+        class="absolute rounded-full -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 blur-3xl animate-pulse-subtle"
+        style="animation-delay: 1s"
+      ></div>
+      <div
+        class="absolute w-64 h-64 rounded-full top-1/8 left-1/3 bg-pink-500/5 blur-3xl animate-pulse-subtle"
+        style="animation-delay: 2s"
+      ></div>
+    </div>
   </div>
 </template>
