@@ -1,7 +1,8 @@
 import os
 from datetime import timedelta
+from typing import Optional
 
-from fastapi import Response
+from fastapi import Request, Response
 from src.core.logger import app_logger
 
 # JWT Configuration
@@ -12,6 +13,32 @@ COOKIE_SECURE = os.getenv("ENVIRONMENT", "production") == "production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+
+
+# Function to determine if we should use secure cookies and domain
+def get_cookie_config(request: Optional[Request] = None):
+    """
+    Determine cookie configuration based on the request host.
+    Returns (secure, domain) tuple.
+    """
+    if request and hasattr(request, "headers"):
+        host = request.headers.get("host", "").lower()
+
+        # If it's localhost or local IP, don't use secure cookies and no domain restriction
+        if (
+            "localhost" in host
+            or "127.0.0.1" in host
+            or "0.0.0.0" in host
+            or host.startswith("192.168.")
+            or host.startswith("10.")
+        ):
+            return False, None
+        else:
+            # For real domains, use secure cookies and set domain
+            return True, COOKIE_DOMAIN if COOKIE_DOMAIN != "localhost" else None
+
+    # Fallback to environment-based configuration
+    return COOKIE_SECURE, COOKIE_DOMAIN if COOKIE_DOMAIN != "localhost" else None
 
 
 # Convert durations to timedelta objects for easier use
@@ -33,40 +60,50 @@ app_logger.debug(f"Cookie secure: {COOKIE_SECURE}")
 
 
 # Set cookies helper function
-def set_auth_cookies(response: Response, access_token: str, refresh_token: str):
+def set_auth_cookies(
+    response: Response,
+    access_token: str,
+    refresh_token: str,
+    request: Optional[Request] = None,
+):
+    secure, domain = get_cookie_config(request)
+
+    cookie_kwargs = {
+        "httponly": True,
+        "secure": secure,
+        "samesite": "lax",
+    }
+
+    if domain:
+        cookie_kwargs["domain"] = domain
+
     response.set_cookie(
         key="access_token",
         value=access_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite="lax",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         path="/api",
-        domain=COOKIE_DOMAIN,
+        **cookie_kwargs,
     )
 
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite="lax",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         path="/api/v1/auth/refresh",
-        domain=COOKIE_DOMAIN,
+        **cookie_kwargs,
     )
 
 
 # Clear cookies helper function
-def clear_auth_cookies(response: Response):
-    response.delete_cookie(
-        key="access_token",
-        path="/",
-        domain=COOKIE_DOMAIN,
-    )
+def clear_auth_cookies(response: Response, request: Optional[Request] = None):
+    secure, domain = get_cookie_config(request)
+
+    cookie_kwargs = {}
+    if domain:
+        cookie_kwargs["domain"] = domain
+
+    response.delete_cookie(key="access_token", path="/", **cookie_kwargs)
 
     response.delete_cookie(
-        key="refresh_token",
-        path="/api/v1/auth/refresh",
-        domain=COOKIE_DOMAIN,
+        key="refresh_token", path="/api/v1/auth/refresh", **cookie_kwargs
     )

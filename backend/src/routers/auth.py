@@ -86,6 +86,7 @@ async def login(
         response=response,
         access_token=access_token,
         refresh_token=refresh_token,
+        request=request,
     )
 
     return {
@@ -158,11 +159,11 @@ async def refresh_token(
             data={"sub": str(user.id)}, token_version=user.token_version
         )
         app_logger.info(f"Tokens refreshed successfully for user: {user.username}")
-
         set_auth_cookies(
             response=response,
             access_token=access_token,
             refresh_token=refresh_token,
+            request=request,
         )
 
         return {
@@ -197,9 +198,7 @@ async def logout(
 
     # Increment the token version to invalidate all existing tokens
     increment_token_version(db, current_user)
-
-    # Clear cookies
-    clear_auth_cookies(response)
+    clear_auth_cookies(response, request)  # Clear cookies
 
     app_logger.info(f"User logged out successfully: {current_user.username}")
     return {"detail": "Successfully logged out"}
