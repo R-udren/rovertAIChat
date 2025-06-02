@@ -161,9 +161,6 @@ def get_current_active_admin(
     current_user: User = Depends(get_current_active_user),
 ) -> User:
     """Get the current user and verify they are an admin."""
-    app_logger.debug(
-        f"Checking if `{current_user.username}` is admin: {current_user.get_role()}"
-    )
     if current_user.is_admin() is False:
         app_logger.warning(f"Non-admin user attempt: {current_user.id}")
         raise HTTPException(status_code=403, detail="Not an admin user")
