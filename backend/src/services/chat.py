@@ -284,9 +284,6 @@ class MessageService:
             role=message.role,
             content=message.content,
             images=message.images,
-            model_id=message.model_id,
-            tokens_used=message.tokens_used,
-            extended_metadata=message.extended_metadata,
         )
 
         # Update the chat's last activity timestamp

@@ -63,7 +63,6 @@ class ChatUpdateSchema(BaseModel):
 
 
 class MessageCreateSchema(BaseModel):
-    chat_id: UUID
     role: str = Field(
         ..., description="Role of the message sender (e.g., 'user', 'assistant')"
     )
@@ -71,9 +70,6 @@ class MessageCreateSchema(BaseModel):
     images: Optional[List[str]] = Field(
         None, description="List of base64 encoded images"
     )
-    model_id: Optional[UUID] = None
-    tokens_used: int = Field(0, description="Number of tokens used for this message")
-    extended_metadata: Optional[Dict[str, Any]] = None
 
 
 class MessageUpdateSchema(BaseModel):

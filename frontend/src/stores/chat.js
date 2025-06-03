@@ -205,16 +205,13 @@ export const useChatStore = defineStore('chat', () => {
 
     error.value = null
     try {
-      const userMessage = {
-        id: Date.now().toString(),
-        chat_id: currentConversation.value.id, // add chat_id here
+      sending.value = true
+
+      const messageInDb = await api.post(`/chats/${currentConversation.value.id}/messages`, {
         content: message,
         role: 'user',
-        timestamp: new Date().toISOString(),
-      }
-
-      messages.value.push(userMessage)
-      sending.value = true
+      })
+      messages.value.push(messageInDb)
 
       // Add a temporary loading message
       const loadingMessageId = `loading-${Date.now()}`
