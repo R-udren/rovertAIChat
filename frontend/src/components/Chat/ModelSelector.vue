@@ -177,7 +177,7 @@ watch(
     <!-- Main Button -->
     <button
       @click="toggleDropdown"
-      class="group flex items-center gap-3 p-2 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out min-w-0 w-full md:w-auto"
+      class="group flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out min-w-0 w-auto"
       :class="{
         'bg-zinc-700 hover:bg-zinc-600 text-white shadow-lg hover:shadow-xl':
           status === 'ready' && selectedModel,
@@ -230,7 +230,7 @@ watch(
       </div>
 
       <!-- Model Name -->
-      <div class="flex-1 min-w-0">
+      <div class="flex-1 min-w-0 mx-1">
         <span class="block truncate text-left">
           {{ displayText }}
         </span>
@@ -265,7 +265,7 @@ watch(
     >
       <div
         v-if="isDropdownOpen"
-        class="absolute right-0 z-50 w-96 mt-2 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden"
+        class="absolute right-0 z-50 w-[60vw] max-w-sm mt-2 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden"
       >
         <!-- Content -->
         <div class="max-h-[50vh] overflow-y-auto">
@@ -375,7 +375,7 @@ watch(
               v-for="model in modelsStore.models"
               :key="model.id || model.name"
               @click="selectModel(model)"
-              class="w-full px-4 py-4 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors group flex items-start gap-3 border-l-3 border-transparent"
+              class="w-full px-3 sm:px-4 py-3 sm:py-4 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors group flex items-start gap-2 sm:gap-3 border-l-3 border-transparent"
               :class="{
                 'bg-blue-50 dark:bg-blue-900/20 border-l-blue-500': model.name === selectedModel,
               }"
@@ -408,7 +408,7 @@ watch(
 
               <!-- Model Info -->
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
                   <span
                     class="font-semibold text-zinc-900 dark:text-white truncate text-sm"
                     :class="{ 'text-blue-700 dark:text-blue-300': model.name === selectedModel }"
@@ -424,7 +424,10 @@ watch(
                 </div>
 
                 <!-- Model Size -->
-                <div v-if="model.details?.parameter_size" class="flex items-center gap-2 mb-2">
+                <div
+                  v-if="model.details?.parameter_size"
+                  class="flex flex-wrap items-center gap-2 mb-2"
+                >
                   <span
                     class="text-xs font-medium px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
                   >
@@ -446,11 +449,11 @@ watch(
                   <div
                     v-for="capability in getDisplayCapabilities(model.capabilities)"
                     :key="capability"
-                    class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 shadow-sm"
+                    class="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 shadow-sm"
                     :title="getCapabilityInfo(capability).label"
                   >
                     <svg
-                      class="w-3 h-3"
+                      class="size-3"
                       :class="getCapabilityInfo(capability).color"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -463,7 +466,7 @@ watch(
                         :d="getCapabilityInfo(capability).icon"
                       />
                     </svg>
-                    <span class="text-zinc-700 dark:text-zinc-300">
+                    <span class="text-zinc-700 dark:text-zinc-300 text-[10px] sm:text-xs">
                       {{ getCapabilityInfo(capability).label }}
                     </span>
                   </div>
@@ -489,7 +492,7 @@ watch(
         <!-- Footer -->
         <div
           v-if="status === 'ready'"
-          class="bg-gradient-to-r from-zinc-50 to-blue-50 dark:from-zinc-800 dark:to-blue-900/20 border-t border-zinc-200 dark:border-zinc-700"
+          class="bg-gradient-to-r from-zinc-50 to-blue-50 dark:from-zinc-800 dark:to-blue-900/20 border-t border-zinc-200 dark:border-zinc-700 p-2"
         >
           <button
             @click="handleRefresh"
