@@ -1,4 +1,6 @@
 <script setup>
+import MessageActions from '@/components/Chat/MessageActions.vue'
+import MessageEditor from '@/components/Chat/MessageEditor.vue'
 import { useUserSettingsStore } from '@/stores/userSettings'
 import DOMPurify from 'dompurify'
 import hljs from 'highlight.js'
@@ -18,7 +20,21 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isEditing: {
+    type: Boolean,
+    default: false,
+  },
+  editError: {
+    type: String,
+    default: null,
+  },
+  isSavingEdit: {
+    type: Boolean,
+    default: false,
+  },
 })
+
+const emit = defineEmits(['edit', 'delete', 'save-edit', 'cancel-edit'])
 
 const userSettingsStore = useUserSettingsStore()
 const isExpanded = ref(false)
@@ -354,7 +370,7 @@ const isErrorMessage = computed(() => {
   <div
     v-else
     :class="[
-      'flex items-start gap-4 px-4 py-6 transition-opacity duration-300',
+      'flex items-start gap-4 px-4 py-6 transition-opacity duration-300 group relative',
       message.role === 'assistant' ? 'bg-zinc-800/50 rounded-lg' : '',
       isStreaming || message.isLoading ? 'opacity-80' : 'opacity-100',
     ]"
@@ -399,16 +415,40 @@ const isErrorMessage = computed(() => {
     <div class="flex-1 min-w-0">
       <!-- Header -->
       <div class="flex items-center justify-between mb-2">
-        <div class="font-medium text-gray-200">
+        <div class="font-medium text-gray-200 flex items-center gap-2">
           {{ message.role === 'assistant' ? 'AI Assistant' : displayName }}
+          <span v-if="message.isEdited" class="text-xs text-gray-400 italic">(edited)</span>
         </div>
         <div class="text-xs text-gray-400">
           {{ formatTime(message.created_at || message.timestamp) }}
         </div>
       </div>
 
-      <!-- Content -->
+      <!-- Message actions (edit/delete) -->
+      <MessageActions
+        v-if="!isSystemMessage && !props.isEditing"
+        :message="message"
+        :is-system-message="isSystemMessage"
+        :is-editing="props.isEditing"
+        :can-edit="message.role === 'user'"
+        :can-delete="message.role !== 'system'"
+        @edit="$emit('edit', message)"
+        @delete="$emit('delete', message)"
+      />
+
+      <!-- Editor (when editing) -->
+      <MessageEditor
+        v-if="props.isEditing && message.id === props.message.id"
+        :content="message.content"
+        :error="props.editError"
+        :saving="props.isSavingEdit"
+        @save="(content) => $emit('save-edit', content)"
+        @cancel="$emit('cancel-edit')"
+      />
+
+      <!-- Content (when not editing) -->
       <div
+        v-else
         ref="contentRef"
         class="prose transition-all duration-300 message-content prose-invert max-w-none"
         :class="[isTruncatable && !isExpanded ? 'max-h-[500px] overflow-hidden gradient-mask' : '']"
@@ -417,7 +457,7 @@ const isErrorMessage = computed(() => {
 
       <!-- Expand/collapse button -->
       <button
-        v-if="isTruncatable"
+        v-if="isTruncatable && !props.isEditing"
         @click="toggleExpand"
         class="px-2 py-1 mt-2 text-sm text-indigo-400 transition-colors rounded hover:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
       >

@@ -1,22 +1,24 @@
 <script setup>
-import ChatMessage from '@/components/Chat/ChatMessage.vue'
-import { ref } from 'vue'
-
-defineProps({
+const props = defineProps({
   currentConversation: Object,
   messages: Array,
   loading: Boolean,
   streaming: Boolean,
+  isEditing: Boolean,
+  messageBeingEdited: Object,
+  editError: String,
+  isSavingEdit: Boolean,
 })
 
-defineEmits(['start-new-chat'])
+const emit = defineEmits([
+  'start-new-chat',
+  'edit-message',
+  'delete-message',
+  'save-edit',
+  'cancel-edit',
+])
 
 const scrollContainer = ref(null)
-
-// Expose the scroll container to parent
-defineExpose({
-  scrollContainer,
-})
 </script>
 
 <template>
@@ -115,6 +117,13 @@ defineExpose({
         :message="message"
         :is-streaming="message.isStreaming"
         :is-last="index === messages.length - 1"
+        :is-editing="props.isEditing && props.messageBeingEdited?.id === message.id"
+        :edit-error="props.editError"
+        :is-saving-edit="props.isSavingEdit"
+        @edit="$emit('edit-message', $event)"
+        @delete="$emit('delete-message', $event)"
+        @save-edit="$emit('save-edit', $event)"
+        @cancel-edit="$emit('cancel-edit')"
       />
 
       <div
@@ -140,6 +149,22 @@ defineExpose({
       </div>
     </div>
   </div>
+  <!-- Delete Message Confirmation Modal (moved to top-level ChatView) -->
+  <!--
+  <Suspense>
+    <ConfirmationModal
+      v-if="showMessageDeleteModal"
+      :is-open="showMessageDeleteModal"
+      type="warning"
+      title="Delete Message"
+      message="Are you sure you want to delete this message? This action cannot be undone."
+      confirm-text="Delete Message"
+      cancel-text="Cancel"
+      @confirm="deleteMessage"
+      @cancel="showMessageDeleteModal = false"
+      @close="showMessageDeleteModal = false"
+    />
+  </Suspense>-->
 </template>
 
 <style scoped>
@@ -229,35 +254,5 @@ defineExpose({
 
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8));
-}
-
-/* Enhanced animations for better UX */
-.space-y-6 > * {
-  animation: slide-in-up 0.5s ease-out forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.space-y-6 > *:nth-child(1) {
-  animation-delay: 0.1s;
-}
-.space-y-6 > *:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.space-y-6 > *:nth-child(3) {
-  animation-delay: 0.3s;
-}
-.space-y-6 > *:nth-child(4) {
-  animation-delay: 0.4s;
-}
-.space-y-6 > *:nth-child(5) {
-  animation-delay: 0.5s;
-}
-
-@keyframes slide-in-up {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>

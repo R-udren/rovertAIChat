@@ -67,6 +67,7 @@ export const useChatStore = defineStore('chat', () => {
       currentConversation.value = response.chat
       messages.value = response.messages.map((msg) => ({
         id: msg.id,
+        chat_id: response.chat.id, // ensure chat_id is present
         content: msg.content,
         thinking: msg.thinking,
         role: msg.role,
@@ -206,6 +207,7 @@ export const useChatStore = defineStore('chat', () => {
     try {
       const userMessage = {
         id: Date.now().toString(),
+        chat_id: currentConversation.value.id, // add chat_id here
         content: message,
         role: 'user',
         timestamp: new Date().toISOString(),
@@ -261,7 +263,8 @@ export const useChatStore = defineStore('chat', () => {
 
       // Create the assistant message using the ID returned from the backend
       const assistantMessage = {
-        id: response.id, // This ID comes from the database now
+        id: response.id,
+        chat_id: currentConversation.value.id, // add chat_id for assistant message
         model: response.model,
         content: response.message.content,
         thinking: response.message.thinking, // (for thinking models) the model's thinking process
@@ -297,6 +300,70 @@ export const useChatStore = defineStore('chat', () => {
       console.error('Error sending message:', err)
     } finally {
       sending.value = false
+    }
+  }
+
+  // Delete message
+  async function deleteMessage(chatId, messageId) {
+    try {
+      await api.delete(`/chats/${chatId}/messages/${messageId}`)
+
+      // Remove from messages array
+      messages.value = messages.value.filter((msg) => msg.id !== messageId)
+
+      toastStore.success('Message deleted successfully')
+      return true
+    } catch (err) {
+      toastStore.error('Failed to delete message')
+      console.error('Error deleting message:', err)
+      return false
+    }
+  }
+
+  // Bulk delete messages
+  async function bulkDeleteMessages(chatId, messageIds) {
+    try {
+      await api.delete(`/chats/${chatId}/messages/bulk`, {
+        message_ids: messageIds,
+      })
+
+      // Remove from messages array
+      messages.value = messages.value.filter((msg) => !messageIds.includes(msg.id))
+
+      const count = messageIds.length
+      toastStore.success(`${count} message${count !== 1 ? 's' : ''} deleted successfully`)
+      return true
+    } catch (err) {
+      toastStore.error('Failed to delete messages')
+      console.error('Error deleting messages:', err)
+      return false
+    }
+  }
+
+  // Update message
+  async function updateMessage(chatId, messageId, content, images = null, metadata = null) {
+    try {
+      const updateData = { content }
+      if (images !== null) updateData.images = images
+      if (metadata !== null) updateData.extended_metadata = metadata
+
+      const response = await api.patch(`/chats/${chatId}/messages/${messageId}`, updateData)
+
+      // Update in messages array without replacing object
+      const msg = messages.value.find((m) => m.id === messageId)
+      if (msg) {
+        msg.content = content
+        msg.isEdited = true
+        if (images !== null) msg.images = images
+        if (metadata !== null) msg.extended_metadata = metadata
+      }
+
+      toastStore.success('Message updated successfully')
+      return response
+    } catch (err) {
+      toastStore.error('Failed to update message')
+      console.error('Error updating message:', err)
+      throw err
     }
   }
 
@@ -350,6 +417,9 @@ export const useChatStore = defineStore('chat', () => {
     updateChat,
     deleteChat,
     deleteChats,
+    deleteMessage,
+    bulkDeleteMessages,
+    updateMessage,
     sendMessage,
     selectConversation,
     resetChat,

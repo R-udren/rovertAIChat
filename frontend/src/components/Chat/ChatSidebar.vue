@@ -237,7 +237,7 @@ function selectChat(chat) {
     </div>
 
     <!-- Footer section -->
-    <div class="p-3 border-t border-zinc-700/50 bg-zinc-900/50">
+    <div class="p-3 bg-zinc-900/50">
       <!-- Clear all chats button -->
       <div v-if="conversations.length > 0" class="mb-4">
         <button

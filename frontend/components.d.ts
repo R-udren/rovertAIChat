@@ -24,6 +24,8 @@ declare module 'vue' {
     EditUserModal: typeof import('./src/components/Admin/EditUserModal.vue')['default']
     ErrorMessage: typeof import('./src/components/UI/ErrorMessage.vue')['default']
     LoadingSpinner: typeof import('./src/components/UI/LoadingSpinner.vue')['default']
+    MessageActions: typeof import('./src/components/Chat/MessageActions.vue')['default']
+    MessageEditor: typeof import('./src/components/Chat/MessageEditor.vue')['default']
     ModelSelector: typeof import('./src/components/Chat/ModelSelector.vue')['default']
     OllamaStatusIndicator: typeof import('./src/components/Chat/OllamaStatusIndicator.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

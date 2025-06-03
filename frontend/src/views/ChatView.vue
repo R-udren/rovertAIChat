@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted } from 'vue'
 // Store imports
 import { useChatStore } from '@/stores/chat'
 import { useModelsStore } from '@/stores/models'
@@ -7,6 +8,7 @@ import { useModelsStore } from '@/stores/models'
 import { useChatDeletion } from '@/composables/useChatDeletion'
 import { useChatInitialization } from '@/composables/useChatInitialization'
 import { useChatOperations } from '@/composables/useChatOperations'
+import { useMessageActions } from '@/composables/useMessageActions'
 import { useSidebar } from '@/composables/useSidebar'
 
 // Access stores
@@ -44,6 +46,19 @@ const {
 
 // Initialize sidebar composable
 const { showSidebar, isMobileSidebarOpen, toggleSidebar, toggleMobileSidebar } = useSidebar()
+
+// Initialize message actions composable
+const {
+  isEditing,
+  messageBeingEdited,
+  editedContent,
+  editError,
+  isSavingEdit,
+  startEditing,
+  cancelEditing,
+  saveEdit,
+  deleteMessage,
+} = useMessageActions()
 
 // Initialize chat when component mounts
 onMounted(() => {
@@ -148,7 +163,15 @@ onMounted(() => {
                 :messages="chatStore.messages"
                 :loading="chatStore.loading"
                 :streaming="chatStore.streaming"
+                :is-editing="isEditing"
+                :message-being-edited="messageBeingEdited"
+                :edit-error="editError"
+                :is-saving-edit="isSavingEdit"
                 @start-new-chat="startNewChat"
+                @edit-message="startEditing"
+                @delete-message="deleteMessage"
+                @save-edit="saveEdit"
+                @cancel-edit="cancelEditing"
               />
             </template>
             <template #fallback>

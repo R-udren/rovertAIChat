@@ -369,10 +369,12 @@ watch(
               v-for="model in modelsStore.models"
               :key="model.id || model.name"
               @click="selectModel(model)"
-              class="w-full px-3 sm:px-4 py-3 sm:py-4 text-left hover:bg-zinc-50 dark:hover:bg-zinc-700/50 transition-colors group flex items-start gap-2 sm:gap-3 border-l-3 border-transparent"
               :class="{
-                'bg-blue-50 dark:bg-blue-900/20 border-l-blue-500': model.name === selectedModel,
+                'bg-blue-900/20 border-l-blue-500 hover:bg-blue-900/50':
+                  model.name === selectedModel,
+                'hover:bg-zinc-700/50': model.name !== selectedModel,
               }"
+              class="w-full px-3 sm:px-4 py-3 sm:py-4 text-left transition-colors group flex items-start gap-2 sm:gap-3 border-l-3 border-transparent"
             >
               <!-- Model Icon -->
               <div class="flex-shrink-0 mt-0.5">
@@ -381,7 +383,7 @@ watch(
                   :class="
                     model.name === selectedModel
                       ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white'
-                      : 'bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-700 dark:to-zinc-600 text-zinc-600 dark:text-zinc-300'
+                      : 'bg-gradient-to-br  from-zinc-700 to-zinc-600 text-zinc-300'
                   "
                 >
                   <svg
@@ -404,14 +406,14 @@ watch(
               <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
                   <span
-                    class="font-semibold text-zinc-900 dark:text-white truncate text-sm"
-                    :class="{ 'text-blue-700 dark:text-blue-300': model.name === selectedModel }"
+                    class="font-semibold text-white truncate text-sm"
+                    :class="{ 'text-blue-300': model.name === selectedModel }"
                   >
                     {{ model.display_name || model.name }}
                   </span>
                   <span
                     v-if="model.name === selectedModel"
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-900/50 text-blue-300"
                   >
                     Active
                   </span>
@@ -422,15 +424,10 @@ watch(
                   v-if="model.details?.parameter_size"
                   class="flex flex-wrap items-center gap-2 mb-2"
                 >
-                  <span
-                    class="text-xs font-medium px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
-                  >
+                  <span class="text-xs font-medium px-2 py-1 rounded-md bg-zinc-700 text-zinc-300">
                     {{ model.details.parameter_size }}
                   </span>
-                  <span
-                    v-if="model.details?.quantization_level"
-                    class="text-xs text-zinc-500 dark:text-zinc-400"
-                  >
+                  <span v-if="model.details?.quantization_level" class="text-xs text-zinc-400">
                     {{ model.details.quantization_level }}
                   </span>
                 </div>
@@ -443,7 +440,7 @@ watch(
                   <div
                     v-for="capability in getDisplayCapabilities(model.capabilities)"
                     :key="capability"
-                    class="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-xs font-medium bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 shadow-sm"
+                    class="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg text-xs font-medium bg-zinc-800 border border-zinc-600 shadow-sm"
                     :title="getCapabilityInfo(capability).label"
                   >
                     <svg
@@ -460,7 +457,7 @@ watch(
                         :d="getCapabilityInfo(capability).icon"
                       />
                     </svg>
-                    <span class="text-zinc-700 dark:text-zinc-300 text-[10px] sm:text-xs">
+                    <span class="text-zinc-300 text-[10px] sm:text-xs">
                       {{ getCapabilityInfo(capability).label }}
                     </span>
                   </div>
@@ -486,11 +483,11 @@ watch(
         <!-- Footer -->
         <div
           v-if="status === 'ready'"
-          class="bg-gradient-to-r from-zinc-50 to-blue-50 dark:from-zinc-800 dark:to-blue-900/20 border-t border-zinc-200 dark:border-zinc-700 p-2"
+          class="bg-gradient-to-r from-zinc-800 to-blue-900/20 border-t border-zinc-700 p-2"
         >
           <button
             @click="handleRefresh"
-            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-700 rounded-lg transition-colors"
+            class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-700 rounded-lg transition-colors"
             :disabled="modelsStore.loading"
           >
             <svg
