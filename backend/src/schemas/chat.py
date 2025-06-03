@@ -76,6 +76,45 @@ class MessageCreateSchema(BaseModel):
     extended_metadata: Optional[Dict[str, Any]] = None
 
 
+class MessageUpdateSchema(BaseModel):
+    """Schema for updating a message"""
+
+    content: Optional[str] = Field(
+        None, min_length=1, description="Updated content of the message"
+    )
+    images: Optional[List[str]] = Field(
+        None, description="Updated list of base64 encoded images"
+    )
+    extended_metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Updated metadata"
+    )
+
+
+class MessageDeleteResponse(BaseModel):
+    """Response schema for message deletion"""
+
+    success: bool
+    message: str
+    deleted_message_id: UUID
+
+
+class BulkMessageDeleteSchema(BaseModel):
+    """Schema for bulk message deletion"""
+
+    message_ids: List[UUID] = Field(..., description="List of message IDs to delete")
+
+
+class BulkMessageDeleteResponse(BaseModel):
+    """Response schema for bulk message deletion"""
+
+    success: bool
+    message: str
+    deleted_count: int
+    failed_deletions: List[UUID] = Field(
+        default_factory=list, description="Message IDs that failed to delete"
+    )
+
+
 class MessageResponse(BaseModel):
     """Response schema for a message"""
 
