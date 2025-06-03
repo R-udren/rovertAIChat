@@ -204,34 +204,39 @@ export const useChatStore = defineStore('chat', () => {
     }
 
     error.value = null
+    const tempUserId = `temp-user-${Date.now()}`
+    const tempAssistantId = `temp-assistant-${Date.now()}`
+
     try {
-      const userMessage = {
-        id: Date.now().toString(),
-        chat_id: currentConversation.value.id, // add chat_id here
+      // Add optimistic user message with temporary ID
+      const tempUserMessage = {
+        id: tempUserId,
+        chat_id: currentConversation.value.id,
         content: message,
         role: 'user',
         timestamp: new Date().toISOString(),
+        isTemporary: true,
       }
-
-      messages.value.push(userMessage)
+      messages.value.push(tempUserMessage)
       sending.value = true
 
-      // Add a temporary loading message
-      const loadingMessageId = `loading-${Date.now()}`
-      const loadingMessage = {
-        id: loadingMessageId,
+      // Add temporary loading assistant message
+      const tempAssistantMessage = {
+        id: tempAssistantId,
+        chat_id: currentConversation.value.id,
         content: '',
         role: 'assistant',
         isLoading: true,
+        isTemporary: true,
         timestamp: new Date().toISOString(),
       }
-      messages.value.push(loadingMessage)
+      messages.value.push(tempAssistantMessage)
 
       // Send request to Ollama API with the chatId
       const response = await api.post('ollama/chat', {
         chatId: currentConversation.value.id,
         messages: messages.value
-          .filter((msg) => !msg.isLoading) // Don't include the loading placeholder
+          .filter((msg) => !msg.isLoading && !msg.isTemporary) // Exclude temp and loading messages
           .map((msg) => ({
             role: msg.role,
             content: msg.content,
@@ -242,11 +247,8 @@ export const useChatStore = defineStore('chat', () => {
         think: undefined, // TODO: Implement later
       })
 
-      // Replace the loading message with the actual response
-      const loadingIndex = messages.value.findIndex((m) => m.id === loadingMessageId)
-      if (loadingIndex !== -1) {
-        messages.value.splice(loadingIndex, 1)
-      }
+      // Remove temporary messages
+      messages.value = messages.value.filter((m) => m.id !== tempUserId && m.id !== tempAssistantId)
 
       // Update chat title if it was auto-generated from the first message
       if (response.chat && response.chat.title && currentConversation.value) {
@@ -261,26 +263,40 @@ export const useChatStore = defineStore('chat', () => {
         }
       }
 
-      // Create the assistant message using the ID returned from the backend
-      const assistantMessage = {
-        id: response.id,
-        chat_id: currentConversation.value.id, // add chat_id for assistant message
-        model: response.model,
-        content: response.message.content,
-        thinking: response.message.thinking, // (for thinking models) the model's thinking process
-        role: 'assistant',
-        timestamp: new Date().toISOString(),
+      // Add the real user message with server-provided ID
+      if (response.userMessage) {
+        const realUserMessage = {
+          id: response.userMessage.id, // Server-provided UUID
+          chat_id: currentConversation.value.id,
+          content: response.userMessage.content,
+          role: 'user',
+          created_at: response.userMessage.created_at,
+          timestamp: response.userMessage.created_at,
+        }
+        messages.value.push(realUserMessage)
       }
-      console.log('Assistant message:', assistantMessage)
-      messages.value.push(assistantMessage)
+
+      // Add the assistant message with server-provided ID
+      if (response.assistantMessage || response.message) {
+        const assistantData = response.assistantMessage || response
+        const realAssistantMessage = {
+          id: assistantData.id, // Server-provided UUID
+          chat_id: currentConversation.value.id,
+          model: assistantData.model || model,
+          content: assistantData.message?.content || assistantData.content,
+          thinking: assistantData.message?.thinking || assistantData.thinking,
+          role: 'assistant',
+          created_at: assistantData.created_at,
+          timestamp: assistantData.created_at,
+        }
+        console.log('Assistant message:', realAssistantMessage)
+        messages.value.push(realAssistantMessage)
+      }
     } catch (err) {
       error.value = 'Failed to send message'
 
-      // Remove the loading message
-      const loadingIndex = messages.value.findIndex((m) => m.isLoading)
-      if (loadingIndex !== -1) {
-        messages.value.splice(loadingIndex, 1)
-      }
+      // Remove temporary messages on error
+      messages.value = messages.value.filter((m) => m.id !== tempUserId && m.id !== tempAssistantId)
 
       // Add system error message to chat
       let errorMessage = 'Failed to get response from Ollama'

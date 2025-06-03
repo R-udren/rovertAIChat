@@ -159,13 +159,14 @@ async def chat_ollama(
         )
 
         if not chat:
-            raise HTTPException(status_code=404, detail="Chat not found")
-
-        # Save the user message to the database
+            raise HTTPException(
+                status_code=404, detail="Chat not found"
+            )  # Save the user message to the database
         latest_user_message = next(
             (msg for msg in reversed(chat_request.messages) if msg.role == "user"), None
         )
 
+        user_db_message = None
         if latest_user_message:
             user_db_message = Message(
                 chat_id=chat_request.chatId,
@@ -235,7 +236,23 @@ async def chat_ollama(
             db.commit()
             db.refresh(assistant_db_message)
 
-            # Set the ID in the response
+            # Prepare response with both user and assistant message IDs
+            response_data["assistantMessage"] = {
+                "id": str(assistant_db_message.id),
+                "content": response_data["message"]["content"],
+                "created_at": assistant_db_message.created_at.isoformat(),
+                "model": chat_request.model,
+            }
+
+            # Include user message data if it was created
+            if user_db_message:
+                response_data["userMessage"] = {
+                    "id": str(user_db_message.id),
+                    "content": user_db_message.content,
+                    "created_at": user_db_message.created_at.isoformat(),
+                }
+
+            # Set the ID in the response for backward compatibility
             response_data["id"] = str(assistant_db_message.id)
 
             # Include updated chat data in response
