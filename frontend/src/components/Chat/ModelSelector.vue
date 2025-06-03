@@ -234,12 +234,6 @@ watch(
         <span class="block truncate text-left">
           {{ displayText }}
         </span>
-        <span
-          v-if="selectedModelDetails?.details?.parameter_size && status === 'ready'"
-          class="block text-xs opacity-75 text-left"
-        >
-          {{ selectedModelDetails.details.parameter_size }}
-        </span>
       </div>
 
       <!-- Dropdown Arrow -->
