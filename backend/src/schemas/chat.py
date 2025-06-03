@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -133,10 +133,21 @@ class ModelListResponse(BaseModel):
 
 
 class ChatMessage(BaseModel):
-    role: str = Field(
-        ..., description="Role of the message sender (e.g., 'user', 'assistant')"
+    role: Literal["user", "assistant", "system", "tool"] = Field(
+        ...,
+        description="Role of the message sender (e.g., 'user', 'assistant')",
+        examples=["user", "assistant", "system", "tool"],
     )
-    content: str = Field(..., description="Content of the message")
+    content: str = Field(
+        ..., description="Content of the message", examples=["Hello, how are you?"]
+    )
+    thinking: Optional[str] = Field(
+        None,
+        description="Thinking process of the model before responding",
+        examples=["Let me think about that..."],
+    )
     images: Optional[List[str]] = Field(
-        None, description="List of base64 encoded images for multimodal models"
+        None,
+        description="List of base64 encoded images for multimodal models",
+        examples=[],
     )

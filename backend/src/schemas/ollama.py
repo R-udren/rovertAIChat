@@ -12,6 +12,9 @@ class OllamaChatRequest(BaseModel):
         ..., description="List of conversation messages"
     )
     stream: Optional[bool] = Field(False, description="Whether to stream the response")
+    think: Optional[bool] = Field(
+        None, description="Should the model think before responding?"
+    )
     options: Optional[Dict[str, Any]] = Field(
         None, description="Additional model options"
     )

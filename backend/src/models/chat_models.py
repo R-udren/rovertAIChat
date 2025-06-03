@@ -75,6 +75,10 @@ class Message(Base):
     chat_id = Column(UUID(as_uuid=True), ForeignKey("chats.id"))
     role = Column(String(50), nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
+    thinking = Column(
+        Text, nullable=True
+    )  # For assistant messages that think before responding
+    tool_calls = Column(JSON, nullable=True)  # For assistant messages that call tools
     images = Column(
         JSON, nullable=True
     )  # Store base64 encoded images for multimodal models

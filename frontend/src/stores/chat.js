@@ -68,6 +68,7 @@ export const useChatStore = defineStore('chat', () => {
       messages.value = response.messages.map((msg) => ({
         id: msg.id,
         content: msg.content,
+        thinking: msg.thinking,
         role: msg.role,
         timestamp: msg.created_at,
         model_id: msg.model_id,
@@ -170,7 +171,7 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   // Send message
-  async function sendMessage(message, model) {
+  async function sendMessage(message, model, think = true) {
     if (!message) {
       toastStore.error('Message cannot be empty')
       return
@@ -232,9 +233,11 @@ export const useChatStore = defineStore('chat', () => {
           .map((msg) => ({
             role: msg.role,
             content: msg.content,
+            thinking: msg.thinking,
           })),
         model: model,
         stream: false,
+        think: undefined, // TODO: Implement later
       })
 
       // Replace the loading message with the actual response
@@ -259,10 +262,13 @@ export const useChatStore = defineStore('chat', () => {
       // Create the assistant message using the ID returned from the backend
       const assistantMessage = {
         id: response.id, // This ID comes from the database now
+        model: response.model,
         content: response.message.content,
+        thinking: response.message.thinking, // (for thinking models) the model's thinking process
         role: 'assistant',
         timestamp: new Date().toISOString(),
       }
+      console.log('Assistant message:', assistantMessage)
       messages.value.push(assistantMessage)
     } catch (err) {
       error.value = 'Failed to send message'
