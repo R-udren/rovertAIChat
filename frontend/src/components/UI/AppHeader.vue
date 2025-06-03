@@ -103,7 +103,7 @@ onUnmounted(() => {
 
 <template>
   <header
-    class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300 backdrop-blur-lg bg-zinc-900 max-h-[64px] overflow-hidden"
+    class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300 backdrop-blur-lg bg-zinc-900"
     :class="[
       'glass-effect border-b border-zinc-800/50 shadow-lg',
       showHeader ? 'translate-y-0' : '-translate-y-full',
