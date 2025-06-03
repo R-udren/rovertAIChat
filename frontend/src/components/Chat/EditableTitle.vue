@@ -76,8 +76,8 @@ watch(
       v-model="editTitle"
       @keydown="handleKeyDown"
       @blur="handleBlur"
-      class="w-full px-2 py-1 text-white border rounded bg-zinc-600 border-zinc-500 focus:outline-none focus:border-zinc-400"
-      maxlength="100"
+      class="w-full px-2 py-1 text-white border rounded bg-zinc-800 border-zinc-700 focus:outline-none focus:border-zinc-400"
+      maxlength="40"
     />
     <div
       v-else
