@@ -1,3 +1,29 @@
+<script setup>
+import AdminModelManagement from '@/components/Admin/AdminModelManagement.vue'
+import AdminSystemInfo from '@/components/Admin/AdminSystemInfo.vue'
+import AdminUserManagement from '@/components/Admin/AdminUserManagement.vue'
+import { useAdminStore } from '@/stores/admin'
+import { useToastStore } from '@/stores/toast'
+
+const adminStore = useAdminStore()
+const toastStore = useToastStore()
+
+const activeTab = ref('users')
+
+const tabs = [
+  { id: 'users', name: 'User Management' },
+  { id: 'models', name: 'Model Management' },
+  { id: 'system', name: 'System Info' },
+]
+
+onMounted(() => {
+  // Check if user is admin and redirect if not
+  if (!adminStore.isAdmin()) {
+    toastStore.error('Admin access required')
+  }
+})
+</script>
+
 <template>
   <div class="min-h-screen pt-8 bg-zinc-900">
     <div class="container px-4 py-8 mx-auto">
@@ -41,9 +67,8 @@
               }"
               class="px-1 py-4 text-sm font-medium transition-colors border-b-2 whitespace-nowrap"
             >
-              <div class="flex items-center space-x-2">
-                <component :is="tab.icon" class="w-5 h-5" />
-                <span>{{ tab.name }}</span>
+              <div class="flex items-center space-x-2 group">
+                <span class="transition-colors">{{ tab.name }}</span>
               </div>
             </button>
           </nav>
@@ -69,58 +94,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import AdminModelManagement from '@/components/Admin/AdminModelManagement.vue'
-import AdminSystemInfo from '@/components/Admin/AdminSystemInfo.vue'
-import AdminUserManagement from '@/components/Admin/AdminUserManagement.vue'
-import { useAdminStore } from '@/stores/admin'
-import { useAuthStore } from '@/stores/auth'
-import { useToastStore } from '@/stores/toast'
-import { onMounted, ref } from 'vue'
-
-// Icons (inline SVG components)
-const UsersIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-    </svg>
-  `,
-}
-
-const CpuIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-    </svg>
-  `,
-}
-
-const CogIcon = {
-  template: `
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-    </svg>
-  `,
-}
-
-const adminStore = useAdminStore()
-const authStore = useAuthStore()
-const toastStore = useToastStore()
-
-const activeTab = ref('users')
-
-const tabs = [
-  { id: 'users', name: 'User Management', icon: UsersIcon },
-  { id: 'models', name: 'Model Management', icon: CpuIcon },
-  { id: 'system', name: 'System Info', icon: CogIcon },
-]
-
-onMounted(() => {
-  // Check if user is admin and redirect if not
-  if (!adminStore.isAdmin()) {
-    toastStore.error('Admin access required')
-  }
-})
-</script>

@@ -350,13 +350,7 @@ const checkSystemHealth = async () => {
           :disabled="loading"
           class="flex items-center px-4 py-3 space-x-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          <svg
-            v-if="!loading"
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg v-if="!loading" class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -375,7 +369,7 @@ const checkSystemHealth = async () => {
           @click="checkSystemHealth"
           class="flex items-center px-4 py-3 space-x-2 text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
