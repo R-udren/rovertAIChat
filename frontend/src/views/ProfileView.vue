@@ -804,9 +804,6 @@ const saveProfile = async () => {
                         </p>
                       </div>
                     </transition>
-                    <p class="mt-2 text-xs text-gray-500">
-                      This is how your name will appear in chats and around the platform
-                    </p>
                   </div>
 
                   <!-- Avatar URL Field -->

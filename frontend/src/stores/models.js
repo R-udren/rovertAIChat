@@ -69,13 +69,6 @@ export const useModelsStore = defineStore('models', () => {
     const model = getModelByName(modelName)
     return model?.capabilities || []
   }
-
-  // Check if a model has vision capabilities
-  const hasVisionCapability = (modelName) => {
-    const capabilities = getModelCapabilities(modelName)
-    return capabilities.includes('vision') || capabilities.includes('multimodal')
-  }
-
   // Get model with capabilities (now synchronous since capabilities are included)
   const getModelWithCapabilities = (modelName) => {
     const model = getModelByName(modelName)
@@ -83,7 +76,6 @@ export const useModelsStore = defineStore('models', () => {
 
     return {
       ...model,
-      has_vision: hasVisionCapability(modelName),
     }
   }
 
@@ -131,7 +123,6 @@ export const useModelsStore = defineStore('models', () => {
     refreshModels,
     getModelByName,
     getModelCapabilities,
-    hasVisionCapability,
     getModelWithCapabilities,
   }
 })

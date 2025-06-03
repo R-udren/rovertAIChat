@@ -7,7 +7,6 @@ import { useModelsStore } from '@/stores/models'
 import { useChatDeletion } from '@/composables/useChatDeletion'
 import { useChatInitialization } from '@/composables/useChatInitialization'
 import { useChatOperations } from '@/composables/useChatOperations'
-import { useImageUpload } from '@/composables/useImageUpload'
 import { useSidebar } from '@/composables/useSidebar'
 
 // Access stores
@@ -33,18 +32,6 @@ const {
   handleModelChange,
 } = useChatOperations()
 
-// Initialize image upload composable
-const {
-  currentImages,
-  canUploadImages,
-  isDragOverChat,
-  isProcessingImages,
-  handleImagesChanged,
-  handleChatDragOver,
-  handleChatDragLeave,
-  handleChatDrop,
-} = useImageUpload(selectedModel, chatInputRef)
-
 // Initialize chat deletion composable
 const {
   showDeleteModal,
@@ -52,7 +39,7 @@ const {
   chatToDelete,
   deleteChat,
   deleteChats,
-  confirmDeleteModel,
+  confirmDeleteModal,
 } = useChatDeletion()
 
 // Initialize sidebar composable
@@ -118,14 +105,7 @@ onMounted(() => {
         </Suspense>
 
         <!-- Chat Area -->
-        <div
-          class="relative flex flex-col flex-1 w-full overflow-hidden"
-          @dragover="handleChatDragOver"
-          @dragleave="handleChatDragLeave"
-          @drop="handleChatDrop"
-        >
-          <!-- Drag overlay for entire chat area -->
-          <DragDropOverlay v-if="isDragOverChat && canUploadImages" />
+        <div class="relative flex flex-col flex-1 w-full overflow-hidden">
           <!-- Desktop Header -->
           <Suspense>
             <template #default>
@@ -183,9 +163,7 @@ onMounted(() => {
                 ref="chatInputRef"
                 v-model:message-input="messageInput"
                 :is-submitting="isSubmitting"
-                :can-upload-images="canUploadImages"
                 @send-message="sendMessage"
-                @images-changed="handleImagesChanged"
               />
             </template>
             <template #fallback>
@@ -209,7 +187,7 @@ onMounted(() => {
         "
         :confirm-text="deleteModalType === 'single' ? 'Delete Chat' : 'Delete All Chats'"
         cancel-text="Cancel"
-        @confirm="confirmDeleteModel"
+        @confirm="confirmDeleteModal"
         @cancel="showDeleteModal = false"
         @close="showDeleteModal = false"
       />

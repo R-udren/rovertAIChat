@@ -72,7 +72,6 @@ export const useChatStore = defineStore('chat', () => {
         timestamp: msg.created_at,
         model_id: msg.model_id,
         tokens_used: msg.tokens_used,
-        images: msg.images, // Include images for multimodal messages
       }))
 
       return response
@@ -170,8 +169,8 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  // Send message with optional images
-  async function sendMessage(message, model, images = []) {
+  // Send message
+  async function sendMessage(message, model) {
     if (!message) {
       toastStore.error('Message cannot be empty')
       return
@@ -209,7 +208,6 @@ export const useChatStore = defineStore('chat', () => {
         content: message,
         role: 'user',
         timestamp: new Date().toISOString(),
-        images: images.length > 0 ? images : undefined,
       }
 
       messages.value.push(userMessage)
@@ -234,7 +232,6 @@ export const useChatStore = defineStore('chat', () => {
           .map((msg) => ({
             role: msg.role,
             content: msg.content,
-            images: msg.images, // Include images in the request
           })),
         model: model,
         stream: false,

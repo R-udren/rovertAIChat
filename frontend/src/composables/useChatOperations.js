@@ -28,9 +28,8 @@ export function useChatOperations() {
       behavior: 'smooth',
     })
   }
-
   // Send message
-  const sendMessage = async (images = []) => {
+  const sendMessage = async () => {
     if (!messageInput.value.trim() || isSubmitting.value) {
       console.warn('Message input is empty or already submitting')
       return
@@ -46,7 +45,7 @@ export function useChatOperations() {
       chatInputRef.value.resetTextareaHeight()
     }
 
-    await chatStore.sendMessage(message, model, images)
+    await chatStore.sendMessage(message, model)
 
     // If a new conversation was created, navigate to it
     if (chatStore.currentConversation && route.path === '/chat') {
