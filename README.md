@@ -7,12 +7,21 @@
 
 **rovertChat** is a powerful, self-hosted AI platform that prioritizes privacy and user experience. It seamlessly integrates with LLM runners like Ollama and supports OpenAI-compatible APIs, giving you complete control over your AI interactions.
 
-## Preview
+## 📸 Preview
+
+Get a glimpse of what rovertChat offers:
 
 ![Homapage Preview](frontend/public/wide.jpg)
+_The sleek and modern homepage interface_
+
 ![Chat with markdown](assets/chat_markdown.webp)
+_Rich markdown support for enhanced conversations_
+
 ![Chat Model Select](assets/chat_models.webp)
+_Easily switch between different AI models_
+
 ![Chat Loading](assets/chat.webp)
+_Smooth loading experience during AI responses_
 
 ## 🚀 Key Features
 
