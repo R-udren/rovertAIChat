@@ -6,7 +6,10 @@ export const profileSchema = z.object({
   username: z
     .string({ required_error: 'Username is required' })
     .min(4, { message: 'Username must be at least 4 characters' })
-    .max(100, { message: 'Username cannot exceed 100 characters' }),
+    .max(100, { message: 'Username cannot exceed 100 characters' })
+    .regex(/^[a-z0-9_-]+$/, {
+      message: 'Username can only contain lowercase letters, numbers, underscores and hyphens',
+    }),
   email: z
     .string({ required_error: 'Email is required' })
     .email({ message: 'Please enter a valid email address' }),
@@ -39,13 +42,21 @@ export const registerSchema = z
     username: z
       .string({ required_error: 'Username is required' })
       .min(4, { message: 'Username must be at least 4 characters' })
-      .max(64, { message: 'Username cannot exceed 64 characters' }),
+      .max(64, { message: 'Username cannot exceed 64 characters' })
+      .regex(/^[a-z0-9_-]+$/, {
+        message: 'Username can only contain lowercase letters, numbers, underscores and hyphens',
+      }),
     email: z
       .string({ required_error: 'Email is required' })
       .email({ message: 'Please enter a valid email address' }),
     password: z
       .string({ required_error: 'Password is required' })
-      .min(8, { message: 'Password must be at least 8 characters long' }),
+      .min(8, { message: 'Password must be at least 8 characters long' })
+      .max(128, { message: 'Password cannot exceed 128 characters' })
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/, {
+        message:
+          'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      }),
     confirmPassword: z.string({ required_error: 'Please confirm your password' }),
   })
   .refine((data) => data.password === data.confirmPassword, {
