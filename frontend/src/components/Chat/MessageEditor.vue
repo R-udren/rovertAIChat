@@ -1,6 +1,4 @@
 <script setup>
-import { defineEmits, defineProps, nextTick, onMounted, ref, watch } from 'vue'
-
 const props = defineProps({
   content: {
     type: String,

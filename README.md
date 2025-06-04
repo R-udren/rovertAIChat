@@ -7,7 +7,12 @@
 
 **rovertChat** is a powerful, self-hosted AI platform that prioritizes privacy and user experience. It seamlessly integrates with LLM runners like Ollama and supports OpenAI-compatible APIs, giving you complete control over your AI interactions.
 
+## Preview
+
 ![Homapage Preview](frontend/public/wide.jpg)
+![Chat with markdown](assets/chat_markdown.webp)
+![Chat Model Select](assets/chat_models.webp)
+![Chat Loading](assets/chat.webp)
 
 ## 🚀 Key Features
 
@@ -126,7 +131,7 @@ If you prefer to run the services individually for development:
    uv sync
    ```
 
-2. **Set up the database** (or skip to use sqlite db)
+2. **Set up the database** (or skip to use local sqlite db)
 
    ```bash
    # Start PostgreSQL with Docker
@@ -168,7 +173,7 @@ To use local LLMs with Ollama:
 
    Visit https://ollama.com and download the installer
 
-2. **Pull some models**
+2. **Pull some models** (optional, you can also do same from admin panel)
 
    ```bash
    ollama pull qwen3:8b
@@ -225,7 +230,7 @@ rovertChat implements three user roles:
 
 - **Guest**: Can do nothing except discovering fancy home page
 - **User**: Has persistent chat history and personalized settings
-- **Admin**: Can upload and manage LLM models, configure system settings, and manage users
+- **Admin**: Can upload and manage LLM models, configure system settings, and manage users (first user is automatically created as admin)
 
 ## 🌟 Upcoming Features
 
