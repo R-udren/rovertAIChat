@@ -11,7 +11,7 @@ REFRESH_SECRET_KEY = os.getenv("JWT_REFRESH_SECRET_KEY", "myrefreshsecretkey")
 COOKIE_DOMAIN = os.getenv("DOMAIN", "localhost")
 COOKIE_SECURE = os.getenv("ENVIRONMENT", "production") == "production"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 
