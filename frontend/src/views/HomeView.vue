@@ -193,9 +193,6 @@ const goToChat = () => {
                 <span class="px-3 py-1 text-sm text-green-200 rounded-full bg-green-500/20"
                   >FastAPI</span
                 >
-                <span class="px-3 py-1 text-sm text-purple-200 rounded-full bg-purple-500/20"
-                  >Socket.IO</span
-                >
                 <span class="px-3 py-1 text-sm text-indigo-200 rounded-full bg-indigo-500/20"
                   >PostgreSQL</span
                 >

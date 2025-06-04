@@ -23,7 +23,7 @@
 
 ## 🔧 Technical Stack
 
-- **Backend**: Python with FastAPI for API endpoints and real-time communication via Socket.IO
+- **Backend**: Python with FastAPI for API endpoints
 - **Frontend**: Vue.js with Tailwind CSS 4 for a modern, responsive UI and Markdown support with Bun as the build tool
 - **Database**: PostgreSQL/SQLite database for storing user auth, user profiles, chat history, and configurations
 

@@ -9,7 +9,6 @@ This is the backend API service for rovertChat, a self-hosted AI chat platform b
 - **JWT Authentication**: Secure user authentication with refresh tokens
 - **Role-Based Access Control**: Admin, User, and Guest roles
 - **Ollama Integration**: Direct integration with local LLM models
-- **Real-time Chat**: WebSocket support for live conversations
 - **User Management**: Complete user lifecycle management
 - **Model Management**: Admin controls for Ollama model deployment
 
