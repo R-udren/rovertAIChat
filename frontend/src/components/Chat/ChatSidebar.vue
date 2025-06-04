@@ -62,8 +62,11 @@ function selectChat(chat) {
       // Mobile mode
       { 'fixed inset-y-0 left-0 z-50 w-80 max-w-[80vw]': isMobile },
       { 'bg-zinc-900/95 backdrop-blur-md shadow-2xl': isMobile },
-      { 'transform -translate-x-full': isMobile && !isMobileSidebarOpen },
-      { 'transform translate-x-0': isMobile && isMobileSidebarOpen },
+      { 'transform -translate-x-full opacity-0': isMobile && !isMobileSidebarOpen },
+      { 'transform translate-x-0 opacity-100': isMobile && isMobileSidebarOpen },
+      // Desktop opacity
+      { 'opacity-0': !isMobile && !showSidebar },
+      { 'opacity-100': !isMobile && showSidebar },
     ]"
   >
     <!-- Header with title and action buttons -->
