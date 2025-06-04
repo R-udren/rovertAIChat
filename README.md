@@ -33,9 +33,14 @@
 
 Before getting started, ensure you have the following installed:
 
-- **Docker & Docker Compose**: For containerized deployment
 - **Git**: To clone the repository
-- **Ollama** (optional): For local LLM hosting
+- [**Docker & Docker Compose**](https://www.docker.com/): For containerized deployment
+- [**Ollama**](https://ollama.com/): For local LLM running
+- **Python 3.9+**: For backend development (if running locally)
+- **Node.js**: For frontend development (if running locally)
+- **Bun**: For frontend package management and build (if running locally)
+- **UV**: For backend dependency management (if running locally)
+- **PostgreSQL**: For database (if running locally)
 
 ### Quick Start with Docker 🐳
 
@@ -71,7 +76,7 @@ Before getting started, ensure you have the following installed:
 
 4. **SSL Certificates Setup**
 
-   For **local development**:
+   For **local development** with self-signed certificates:
 
    ```bash
    # Create self-signed certificates for localhost
@@ -103,8 +108,10 @@ Before getting started, ensure you have the following installed:
 
 6. **Access the application**
    - **Frontend**: https://localhost (or your domain)
-   - **Backend API**: https://localhost/api/docs
+   - **Backend API**: https://localhost/docs
    - **Database**: localhost:5432 (PostgreSQL)
+   - **Ollama**: http://localhost:11434 (if running locally)
+   - **PGAdmin**: http://localhost:8080 (if enabled in `docker-compose.yml`)
 
 ### Local Development Setup 💻
 
@@ -116,11 +123,10 @@ If you prefer to run the services individually for development:
 
    ```bash
    cd backend
-   pip install uv
    uv sync
    ```
 
-2. **Set up the database**
+2. **Set up the database** (or skip to use sqlite db)
 
    ```bash
    # Start PostgreSQL with Docker
@@ -132,7 +138,7 @@ If you prefer to run the services individually for development:
 
 3. **Run the backend**
    ```bash
-   uv run python src/main.py
+   fastapi run src/main.py
    ```
 
 #### Frontend Setup
@@ -160,21 +166,16 @@ To use local LLMs with Ollama:
 
 1. **Install Ollama**
 
-   ```bash
-   # Windows/macOS/Linux
-   # Visit https://ollama.ai and download the installer
-   ```
+   Visit https://ollama.com and download the installer
 
 2. **Pull some models**
 
    ```bash
-   ollama pull llama3.2
-   ollama pull mistral
-   ollama pull codellama
+   ollama pull qwen3:8b
    ```
 
 3. **Configure the backend**
-   The backend is already configured to connect to Ollama at `http://host.docker.internal:11434`
+   The backend is already configured to connect to Ollama at `http://localhost:11434`
 
 ### Environment Variables Reference 📋
 
@@ -211,8 +212,11 @@ docker-compose up --build
 # Stop all services
 docker-compose down
 
-# Reset database
-docker-compose down -v && docker-compose up -d
+# Remove all containers and volumes
+docker-compose down -v
+
+# Reset database and start fresh
+docker-compose down -v && docker-compose up -d --build
 ```
 
 ## 🔐 Role-Based Access
