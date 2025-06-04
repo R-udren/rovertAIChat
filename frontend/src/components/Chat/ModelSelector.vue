@@ -83,7 +83,7 @@ const getCapabilityInfo = (capability) => {
     capabilityMap[capability] || {
       icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z',
       label: capability.charAt(0).toUpperCase() + capability.slice(1),
-      color: 'text-gray-500',
+      color: 'text-zinc-500',
     }
   )
 }
@@ -259,7 +259,7 @@ watch(
     >
       <div
         v-if="isDropdownOpen"
-        class="absolute right-0 z-50 w-[60vw] max-w-sm mt-2 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden"
+        class="absolute right-0 z-50 w-[60vw] max-w-sm mt-2 bg-zinc-900 rounded-xl shadow-2xl border border-zinc-700 overflow-hidden"
       >
         <!-- Content -->
         <div class="max-h-[50vh] overflow-y-auto">
@@ -268,16 +268,16 @@ watch(
             <div
               class="w-8 h-8 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"
             ></div>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400">Loading available models...</p>
+            <p class="text-sm text-zinc-400">Loading available models...</p>
           </div>
 
           <!-- Error State -->
           <div v-else-if="status === 'error'" class="p-6 text-center">
             <div
-              class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
+              class="w-12 h-12 bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
             >
               <svg
-                class="w-6 h-6 text-red-600 dark:text-red-400"
+                class="w-6 h-6 text-red-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -290,10 +290,8 @@ watch(
                 />
               </svg>
             </div>
-            <h4 class="text-sm font-medium text-zinc-900 dark:text-white mb-2">
-              Connection Failed
-            </h4>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4">{{ modelsStore.error }}</p>
+            <h4 class="text-sm font-medium text-white mb-2">Connection Failed</h4>
+            <p class="text-xs text-zinc-400 mb-4">{{ modelsStore.error }}</p>
             <button
               @click="handleRefresh"
               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
@@ -320,10 +318,10 @@ watch(
           <!-- Empty State -->
           <div v-else-if="status === 'empty'" class="p-6 text-center">
             <div
-              class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
+              class="w-12 h-12 bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
             >
               <svg
-                class="w-6 h-6 text-yellow-600 dark:text-yellow-400"
+                class="w-6 h-6 text-yellow-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -336,10 +334,8 @@ watch(
                 />
               </svg>
             </div>
-            <h4 class="text-sm font-medium text-zinc-900 dark:text-white mb-2">No Models Found</h4>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
-              No AI models are currently available
-            </p>
+            <h4 class="text-sm font-medium text-white mb-2">No Models Found</h4>
+            <p class="text-xs text-zinc-400 mb-4">No AI models are currently available</p>
             <button
               @click="handleRefresh"
               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
