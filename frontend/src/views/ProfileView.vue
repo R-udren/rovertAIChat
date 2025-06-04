@@ -359,7 +359,7 @@ const saveProfile = async () => {
               <div class="flex-1 space-y-4">
                 <div>
                   <h2
-                    class="mb-2 text-4xl font-bold text-transparent bg-gradient-to-r from-white via-purple-200 to-gray-300 bg-clip-text"
+                    class="pb-2 text-4xl font-bold text-transparent bg-gradient-to-r from-white via-purple-200 to-gray-300 bg-clip-text"
                   >
                     {{ displayName }}
                   </h2>
@@ -908,24 +908,6 @@ const saveProfile = async () => {
                               @load="imageLoadStatus = { loaded: true, error: false }"
                               @error="imageLoadStatus = { loaded: false, error: true }"
                             />
-                            <div
-                              v-if="imageLoadStatus.loaded && !imageLoadStatus.error"
-                              class="absolute flex items-center justify-center w-5 h-5 bg-green-500 border-2 rounded-full -bottom-1 -right-1 border-slate-800"
-                            >
-                              <svg
-                                class="w-3 h-3 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M5 13l4 4L19 7"
-                                ></path>
-                              </svg>
-                            </div>
                             <div
                               v-if="imageLoadStatus.error"
                               class="absolute flex items-center justify-center w-5 h-5 bg-red-500 border-2 rounded-full -bottom-1 -right-1 border-slate-800"
