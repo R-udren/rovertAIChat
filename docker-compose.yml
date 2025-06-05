@@ -44,6 +44,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://postgres:${DATABASE_PASSWORD}@postgres:5432/postgres
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       OLLAMA_API_BASE_URL: http://host.docker.internal:11434 # If ollama is running on the host machine
       DOMAIN: ${DOMAIN}
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS}
