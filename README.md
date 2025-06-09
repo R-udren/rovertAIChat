@@ -51,7 +51,7 @@ Before getting started, ensure you have the following installed:
 - **Node.js**: For frontend development (if running locally)
 - **Bun**: For frontend package management and build (if running locally)
 - **UV**: For backend dependency management (if running locally)
-- **PostgreSQL**: For database (if running locally)
+- **PostgreSQL**: For database (SQLite if running locally)
 
 ### Quick Start with Docker 🐳
 
