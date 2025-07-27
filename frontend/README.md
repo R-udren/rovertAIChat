@@ -1,6 +1,6 @@
-# frontend
+# Frontend part for AIChat
 
-This template should help get you started developing with Vue 3 in Vite.
+To be honest, my least loved part of this project.
 
 ## Recommended IDE Setup
 
