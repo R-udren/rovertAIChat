@@ -46,7 +46,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:${DATABASE_PASSWORD}@postgres:5432/postgres
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      OLLAMA_API_BASE_URL: http://host.docker.internal:11434 # If ollama is running on the host machine
+      OLLAMA_API_BASE_URL: ${OLLAMA_API_BASE_URL} # If ollama is running on the host machine
       DOMAIN: ${DOMAIN}
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
