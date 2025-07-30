@@ -3,36 +3,19 @@ services:
     image: postgres:17-alpine
     container_name: postgresql
     restart: always
+    network_mode: host
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       start_period: 0s
       interval: 1s
       timeout: 5s
       retries: 5
-    networks:
-      - rovertchat-net
-
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   container_name: pgadmin
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-  #   ports:
-  #     - "8080:80"
-  #   depends_on:
-  #     - postgres
-  #   networks:
-  #     - rovertchat-net
 
   backend:
     build:
@@ -40,21 +23,18 @@ services:
       dockerfile: Dockerfile
     container_name: rovertchat-api
     restart: always
+    network_mode: host
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:${DATABASE_PASSWORD}@postgres:5432/postgres
+      DATABASE_URL: postgresql://postgres:${DATABASE_PASSWORD}@localhost:5432/postgres
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      OLLAMA_API_BASE_URL: ${OLLAMA_API_BASE_URL} # If ollama is running on the host machine
+      OLLAMA_API_BASE_URL: http://localhost:11434
       DOMAIN: ${DOMAIN}
       FRONTEND_ORIGINS: ${FRONTEND_ORIGINS}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_REFRESH_SECRET_KEY: ${JWT_REFRESH_SECRET_KEY}
-    extra_hosts:
-      - "host.docker.internal:host-gateway" # For accessing host services (for ollama)
-    networks:
-      - rovertchat-net
 
   frontend:
     build:
@@ -62,10 +42,9 @@ services:
       dockerfile: Dockerfile
     container_name: rovertchat-frontend
     restart: always
+    network_mode: host
     depends_on:
       - backend
-    networks:
-      - rovertchat-net
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
 
@@ -73,9 +52,7 @@ services:
     image: caddy:2-alpine
     container_name: rovertchat-caddy
     restart: always
-    ports:
-      - "80:80"
-      - "443:443"
+    network_mode: host
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -84,8 +61,6 @@ services:
     depends_on:
       - frontend
       - backend
-    networks:
-      - rovertchat-net
     environment:
       DOMAIN: ${DOMAIN}
 
@@ -94,6 +69,3 @@ volumes:
   caddy_data:
   caddy_config:
   caddy_logs:
-
-networks:
-  rovertchat-net:

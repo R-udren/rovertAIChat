@@ -19,25 +19,25 @@
 {$DOMAIN:localhost} {
     # API routes
     handle /api/* {
-        reverse_proxy backend:8000
+        reverse_proxy localhost:8000
     }
     
     # API documentation
     handle /docs* {
-        reverse_proxy backend:8000
+        reverse_proxy localhost:8000
     }
     
     handle /redoc* {
-        reverse_proxy backend:8000
+        reverse_proxy localhost:8000
     }
     
     handle /openapi.json {
-        reverse_proxy backend:8000
+        reverse_proxy localhost:8000
     }
     
     # Frontend static files
     handle {
-        reverse_proxy frontend:80
+        reverse_proxy localhost:80
     }
     
     # Security headers
