@@ -1,7 +1,33 @@
-# Caddyfile - Uses environment variables for domain
-# Works for both development (localhost) and production (your domain)
+# Caddyfile - Production-ready HTTPS-only configuration
+# Uses environment variables for domain
+{
+    # Global options
+    admin off
+    # Enable structured logging to file
+    log {
+        output file /var/log/caddy/caddy.log {
+            roll_size 100MiB
+            roll_keep 10
+            roll_keep_for 720h
+        }
+        format json
+        level INFO
+    }
+}
 
 {$DOMAIN:localhost} {
+    # Enable access logging to file
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 100MiB
+            roll_keep 10
+            roll_keep_for 720h
+        }
+        format json {
+            time_format "2006-01-02T15:04:05.000Z07:00"
+        }
+    }
+
     # API routes
     handle /api/* {
         reverse_proxy backend:8000
@@ -27,12 +53,22 @@
     
     # Security headers
     header {
-        X-Frame-Options DENY
-        X-Content-Type-Options nosniff
+        # HSTS - Force HTTPS for 2 years, include subdomains, allow preloading
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        # Prevent clickjacking
+        X-Frame-Options "DENY"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # XSS protection (legacy but still good)
         X-XSS-Protection "1; mode=block"
+        # Referrer policy - strict for cross-origin
         Referrer-Policy "strict-origin-when-cross-origin"
-        # Add HSTS only for production (non-localhost)
-        @production not remote_ip private_ranges
-        Strict-Transport-Security "max-age=31536000; includeSubDomains" @production
+        # Content Security Policy - restrictive but functional for SPA
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; child-src 'none'; worker-src 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+        # Permissions Policy - disable unnecessary browser features
+        Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), sync-xhr=(), fullscreen=(self)"
+        # Remove server information
+        -Server
+        -X-Powered-By
     }
 }
