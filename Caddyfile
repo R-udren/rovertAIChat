@@ -18,6 +18,7 @@
 {$DOMAIN:localhost} {
     # Enable access logging to file
     log {
+        output stdout
         output file /var/log/caddy/access.log {
             roll_size 100MiB
             roll_keep 10
