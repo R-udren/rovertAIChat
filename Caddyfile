@@ -1,24 +1,13 @@
-# Caddyfile - Automatic HTTPS with Let's Encrypt
-# This configuration handles both development and production scenarios
+# Caddyfile - Uses environment variables for domain
+# Works for both development (localhost) and production (your domain)
 
-{
-    # Global options
-    auto_https off
-    admin off
-    
-    # For development, disable HTTPS redirect
-    # For production, remove this block to enable automatic HTTPS
-    local_certs
-}
-
-# Development configuration (localhost)
-localhost {
-    # Serve API routes
+{$DOMAIN:localhost} {
+    # API routes
     handle /api/* {
         reverse_proxy backend:8000
     }
     
-    # Serve API documentation
+    # API documentation
     handle /docs* {
         reverse_proxy backend:8000
     }
@@ -31,66 +20,19 @@ localhost {
         reverse_proxy backend:8000
     }
     
-    # Serve frontend static files
+    # Frontend static files
     handle {
         reverse_proxy frontend:80
     }
     
-    # Security headers for development
+    # Security headers
     header {
         X-Frame-Options DENY
         X-Content-Type-Options nosniff
         X-XSS-Protection "1; mode=block"
         Referrer-Policy "strict-origin-when-cross-origin"
+        # Add HSTS only for production (non-localhost)
+        @production not remote_ip private_ranges
+        Strict-Transport-Security "max-age=31536000; includeSubDomains" @production
     }
 }
-
-# Production configuration (replace yourdomain.com with your actual domain)
-# Uncomment and modify for production use
-# yourdomain.com {
-#     # Automatic HTTPS with Let's Encrypt
-#     
-#     # Serve API routes
-#     handle /api/* {
-#         reverse_proxy backend:8000 {
-#             header_up X-Forwarded-Proto https
-#             header_up X-Forwarded-Port 443
-#         }
-#     }
-#     
-#     # Serve API documentation
-#     handle /docs* {
-#         reverse_proxy backend:8000 {
-#             header_up X-Forwarded-Proto https
-#             header_up X-Forwarded-Port 443
-#         }
-#     }
-#     
-#     handle /redoc* {
-#         reverse_proxy backend:8000 {
-#             header_up X-Forwarded-Proto https
-#             header_up X-Forwarded-Port 443
-#         }
-#     }
-#     
-#     handle /openapi.json {
-#         reverse_proxy backend:8000 {
-#             header_up X-Forwarded-Proto https
-#             header_up X-Forwarded-Port 443
-#         }
-#     }
-#     
-#     # Serve frontend static files
-#     handle {
-#         reverse_proxy frontend:80
-#     }
-#     
-#     # Security headers for production
-#     header {
-#         Strict-Transport-Security "max-age=31536000; includeSubDomains"
-#         X-Frame-Options DENY
-#         X-Content-Type-Options nosniff
-#         X-XSS-Protection "1; mode=block"
-#         Referrer-Policy "strict-origin-when-cross-origin"
-#     }
-# }
