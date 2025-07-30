@@ -1,1 +1,11 @@
 .env
+
+# Legacy certificate directories (not needed with Caddy)
+frontend/certs/
+*.pem
+*.crt
+*.key
+
+# Caddy data (handled by Docker volumes)
+caddy_data/
+caddy_config/

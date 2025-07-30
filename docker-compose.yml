@@ -57,21 +57,39 @@ services:
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     container_name: rovertchat-frontend
     restart: always
-    ports:
-      - "80:80"
-      - "443:443"
     depends_on:
       - backend
     networks:
       - rovertchat-net
     environment:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: rovertchat-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - rovertchat-net
+    environment:
       DOMAIN: ${DOMAIN}
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   rovertchat-net:

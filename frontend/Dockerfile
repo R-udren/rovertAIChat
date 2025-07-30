@@ -1,39 +1,14 @@
-# use the official Bun image
-FROM oven/bun:alpine AS base
-
-WORKDIR /usr/src/app
-
-# install dependencies into temp directory
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
-
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY package.json /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
-
+# Simple Frontend Dockerfile for Caddy setup
 # Build stage
-FROM base AS build
-COPY --from=install /temp/dev/node_modules node_modules
+FROM oven/bun:alpine AS build
+
+WORKDIR /app
+COPY package.json ./
+RUN bun install --frozen-lockfile
 COPY . .
-ENV NODE_ENV=production
 RUN bun run build
 
-# Production stage - using nginx to serve static files
-FROM nginx:alpine AS release
-# Copy nginx configuration template
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf.template
-# Copy startup script
-COPY ./docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-# Copy SSL certificates
-COPY ./certs /etc/nginx/ssl
-# Copy built static files from build stage
-COPY --from=build /usr/src/app/dist /usr/share/nginx/html
-
-EXPOSE 80 443
-
-# Use custom entrypoint
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Serve stage - minimal static file server
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80

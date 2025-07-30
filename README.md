@@ -8,6 +8,7 @@
 **rovertChat** is a powerful, self-hosted AI platform that prioritizes privacy and user experience. It seamlessly integrates with LLM runners like Ollama and supports OpenAI-compatible APIs, giving you complete control over your AI interactions.
 
 ## 📸 Preview
+
 ![Chat with markdown](assets/chat_markdown.webp)
 
 _Rich markdown support for enhanced conversations_
@@ -37,6 +38,16 @@ _Smooth loading experience during AI responses_
 - **Backend**: Python with FastAPI for API endpoints
 - **Frontend**: Vue.js with Tailwind CSS 4 for a modern, responsive UI and Markdown support with Bun as the build tool
 - **Database**: PostgreSQL/SQLite database for storing user auth, user profiles, chat history, and configurations
+- **Reverse Proxy**: Caddy with automatic HTTPS (Let's Encrypt) and modern security headers
+- **Deployment**: Docker containers with docker-compose orchestration
+
+## 🆕 Recent Updates
+
+- **Migrated from nginx to Caddy**: Automatic HTTPS with Let's Encrypt, simplified configuration, no manual certificate management required
+- **Simplified deployment**: One-command deployment with automatic SSL certificates
+- **Enhanced security**: Modern TLS configuration and security headers included by default
+
+See [CADDY_MIGRATION.md](CADDY_MIGRATION.md) for detailed migration information.
 
 ## 🛠️ Installation
 
@@ -85,44 +96,42 @@ Before getting started, ensure you have the following installed:
    JWT_REFRESH_SECRET_KEY=your_super_secret_refresh_key_here
    ```
 
-4. **SSL Certificates Setup**
+4. **Set up and run the application**
 
-   For **local development** with self-signed certificates:
-
-   ```bash
-   # Create self-signed certificates for localhost
-   mkdir -p frontend/certs
-   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-     -keyout frontend/certs/privkey.pem \
-     -out frontend/certs/fullchain.pem \
-     -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
-   ```
-
-   For **production** with Let's Encrypt:
+   With Caddy (recommended - automatic HTTPS):
 
    ```bash
-   # Use certbot to get real certificates
-   sudo certbot certonly --standalone -d yourdomain.com
-
-   # Copy certificates to the project
-   sudo cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem frontend/certs/
-   sudo cp /etc/letsencrypt/live/yourdomain.com/privkey.pem frontend/certs/
-   sudo cp /etc/letsencrypt/live/yourdomain.com/cert.pem frontend/certs/
-   sudo cp /etc/letsencrypt/live/yourdomain.com/chain.pem frontend/certs/
-   ```
-
-5. **Build and run the application**
-
-   ```bash
+   # Build and start all services
    docker-compose up --build -d
    ```
 
-6. **Access the application**
-   - **Frontend**: https://localhost (or your domain)
-   - **Backend API**: https://localhost/docs
+   The application will be available at:
+
+   - **Frontend**: http://localhost (HTTP) or https://localhost (HTTPS with self-signed cert)
+   - **Backend API**: http://localhost/docs or https://localhost/docs
    - **Database**: localhost:5432 (PostgreSQL)
-   - **Ollama**: http://localhost:11434 (if running locally)
-   - **PGAdmin**: http://localhost:8080 (if enabled in `docker-compose.yml`)
+   - **PGAdmin**: http://localhost:8080 (if enabled)
+
+   > **Note**: Caddy automatically handles HTTPS with self-signed certificates for localhost development and Let's Encrypt certificates for production domains.
+
+5. **Production deployment**
+
+   For production with automatic Let's Encrypt certificates:
+
+   ```bash
+   # 1. Update your .env file
+   DOMAIN=yourdomain.com
+   VITE_API_BASE_URL=https://yourdomain.com
+   FRONTEND_ORIGINS=https://yourdomain.com
+
+   # 2. Copy and modify production Caddyfile
+   cp Caddyfile.prod Caddyfile
+   # Edit Caddyfile and replace yourdomain.com with your actual domain
+
+   # 3. Ensure DNS points to your server
+   # 4. Deploy
+   docker-compose up --build -d
+   ```
 
 ### Local Development Setup 💻
 
