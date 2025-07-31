@@ -2,19 +2,20 @@ import os
 import time
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from src.core.logger import app_logger
-from src.core.rate_limiter import setup_limiter
+from src.core.rate_limiter import setup_limiter, limiter
 from src.database import Base, engine, get_db
 from src.routers.auth import router as auth_router
 from src.routers.chats import router as chat_router
 from src.routers.ollama import router as ollama_router
 from src.routers.user import router as user_router
 from src.routers.user_settings import router as user_settings_router
+
 
 load_dotenv(".env.dev")
 
@@ -63,9 +64,9 @@ async def health_check():
     """
     return {"status": "healthy"}
 
-
+@limiter.limit("5/minute")
 @app.get("/api/v1/health/db")
-async def health_db(db: Session = Depends(get_db)):
+async def health_db(request: Request, db: Session = Depends(get_db)):
     """
     Health check endpoint to verify if the database is reachable.
     """

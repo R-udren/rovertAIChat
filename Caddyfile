@@ -1,0 +1,63 @@
+# Caddyfile - Production-ready HTTPS-only configuration
+# Uses environment variables for domain
+{
+    # Global options
+    admin off
+    # Enable structured logging to file
+    log {
+        output stderr
+        # output file /var/log/caddy/caddy.log {
+        #     roll_size 100MiB
+        #     roll_keep 10
+        #     roll_keep_for 720h
+        # }
+        # format json
+        level INFO
+    }
+}
+
+{$DOMAIN:localhost} {
+    # API routes
+    handle /api/* {
+        reverse_proxy localhost:8000
+    }
+    
+    # API documentation
+    handle /docs* {
+        reverse_proxy localhost:8000
+    }
+    
+    handle /redoc* {
+        reverse_proxy localhost:8000
+    }
+    
+    handle /openapi.json {
+        reverse_proxy localhost:8000
+    }
+    
+    # Frontend static files
+    handle {
+        reverse_proxy localhost:8080
+    }
+    
+    # Security headers
+    header {
+        # HSTS - Force HTTPS for 2 years, include subdomains, allow preloading
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        # Prevent clickjacking
+        X-Frame-Options "DENY"
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+        # XSS protection (legacy but still good)
+        X-XSS-Protection "1; mode=block"
+        # Referrer policy - strict for cross-origin
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Content Security Policy - allow external CDNs for docs and functionality
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; connect-src 'self' https:; media-src 'self'; object-src 'none'; child-src 'none'; worker-src 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+        # Permissions Policy - disable unnecessary browser features
+        Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), midi=(), sync-xhr=(), fullscreen=(self)"
+        # Remove server information
+        -Server
+        -X-Powered-By
+    }
+}

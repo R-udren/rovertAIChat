@@ -34,7 +34,17 @@ async def get_ollama_version():
     try:
         return await OllamaService.get_version()
     except aiohttp.ClientError as e:
+        app_logger.error(
+            f"ClientError while fetching Ollama API version: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(status_code=502, detail=str(e))
+    except Exception as e:
+        app_logger.error(
+            f"Unexpected error while fetching Ollama API version: {str(e)}",
+            exc_info=True,
+        )
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.get("/tags", response_model=OllamaModelsWithCapabilitiesResponse)
